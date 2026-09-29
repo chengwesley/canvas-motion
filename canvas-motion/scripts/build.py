@@ -94,7 +94,7 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
         style_src = sp.read_text("utf-8")
 
     scene_files = sorted((proj / "scenes").glob("*.js")) if (proj / "scenes").exists() else []
-    # library/ 底下全部載入：scenes.js（版面零件）、looks.js（畫風零件）……依檔名排序
+    # library/ 底下全部載入：kit.js（常用繪圖小工具）、looks.js（畫風渲染與形狀）……依檔名排序
     lib_src = "\n".join(f"// ==== library/{p.name}\n{p.read_text('utf-8')}" for p in sorted((SKILL / "library").glob("*.js")))
     scene_src = "\n".join(f"// ---- scenes/{p.name}\n{p.read_text('utf-8')}" for p in scene_files)
     defined = set(re.findall(r"function\s+((?:s|L_)[A-Za-z0-9_]+)\s*\(", lib_src + "\n" + scene_src))

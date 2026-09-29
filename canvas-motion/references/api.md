@@ -1,6 +1,6 @@
 # Canvas Motion 引擎 API
 
-寫**自訂場景**前讀這份。多數影片用場景庫（見 library.md）填資料就能完成，不需要寫程式。引擎在 `engine/`，所有函式都是全域的，場景檔直接呼叫即可。
+寫場景前讀這份。每一幕都是自己發想、自己寫的場景函式；常用畫筆在 `library/kit.js`（文件、人物、筆電、齒輪、燈泡、星星、弧線）與 `library/looks.js`。引擎在 `engine/`，所有函式都是全域的，場景檔直接呼叫即可。
 
 ## 目錄
 1. project.json
@@ -241,5 +241,5 @@ function sFly(t, T, pulse, s) {
 
 ## 14. 畫風與常用形狀
 
-背景用 `L_look`、主體用 `withLook` + `lookShape`／`LK_SHAPES` + `lookDraw`，說明與範例見 `references/looks.md`、`examples/shapes-demo`。
+背景可在場景裡呼叫 `L_look`、主體用 `withLook` + `lookShape`／`LK_SHAPES` + `lookDraw`，說明與範例見 `references/looks.md`、`examples/shapes-demo`。
 

@@ -20,20 +20,6 @@
   "aspect": "auto",
   "scenes": [
     {
-      "fn": "L_title",
-      "bars": 2,
-      "energy": 0.3,
-      "trans": "fade",
-      "_say": "開場",
-      "data": {
-        "kicker": "Canvas Motion 畫風零件",
-        "lines": [
-          "同一個構圖",
-          "十種畫風"
-        ]
-      }
-    },
-    {
       "fn": "L_look",
       "bars": 2,
       "energy": 0.45,

@@ -120,10 +120,10 @@ python3 $SKILL/scripts/export.py my-video out.gif
 └── canvas-motion/             ← skill 本體（安裝的就是這個資料夾）
     ├── SKILL.md               給 Claude 的操作說明
     ├── engine/                固定引擎：HTML 外殼、繪圖與排版、時間軸與配樂、播放器
-    ├── templates/             10 套敘事參考範本（選用）
+    ├── library/               繪圖小工具 kit.js、畫風 looks.js（畫筆，不是版面）
     ├── styles/                風格設定
     ├── scripts/               verify / storyboard / build / sheet / export / style_gen / check_env / selftest
-    ├── references/            direction.md（情境→決策）、narratives.md（敘事模式）、looks.md（畫風與常用形狀）、
+    ├── references/            direction.md（情境→規格與節奏）、looks.md（畫風與常用形狀）、
     │                          api.md（場景寫法）、style-pack.md（風格設定）
     └── examples/              範例專案（也是回歸測試）
 ```

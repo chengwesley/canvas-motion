@@ -12,8 +12,7 @@ storyboard.json：
   "style": "minimal" 或 { "base": "minimal", ... },         // 風格參數見 styles/_schema.json
   "source": "source.txt",                                   // 選填：素材檔，build.py 用來追溯數字
   "scenes": [
-    { "fn": "L_title", "bars": 2, "energy": 0.3, "trans": "zoom",
-      "say": "這幕講的一件事", "data": { "lines": ["……"] } },
+    { "fn": "sHook", "bars": 2, "energy": 0.3, "trans": "zoom", "say": "這幕講的一件事" },
     { "fn": "sProduct", "bars": 3, "energy": 0.7, "say": "產品如何運作" }   // s 開頭 = 自訂場景，會產生鷹架
   ]
 }
@@ -51,15 +50,12 @@ def check(sb):
     sc = sb.get("scenes") or []
     if not sc:
         return ["沒有任何幕"], []
-    lib = lib_scenes()
     for i, s in enumerate(sc, 1):
         fn = s.get("fn", "")
         if not isinstance(s.get("energy", .5), (int, float)):
             errs.append(f"第 {i} 幕 energy 要是數字"); continue
-        if not (fn.startswith("L_") or fn.startswith("s")):
-            errs.append(f"第 {i} 幕 fn「{fn}」要是 L_ 零件或 s 開頭的自訂場景")
-        if fn.startswith("L_") and fn not in lib:
-            errs.append(f"第 {i} 幕 {fn} 不存在（可用：{', '.join(sorted(lib))}）")
+        if not fn.startswith("s"):
+            errs.append(f"第 {i} 幕 fn「{fn}」要是 s 開頭的自訂場景（每幕都由自己發想構圖與動畫，不套版面零件）")
         b = s.get("bars", 2)
         if not isinstance(b, int) or b < 1:
             errs.append(f"第 {i} 幕 bars 必須是正整數（切點才會落在小節第一拍）")

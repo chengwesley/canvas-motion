@@ -2,14 +2,11 @@
 """建立新專案。
 
 用法：
-  python3 new_project.py --list                                   # 列出腳本範本與風格包
-  python3 new_project.py <資料夾> --blank --title "片名"           # 空白骨架，自由設計分鏡（預設建議）
-  python3 new_project.py <資料夾> --template keynote --title "片名"  # 從敘事參考範本建立
-  python3 new_project.py <資料夾> --title "片名" --scenes sHook:2,sProof:3,sOutro:2   # 空白自訂場景
+  python3 new_project.py --list                                   # 列出風格包
+  python3 new_project.py <資料夾> --title "片名" --scenes sHook:2,sProof:3,sOutro:2   # 自訂場景鷹架
 選填：--style tech  --bpm 120  --aspect auto|16:9|9:16|1:1
 
---blank 只產生最小的 project.json（一幕開場），依分鏡自由增減幕、混用 L_ 場景與自訂場景。
-範本只是敘事參考，建立後可任意刪改；場景庫不夠用時，在 scenes/ 寫自訂場景函式（s 開頭）。
+每一幕都是 scenes/ 裡自己發想、自己寫的場景函式（s 開頭）。沒有範本、沒有版面零件。
 """
 import argparse, json, sys
 from pathlib import Path
@@ -43,12 +40,7 @@ TEMPLATE = SCAFFOLD  # 舊名稱相容
 
 
 def list_all():
-    print("敘事參考範本（--template，選用）：")
-    for p in sorted((SKILL / "templates").glob("*.json")):
-        c = json.loads(p.read_text("utf-8"))
-        bars = sum(s["bars"] for s in c["scenes"])
-        print(f"  {p.stem:<17} [{c['style']}, {len(c['scenes'])} 幕 / {bars} 小節]  {c['_desc']}")
-    print("\n風格包（--style）：")
+    print("風格包（--style）：")
     for p in sorted((SKILL / "styles").glob("*.js")):
         head = p.read_text("utf-8").splitlines()[1]
         print(f"  {p.stem:<11} {head.strip('/* ').split('—')[-1].strip(' */')}")
@@ -58,8 +50,6 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dir", nargs="?")
     ap.add_argument("--list", action="store_true")
-    ap.add_argument("--template")
-    ap.add_argument("--blank", action="store_true", help="空白骨架，不套範本")
     ap.add_argument("--title")
     ap.add_argument("--style")
     ap.add_argument("--bpm", type=int)
@@ -76,20 +66,8 @@ def main():
     if a.style and not (SKILL / "styles" / f"{a.style}.js").exists():
         sys.exit(f"✗ 沒有風格包 {a.style}（用 --list 查看）")
 
-    if a.blank and a.template:
-        ap.error("--blank 與 --template 只能擇一")
     (d / "scenes").mkdir(parents=True, exist_ok=True)
-    if a.blank:
-        cfg = {"title": a.title, "style": "minimal", "aspect": "auto", "scenes": [
-            {"fn": "L_title", "bars": 2, "energy": 0.4, "_hint": "依分鏡增減幕；L_ 場景與自訂場景可混用",
-             "data": {"lines": ["{{開場文案}}"]}}]}
-    elif a.template:
-        tp = SKILL / "templates" / f"{a.template}.json"
-        if not tp.exists():
-            sys.exit(f"✗ 沒有腳本範本 {a.template}（用 --list 查看）")
-        cfg = json.loads(tp.read_text("utf-8"))
-        cfg["title"] = a.title
-    else:
+    if True:
         scenes = []
         items = [(x.split(":") + ["2"])[:2] for x in a.scenes.split(",") if x.strip()]   # 沒寫小節數就用 2
         for k, (fn, bars) in enumerate(items):
