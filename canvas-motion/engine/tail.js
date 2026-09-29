@@ -124,13 +124,59 @@ function pad(A, t, notes, dur, peak = .05, wave = 'sawtooth', cut = 900) {
   }
 }
 
-/** 第 i 個 16 分音符（在 t 秒播放）。依當下場景 energy 決定配器強度 */
+/* 通用樂器（自訂配樂 MUSIC() 可直接呼叫；時間 t 為 AudioContext 秒數） */
+// 鑼：數個不諧和泛音＋音高下滑。big=true 為大鑼（低、長），false 為小鑼（高、短、上揚）
+function gong(A, t, v = 1, big = true) {
+  const base = big ? 110 : 520, parts = big ? [1, 1.47, 2.09, 2.56, 3.2] : [1, 1.5, 2.3];
+  const dur = big ? 2.4 : .55;
+  parts.forEach((r, k) => {
+    const o = A.ac.createOscillator(); o.type = 'sine';
+    const f0 = base * r;
+    if (big) { o.frequency.setValueAtTime(f0 * 1.02, t); o.frequency.exponentialRampToValueAtTime(f0 * .97, t + dur); }
+    else { o.frequency.setValueAtTime(f0 * .94, t); o.frequency.exponentialRampToValueAtTime(f0 * 1.08, t + .12); }
+    const g = _env(A, t, .003, dur * (1 - k * .12), .16 * v / (1 + k * .6), A.out); o.connect(g); if (big && !k) g.connect(A.send);
+    o.start(t); o.stop(t + dur + .1);
+  });
+  noiseHit(A, t, big ? .25 : .08, big ? 900 : 3000, 'bandpass', .12 * v, 1.5);
+}
+// 鈸／鐃鈸：金屬噪音，closed=true 為悶擊
+function cymbal(A, t, v = 1, closed = false) {
+  noiseHit(A, t, closed ? .07 : .7, 5200, 'bandpass', .22 * v, .9, closed ? 0 : 1);
+  noiseHit(A, t, closed ? .05 : .45, 9000, 'highpass', .12 * v, .5);
+}
+// 梆子／板（木魚）：短促木質音
+function woodblock(A, t, v = 1, hi = true) {
+  const o = A.ac.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(hi ? 1250 : 820, t); o.frequency.exponentialRampToValueAtTime(hi ? 1050 : 700, t + .04);
+  o.connect(_env(A, t, .001, .06, .35 * v, A.out)); o.start(t); o.stop(t + .1);
+}
+// 通鼓／堂鼓：有音高的皮鼓
+function drum(A, t, v = 1, pitch = 120) {
+  const o = A.ac.createOscillator(); o.frequency.setValueAtTime(pitch * 1.6, t); o.frequency.exponentialRampToValueAtTime(pitch, t + .06);
+  o.connect(_env(A, t, .002, .22, .6 * v, A.out)); o.start(t); o.stop(t + .3);
+  noiseHit(A, t, .04, 1800, 'bandpass', .12 * v, 1);
+}
+// 滑音長音（弦樂、嗩吶類）：從 m0 滑到 m1，帶顫音。o: wave, peak, cut, vib(音分), glide(秒), send
+function bend(A, t, m0, m1, dur, o = {}) {
+  const osc = A.ac.createOscillator(); osc.type = o.wave || 'sawtooth';
+  osc.frequency.setValueAtTime(mtof(m0), t); osc.frequency.exponentialRampToValueAtTime(mtof(m1), t + Math.min(dur * .6, o.glide ?? .12));
+  const lfo = A.ac.createOscillator(), lg = A.ac.createGain(); lfo.frequency.value = o.rate ?? 5.5; lg.gain.value = o.vib ?? 18;
+  lfo.connect(lg); lg.connect(osc.detune); lfo.start(t + dur * .3); lfo.stop(t + dur + .1);
+  const f = A.ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = o.cut ?? 1600; f.Q.value = o.q ?? .9;
+  const g = A.ac.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(o.peak ?? .12, t + (o.a ?? .05));
+  g.gain.setValueAtTime(o.peak ?? .12, t + dur * .75); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  osc.connect(f); f.connect(g); g.connect(A.out); if (o.send) g.connect(A.send);
+  osc.start(t); osc.stop(t + dur + .05);
+}
+
+/** 第 i 個 16 分音符（在 t 秒播放）。依當下場景 energy 決定配器強度。
+ *  專案若定義全域函式 MUSIC(A, i, t, info)，整支配樂改由它負責（可呼叫 tone／bend／gong／cymbal／woodblock／drum／kick／pad…）。 */
 function step(A, i, t) {
   const M = STYLE.music, time = i * SX; if (time >= TOTAL - 1e-6) return;
   const s = SC[sceneAt(time + 1e-6)], e = s.energy ?? .6, bar = Math.floor(i / 16), st = i % 16;
   const ch = M.chords[bar % M.chords.length], kit = M.kit || 'four';
   const isSceneStart = st === 0 && Math.abs(time - s.start) < SX / 2;
   const lastBar = time >= TOTAL - BAR - 1e-6 && PROJECT.ending !== 'loop';
+  if (typeof MUSIC === 'function') return MUSIC(A, i, t, { time, bar, st, e, scene: s, isSceneStart, lastBar, ch });
 
   if (lastBar) { // 結尾：一個重拍和弦收束，不再有鼓
     if (st === 0) {

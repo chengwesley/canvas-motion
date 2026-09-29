@@ -178,6 +178,19 @@ if (p) circle(p.x, p.y, 10 * p.s, STYLE.c.a1);
 - 最後一小節自動變成收束和弦（`ending: "hold"`）。所以最後一幕至少要 2 小節，第二小節留給字標與餘韻。
 - 換和弦進行：在專案的 `styles/` 放一份修改過的風格包，改 `music.chords`（MIDI 音高，60 = C4）。
 
+**自訂配樂（完全自己寫）**：參數調不出想要的曲風（戲曲、民族樂、特定樂器）時，在 `scenes/` 放一個檔案定義全域函式 `MUSIC`，整支配樂就改由它負責：
+
+```js
+function MUSIC(A, i, t, o) {   // 每個 16 分音符呼叫一次；t 是 AudioContext 時間
+  // o = { time, bar, st(0–15), e(energy), scene, isSceneStart, lastBar, ch }
+  if (o.lastBar) { if (o.st === 0) gong(A, t, 1.2, true); return; }
+  if (o.st === 0) woodblock(A, t);
+  if (o.st % 2 === 0) bend(A, t, 65, 67, SX * 2, { peak: .08, vib: 20 });
+}
+```
+
+可用樂器：`tone(A,t,midi,dur,{wave,peak,cut,send})`、`bend(A,t,m0,m1,dur,{wave,peak,cut,q,glide,vib,rate,send})`（滑音＋顫音，弦樂、嗩吶）、`gong(A,t,v,big)`（大鑼／小鑼）、`cymbal(A,t,v,closed)`（鈸）、`woodblock(A,t,v,hi)`（梆子、板）、`drum(A,t,v,pitch)`（有音高的皮鼓）、`kick`、`snare`、`clap`、`hat`、`crash`、`noiseHit`、`pad`。範例：歌仔戲鑼鼓經＋殼仔弦五聲旋律。
+
 ## 11. 常用場景寫法
 
 **大字遮罩揭示**
