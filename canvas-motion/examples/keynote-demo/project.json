@@ -1,0 +1,12 @@
+{
+  "title": "Canvas Motion — 一支 HTML，就是一支影片",
+  "style": "tech",
+  "aspect": "auto",
+  "scenes": [
+    { "fn": "sHook",    "bars": 2, "energy": 0.35, "trans": "zoom" },
+    { "fn": "sStyles",  "bars": 2, "energy": 0.6,  "trans": "push" },
+    { "fn": "sFlow",    "bars": 3, "energy": 0.75, "trans": "wipe" },
+    { "fn": "sNumbers", "bars": 2, "energy": 0.9,  "trans": "glitch" },
+    { "fn": "sOutro",   "bars": 2, "energy": 1 }
+  ]
+}

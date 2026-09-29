@@ -1,0 +1,22 @@
+{
+  "title": "Canvas Motion 場景庫一覽",
+  "style": "tech",
+  "aspect": "auto",
+  "_notes": "場景庫測試用專案。長條圖與折線圖使用示意資料，不代表任何真實數據。",
+  "scenes": [
+    { "fn": "L_title", "bars": 2, "energy": 0.3, "trans": "zoom", "data": { "kicker": "CANVAS MOTION · 場景庫", "lines": ["資料進去", "影片出來"], "sub": "13 種場景，只要填 JSON" } },
+    { "fn": "L_kinetic", "bars": 2, "energy": 0.7, "trans": "flash", "data": { "words": ["不用", "寫程式", "填資料", "就好"] } },
+    { "fn": "L_cards", "bars": 2, "energy": 0.6, "trans": "push", "data": { "title": "卡片", "sub": "2–6 張，自動排版", "items": [ { "title": "特色", "desc": "產品的三大賣點" }, { "title": "作品", "desc": "專案或案例展示" }, { "title": "團隊", "desc": "成員與分工" }, { "title": "資源", "desc": "文件、工具與聯絡窗口" } ] } },
+    { "fn": "L_steps", "bars": 3, "energy": 0.7, "trans": "wipe", "data": { "title": "流程步驟", "steps": [ { "title": "素材", "desc": "網址／文件／口述" }, { "title": "分鏡", "desc": "切點對齊小節" }, { "title": "填資料", "desc": "選場景、寫 data" }, { "title": "驗證", "desc": "橫直式逐幕截圖" }, { "title": "發布", "desc": "Artifact 或 MP4" } ] } },
+    { "fn": "L_timeline", "bars": 3, "energy": 0.65, "trans": "push", "data": { "title": "時間軸", "events": [ { "when": "第 1 天", "title": "報到", "desc": "設備與帳號" }, { "when": "第 1 週", "title": "認識團隊", "desc": "一對一會談" }, { "when": "第 1 個月", "title": "第一個專案", "desc": "有夥伴陪同" }, { "when": "第 3 個月", "title": "回顧", "desc": "設定下一階段目標" } ] } },
+    { "fn": "L_numbers", "bars": 2, "energy": 0.85, "trans": "glitch", "data": { "title": "關鍵數字", "items": [ { "value": 13, "label": "場景" }, { "value": 10, "label": "風格包" }, { "value": 10, "label": "腳本範本" } ] } },
+    { "fn": "L_bars", "bars": 2, "energy": 0.7, "trans": "push", "data": { "title": "長條圖", "sub": "範例資料（示意）", "unit": "%", "items": [ { "label": "項目 A", "value": 42 }, { "label": "項目 B", "value": 27 }, { "label": "項目 C", "value": 18 }, { "label": "項目 D", "value": 13 } ] } },
+    { "fn": "L_line", "bars": 3, "energy": 0.7, "trans": "wipe", "data": { "title": "折線趨勢", "sub": "範例資料（示意）", "labels": ["1月","2月","3月","4月","5月","6月","7月","8月"], "series": [ { "name": "系列 A", "values": [12, 15, 14, 19, 24, 23, 29, 34] }, { "name": "系列 B", "values": [8, 9, 11, 10, 13, 15, 14, 17] } ] } },
+    { "fn": "L_compare", "bars": 3, "energy": 0.75, "trans": "zoom", "data": { "title": "對比", "left": { "title": "手寫場景", "items": ["每支片從零寫程式", "直式版面常被忘記", "風格難以統一"] }, "right": { "title": "場景庫", "items": ["填 JSON 就能出片", "橫直式內建", "換風格只改一個字"] } } },
+    { "fn": "L_list", "bars": 2, "energy": 0.6, "trans": "push", "data": { "title": "條列重點", "items": ["文案只能來自素材", "每幕只講一件事", "高潮落在拍點上"] } },
+    { "fn": "L_quote", "bars": 2, "energy": 0.4, "trans": "fade", "data": { "quote": "每一格都是 frame(t) 的純函式，所以播放、截圖和匯出的畫面完全一致。", "by": "Canvas Motion 設計原則" } },
+    { "fn": "L_countdown", "bars": 2, "energy": 0.9, "trans": "flash", "data": { "from": 3, "then": "開始！" } },
+    { "fn": "L_cta", "bars": 2, "energy": 0.8, "trans": "zoom", "data": { "title": "現在就做一支", "action": "開始製作", "note": "python3 scripts/new_project.py --template keynote" } },
+    { "fn": "L_logo", "bars": 2, "energy": 1, "data": { "name": "Canvas Motion", "tagline": "讓內容，動起來。", "mark": "ring" } }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "title": "{{片名}}",
+  "style": "data",
+  "aspect": "auto",
+  "_template": "data-story",
+  "_desc": "數據故事：大數字開場 → 趨勢 → 拆解 → 洞察 → 結論。適合報告、營運回顧、研究發現。",
+  "scenes": [
+    {
+      "fn": "L_numbers",
+      "bars": 2,
+      "energy": 0.35,
+      "trans": "zoom",
+      "_hint": "一個數字開場最有衝擊力",
+      "data": {
+        "items": [
+          {
+            "value": "{{最關鍵的一個數字}}",
+            "label": "{{它代表什麼}}",
+            "note": "{{時間範圍或來源}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_line",
+      "bars": 3,
+      "energy": 0.6,
+      "trans": "push",
+      "_hint": "values 換成素材數值",
+      "data": {
+        "title": "{{趨勢標題}}",
+        "sub": "{{單位／來源}}",
+        "labels": [
+          "{{期間 1}}",
+          "{{期間 2}}",
+          "{{期間 3}}",
+          "{{期間 4}}"
+        ],
+        "series": [
+          {
+            "name": "{{系列名}}",
+            "values": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_bars",
+      "bars": 2,
+      "energy": 0.7,
+      "trans": "wipe",
+      "data": {
+        "title": "{{拆解標題}}",
+        "sub": "{{單位／來源}}",
+        "unit": "",
+        "items": [
+          {
+            "label": "{{類別 1}}",
+            "value": 0
+          },
+          {
+            "label": "{{類別 2}}",
+            "value": 0
+          },
+          {
+            "label": "{{類別 3}}",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_quote",
+      "bars": 2,
+      "energy": 0.5,
+      "trans": "fade",
+      "data": {
+        "quote": "{{洞察：數據告訴我們什麼}}",
+        "by": "{{分析者或單位}}"
+      }
+    },
+    {
+      "fn": "L_title",
+      "bars": 2,
+      "energy": 0.85,
+      "trans": "zoom",
+      "data": {
+        "kicker": "{{結論}}",
+        "lines": [
+          "{{下一步 1}}",
+          "{{下一步 2}}"
+        ]
+      }
+    },
+    {
+      "fn": "L_logo",
+      "bars": 2,
+      "energy": 1,
+      "data": {
+        "name": "{{報告名稱或單位}}",
+        "tagline": "{{時間範圍}}",
+        "mark": "bars"
+      }
+    }
+  ]
+}

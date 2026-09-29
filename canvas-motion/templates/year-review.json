@@ -1,0 +1,117 @@
+{
+  "title": "{{片名}}",
+  "style": "editorial",
+  "aspect": "auto",
+  "_template": "year-review",
+  "_desc": "年度回顧：開場 → 關鍵數字 → 大事記 → 分佈 → 感謝 → Logo。適合年終回顧、尾牙、部門成果。",
+  "scenes": [
+    {
+      "fn": "L_title",
+      "bars": 2,
+      "energy": 0.3,
+      "trans": "wipe",
+      "data": {
+        "kicker": "{{年份}} 年度回顧",
+        "lines": [
+          "{{一句總結這一年}}"
+        ],
+        "sub": "{{單位或團隊}}"
+      }
+    },
+    {
+      "fn": "L_numbers",
+      "bars": 2,
+      "energy": 0.7,
+      "trans": "push",
+      "data": {
+        "title": "{{這一年的數字}}",
+        "items": [
+          {
+            "value": "{{數字}}",
+            "label": "{{說明}}"
+          },
+          {
+            "value": "{{數字}}",
+            "label": "{{說明}}"
+          },
+          {
+            "value": "{{數字}}",
+            "label": "{{說明}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_timeline",
+      "bars": 3,
+      "energy": 0.7,
+      "trans": "push",
+      "data": {
+        "title": "大事記",
+        "events": [
+          {
+            "when": "{{月份}}",
+            "title": "{{事件}}"
+          },
+          {
+            "when": "{{月份}}",
+            "title": "{{事件}}"
+          },
+          {
+            "when": "{{月份}}",
+            "title": "{{事件}}"
+          },
+          {
+            "when": "{{月份}}",
+            "title": "{{事件}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_bars",
+      "bars": 2,
+      "energy": 0.8,
+      "trans": "wipe",
+      "_hint": "沒有分佈資料可刪掉此幕",
+      "data": {
+        "title": "{{分佈標題}}",
+        "sub": "{{單位}}",
+        "items": [
+          {
+            "label": "{{類別}}",
+            "value": 0
+          },
+          {
+            "label": "{{類別}}",
+            "value": 0
+          },
+          {
+            "label": "{{類別}}",
+            "value": 0
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_quote",
+      "bars": 2,
+      "energy": 0.45,
+      "trans": "fade",
+      "data": {
+        "quote": "{{感謝的話}}",
+        "by": "{{署名}}"
+      }
+    },
+    {
+      "fn": "L_logo",
+      "bars": 2,
+      "energy": 1,
+      "data": {
+        "name": "{{名稱}}",
+        "tagline": "{{明年的期許}}",
+        "mark": "dot"
+      }
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "title": "{{片名}}",
+  "style": "neon",
+  "aspect": "auto",
+  "_template": "mv",
+  "_desc": "MV：依音樂段落 intro → verse → drop → break → outro 安排視覺強度。適合品牌氛圍片、尾牙開場、純視覺作品。",
+  "scenes": [
+    {
+      "fn": "L_title",
+      "bars": 2,
+      "energy": 0.25,
+      "trans": "zoom",
+      "_hint": "intro：安靜",
+      "data": {
+        "lines": [
+          "{{片名}}"
+        ],
+        "sub": "{{副標}}"
+      }
+    },
+    {
+      "fn": "L_kinetic",
+      "bars": 4,
+      "energy": 0.6,
+      "trans": "glitch",
+      "_hint": "verse：一詞一小節",
+      "data": {
+        "words": [
+          "{{詞 1}}",
+          "{{詞 2}}",
+          "{{詞 3}}",
+          "{{詞 4}}"
+        ],
+        "beats": 4
+      }
+    },
+    {
+      "fn": "L_kinetic",
+      "bars": 4,
+      "energy": 0.95,
+      "trans": "flash",
+      "_hint": "drop：最高強度，半小節一詞",
+      "data": {
+        "words": [
+          "{{詞 1}}",
+          "{{詞 2}}",
+          "{{詞 3}}",
+          "{{詞 4}}",
+          "{{詞 5}}",
+          "{{詞 6}}",
+          "{{詞 7}}",
+          "{{詞 8}}"
+        ],
+        "beats": 2
+      }
+    },
+    {
+      "fn": "L_quote",
+      "bars": 2,
+      "energy": 0.3,
+      "trans": "fade",
+      "_hint": "break：留白",
+      "data": {
+        "quote": "{{一句歌詞感的句子}}"
+      }
+    },
+    {
+      "fn": "L_logo",
+      "bars": 2,
+      "energy": 0.9,
+      "data": {
+        "name": "{{名稱}}",
+        "tagline": "{{標語}}",
+        "mark": "ring"
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "title": "常用形狀與跨幕錨點示範",
+  "style": {
+    "base": "minimal",
+    "name": "shapes-demo",
+    "music": {
+      "bpm": 110
+    },
+    "post": {
+      "grain": 0
+    }
+  },
+  "aspect": "auto",
+  "anchors": {
+    "car": {
+      "x": 0.15,
+      "y": 0.86,
+      "port": {
+        "x": 0.2,
+        "y": 0.84
+      }
+    },
+    "carEnd": {
+      "x": 0.85,
+      "y": 0.86,
+      "port": {
+        "x": 0.8,
+        "y": 0.84
+      }
+    }
+  },
+  "scenes": [
+    {
+      "fn": "sShapes",
+      "bars": 3,
+      "energy": 0.4,
+      "trans": "push",
+      "_say": "8 種常用形狀，扁平畫風",
+      "data": {
+        "look": "flat"
+      }
+    },
+    {
+      "fn": "sShapes",
+      "bars": 3,
+      "energy": 0.8,
+      "_say": "同一組形狀換成美漫畫風；車子從上一幕的終點錨點接著開",
+      "data": {
+        "look": "comic",
+        "carFrom": "carEnd",
+        "carTo": "car"
+      }
+    }
+  ]
+}

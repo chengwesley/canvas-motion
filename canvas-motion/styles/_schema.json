@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "canvas-motion 風格參數（style spec）",
+  "description": "寫在 project.json 的 style（物件）或獨立 spec.json。只有 base 必填，其餘都是覆寫錨點的值。build.py / style_gen.py 會驗證並自動修正：對比不足會往黑或白推、亮底強制 bloom=0、bpm 夾在 70–140、不合法的和弦與轉場會被移除。",
+  "type": "object",
+  "required": ["base"],
+  "properties": {
+    "base": { "type": "string", "description": "錨點風格（styles/ 底下的檔名）。挑結構最接近的：亮底紙感 minimal/editorial/warm/ink/pastel/corporate/brutalist，暗底 tech/data/neon。背景圖形、音色與特有輔助函式都繼承自錨點。" },
+    "name": { "type": "string", "description": "英數小寫，顯示在建置訊息與註解" },
+    "mood": { "type": "string", "description": "一句話的感覺描述，寫進產出檔註解，方便回溯" },
+    "colors": {
+      "type": "object",
+      "description": "色彩 token，#hex 或 rgba()。沒給的沿用錨點；line/card/cardLine 沒給時由 fg 推算",
+      "properties": {
+        "bg": { "type": "string" }, "fg": { "type": "string", "description": "與 bg 對比至少 4.5:1" },
+        "mute": { "type": "string", "description": "至少 3:1" }, "a1": { "type": "string", "description": "最重要的強調色，至少 3:1" },
+        "a2": { "type": "string" }, "a3": { "type": "string" }, "line": { "type": "string" },
+        "card": { "type": "string" }, "cardLine": { "type": "string" }, "flash": { "type": "string" }
+      }
+    },
+    "fonts": {
+      "type": "object",
+      "description": "Google Fonts 的字族名稱。會自動產生載入網址並接上中文 fallback（Noto Sans TC 等）",
+      "properties": { "sans": { "type": "string" }, "display": { "type": "string" }, "mono": { "type": "string" } }
+    },
+    "post": {
+      "type": "object",
+      "properties": {
+        "bloom": { "type": "number", "minimum": 0, "maximum": 0.6, "description": "暗底才有效" },
+        "vignette": { "type": "number", "minimum": 0, "maximum": 1 },
+        "grain": { "type": "number", "minimum": 0, "maximum": 0.12 }
+      }
+    },
+    "trans": { "type": "array", "items": { "enum": ["cut", "fade", "push", "wipe", "zoom", "iris", "flash", "glitch"] }, "description": "預設轉場輪替" },
+    "music": {
+      "type": "object",
+      "description": "覆寫錨點的配樂參數，欄位見 references/style-pack.md",
+      "properties": {
+        "bpm": { "type": "integer", "minimum": 70, "maximum": 140 },
+        "chords": { "type": "array", "items": { "type": "array", "minItems": 3, "maxItems": 5, "items": { "type": "integer", "minimum": 36, "maximum": 96 } } },
+        "kit": { "enum": ["four", "half", "soft", "none"] }
+      }
+    },
+    "background": {
+      "type": "object",
+      "properties": {
+        "kind": { "enum": ["base", "solid", "gradient", "glow", "grid", "dots", "paper"], "description": "base = 沿用錨點背景（最穩定）" },
+        "amount": { "type": "number", "minimum": 0, "maximum": 1, "description": "強度" },
+        "spacing": { "type": "number", "description": "grid/dots 間距（MIN 的比例）" }
+      }
+    },
+    "card": {
+      "type": "object",
+      "properties": { "r": { "type": "number" }, "lw": { "type": "number" }, "shadow": { "type": "string" } }
+    }
+  },
+  "examples": [
+    { "base": "minimal", "name": "calm-green", "mood": "安靜、可信任的新人歡迎",
+      "colors": { "bg": "#f3f1ea", "a1": "#2f7d5b", "a2": "#c98a3d" }, "fonts": { "display": "Noto Serif TC" },
+      "music": { "bpm": 92 }, "background": { "kind": "paper", "amount": 0.5 } }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "title": "{{片名}}",
+  "style": "warm",
+  "aspect": "auto",
+  "_template": "onboarding",
+  "_desc": "新人到職：歡迎 → 第一週／月時間軸 → 你的資源 → 要完成的事 → 收尾。適合 Onboarding、新人說明會、內部制度介紹。",
+  "scenes": [
+    {
+      "fn": "L_title",
+      "bars": 2,
+      "energy": 0.3,
+      "trans": "iris",
+      "data": {
+        "kicker": "歡迎加入 {{公司或部門}}",
+        "lines": [
+          "{{歡迎語第一行}}",
+          "{{歡迎語第二行}}"
+        ]
+      }
+    },
+    {
+      "fn": "L_timeline",
+      "bars": 3,
+      "energy": 0.55,
+      "trans": "push",
+      "data": {
+        "title": "你的前幾週",
+        "events": [
+          {
+            "when": "{{時間}}",
+            "title": "{{安排}}",
+            "desc": "{{說明}}"
+          },
+          {
+            "when": "{{時間}}",
+            "title": "{{安排}}",
+            "desc": "{{說明}}"
+          },
+          {
+            "when": "{{時間}}",
+            "title": "{{安排}}",
+            "desc": "{{說明}}"
+          },
+          {
+            "when": "{{時間}}",
+            "title": "{{安排}}",
+            "desc": "{{說明}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_cards",
+      "bars": 2,
+      "energy": 0.65,
+      "trans": "push",
+      "_hint": "用角色或單位名稱，不要放個人聯絡資料",
+      "data": {
+        "title": "有問題找誰",
+        "items": [
+          {
+            "title": "{{窗口 1}}",
+            "desc": "{{負責什麼}}"
+          },
+          {
+            "title": "{{窗口 2}}",
+            "desc": "{{負責什麼}}"
+          },
+          {
+            "title": "{{窗口 3}}",
+            "desc": "{{負責什麼}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_list",
+      "bars": 2,
+      "energy": 0.75,
+      "trans": "wipe",
+      "data": {
+        "title": "第一週要完成",
+        "items": [
+          "{{事項 1}}",
+          "{{事項 2}}",
+          "{{事項 3}}"
+        ]
+      }
+    },
+    {
+      "fn": "L_logo",
+      "bars": 2,
+      "energy": 1,
+      "data": {
+        "name": "{{公司或部門}}",
+        "tagline": "{{一句期許}}",
+        "mark": "dot"
+      }
+    }
+  ]
+}

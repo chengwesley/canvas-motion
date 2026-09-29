@@ -1,0 +1,249 @@
+{
+  "title": "畫風零件一覽（looks.js）",
+  "style": {
+    "base": "minimal",
+    "name": "gallery",
+    "colors": {
+      "bg": "#f4efe6",
+      "fg": "#221c2c",
+      "a1": "#c2553a",
+      "a2": "#6a5a9c",
+      "a3": "#e0913a"
+    },
+    "music": {
+      "bpm": 120
+    },
+    "post": {
+      "grain": 0
+    }
+  },
+  "aspect": "auto",
+  "scenes": [
+    {
+      "fn": "L_title",
+      "bars": 2,
+      "energy": 0.3,
+      "trans": "fade",
+      "_say": "開場",
+      "data": {
+        "kicker": "Canvas Motion 畫風零件",
+        "lines": [
+          "同一個構圖",
+          "十種畫風"
+        ]
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.45,
+      "trans": "fade",
+      "_say": "動畫風背景",
+      "data": {
+        "look": "anime",
+        "caption": {
+          "no": "01",
+          "title": "動畫風背景",
+          "note": "長漸層天空、分色雲、逆光輪廓"
+        },
+        "particles": {
+          "n": 30
+        }
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.5,
+      "trans": "fade",
+      "_say": "水彩",
+      "data": {
+        "look": "water",
+        "caption": {
+          "no": "02",
+          "title": "水彩",
+          "note": "濕中濕暈染、濕邊、顆粒、紙紋"
+        },
+        "particles": {
+          "n": 20
+        }
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.55,
+      "trans": "wipe",
+      "_say": "水墨",
+      "data": {
+        "look": "ink",
+        "caption": {
+          "no": "03",
+          "title": "水墨",
+          "note": "墨色濃淡、雲霧留白、飛白、朱印"
+        },
+        "seal": "風",
+        "sun": {
+          "x": 0.72,
+          "y": 0.4,
+          "r": 0.07
+        }
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.6,
+      "trans": "cut",
+      "_say": "扁平插畫",
+      "data": {
+        "look": "flat",
+        "caption": {
+          "no": "04",
+          "title": "扁平插畫",
+          "note": "幾何色塊、無描邊"
+        },
+        "clouds": 3
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.65,
+      "trans": "glitch",
+      "_say": "像素",
+      "data": {
+        "look": "pixel",
+        "caption": {
+          "no": "05",
+          "title": "像素",
+          "note": "低解析度、限定色盤、抖色"
+        },
+        "sun": {
+          "x": 0.7,
+          "y": 0.38,
+          "r": 0.08
+        }
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.7,
+      "trans": "flash",
+      "_say": "霓虹合成波",
+      "data": {
+        "look": "neon",
+        "caption": {
+          "no": "06",
+          "title": "霓虹合成波",
+          "note": "條紋太陽、透視網格、發光線框"
+        },
+        "sun": {
+          "x": 0.5,
+          "y": 0.53,
+          "r": 0.07
+        },
+        "layers": [
+          {
+            "ridge": {
+              "base": 0.6,
+              "amp": 0.14,
+              "seed": 9
+            },
+            "color": "hill1",
+            "parallax": 0.01
+          },
+          {
+            "grid": {
+              "y": 0.6
+            },
+            "color": "line"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.75,
+      "trans": "fade",
+      "_say": "低多邊形",
+      "data": {
+        "look": "poly",
+        "caption": {
+          "no": "07",
+          "title": "低多邊形",
+          "note": "三角面、依光源明暗上色"
+        }
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.8,
+      "trans": "push",
+      "_say": "剪紙",
+      "data": {
+        "look": "paper",
+        "caption": {
+          "no": "08",
+          "title": "剪紙",
+          "note": "紙層投影、纖維紋理、紙偶晃動"
+        },
+        "clouds": 3,
+        "sun": {
+          "x": 0.7,
+          "y": 0.45,
+          "r": 0.07
+        }
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.85,
+      "trans": "wipe",
+      "_say": "美漫網點",
+      "data": {
+        "look": "comic",
+        "caption": {
+          "no": "09",
+          "title": "美漫網點",
+          "note": "粗描邊、網點陰影、速度線、狀聲字"
+        },
+        "sfx": "咻——",
+        "clouds": 0
+      }
+    },
+    {
+      "fn": "L_look",
+      "bars": 2,
+      "energy": 0.9,
+      "trans": "fade",
+      "_say": "蠟筆",
+      "data": {
+        "look": "crayon",
+        "caption": {
+          "no": "10",
+          "title": "蠟筆",
+          "note": "同向短筆觸、紙面顆粒、逐格抖動"
+        },
+        "clouds": 2
+      }
+    },
+    {
+      "fn": "sTree",
+      "bars": 2,
+      "energy": 1,
+      "_say": "自訂主體：用 lookShape 畫一棵樹，套用剪紙畫風",
+      "data": {
+        "look": "paper",
+        "caption": {
+          "title": "自訂主體",
+          "note": "任何主體都能套用畫風"
+        }
+      }
+    }
+  ]
+}

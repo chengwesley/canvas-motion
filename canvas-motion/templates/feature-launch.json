@@ -1,0 +1,88 @@
+{
+  "title": "{{片名}}",
+  "style": "tech",
+  "aspect": "auto",
+  "_template": "feature-launch",
+  "_desc": "功能發表：鉤子 → 功能名揭示 → 三大特色 → 怎麼用 → 行動呼籲。適合新功能上線、版本更新、產品通知。",
+  "scenes": [
+    {
+      "fn": "L_kinetic",
+      "bars": 2,
+      "energy": 0.5,
+      "trans": "zoom",
+      "_hint": "用使用者的痛點或期待開場",
+      "data": {
+        "words": [
+          "{{鉤子短句 1}}",
+          "{{鉤子短句 2}}"
+        ]
+      }
+    },
+    {
+      "fn": "L_title",
+      "bars": 2,
+      "energy": 0.6,
+      "trans": "push",
+      "data": {
+        "kicker": "{{產品名}} 新功能",
+        "lines": [
+          "{{功能名稱}}"
+        ],
+        "sub": "{{一句價值主張}}"
+      }
+    },
+    {
+      "fn": "L_cards",
+      "bars": 3,
+      "energy": 0.75,
+      "trans": "wipe",
+      "data": {
+        "title": "{{特色總覽}}",
+        "items": [
+          {
+            "title": "{{特色 1}}",
+            "desc": "{{說明}}"
+          },
+          {
+            "title": "{{特色 2}}",
+            "desc": "{{說明}}"
+          },
+          {
+            "title": "{{特色 3}}",
+            "desc": "{{說明}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_steps",
+      "bars": 3,
+      "energy": 0.85,
+      "trans": "zoom",
+      "data": {
+        "title": "怎麼開始用",
+        "steps": [
+          {
+            "title": "{{步驟 1}}"
+          },
+          {
+            "title": "{{步驟 2}}"
+          },
+          {
+            "title": "{{步驟 3}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_cta",
+      "bars": 2,
+      "energy": 1,
+      "data": {
+        "title": "{{現在就試試}}",
+        "action": "{{按鈕文字}}",
+        "note": "{{網址}}"
+      }
+    }
+  ]
+}

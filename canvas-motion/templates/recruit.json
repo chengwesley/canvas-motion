@@ -1,0 +1,90 @@
+{
+  "title": "{{片名}}",
+  "style": "pastel",
+  "aspect": "auto",
+  "_template": "recruit",
+  "_desc": "招募／雇主品牌：我們在找誰 → 我們做什麼 → 你會得到 → 團隊事實 → 投遞方式。適合職缺宣傳、校園徵才、雇主品牌短片。",
+  "scenes": [
+    {
+      "fn": "L_title",
+      "bars": 2,
+      "energy": 0.35,
+      "trans": "iris",
+      "data": {
+        "kicker": "{{公司名}} 正在招募",
+        "lines": [
+          "{{職缺名稱}}",
+          "{{一句吸引人的描述}}"
+        ]
+      }
+    },
+    {
+      "fn": "L_cards",
+      "bars": 3,
+      "energy": 0.6,
+      "trans": "push",
+      "data": {
+        "title": "你會和我們一起做",
+        "items": [
+          {
+            "title": "{{工作內容 1}}",
+            "desc": "{{說明}}"
+          },
+          {
+            "title": "{{工作內容 2}}",
+            "desc": "{{說明}}"
+          },
+          {
+            "title": "{{工作內容 3}}",
+            "desc": "{{說明}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_list",
+      "bars": 2,
+      "energy": 0.7,
+      "trans": "push",
+      "_hint": "只列素材裡確認過的福利",
+      "data": {
+        "title": "你會得到",
+        "items": [
+          "{{福利或成長 1}}",
+          "{{福利或成長 2}}",
+          "{{福利或成長 3}}"
+        ]
+      }
+    },
+    {
+      "fn": "L_numbers",
+      "bars": 2,
+      "energy": 0.85,
+      "trans": "zoom",
+      "_hint": "沒有數字可刪掉此幕",
+      "data": {
+        "title": "{{團隊事實}}",
+        "items": [
+          {
+            "value": "{{數字}}",
+            "label": "{{說明}}"
+          },
+          {
+            "value": "{{數字}}",
+            "label": "{{說明}}"
+          }
+        ]
+      }
+    },
+    {
+      "fn": "L_cta",
+      "bars": 2,
+      "energy": 1,
+      "data": {
+        "title": "{{邀請語}}",
+        "action": "立即投遞",
+        "note": "{{投遞網址}}"
+      }
+    }
+  ]
+}

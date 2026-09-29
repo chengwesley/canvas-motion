@@ -1,0 +1,111 @@
+{
+  "title": "Canvas Motion — 從需求直接到動畫",
+  "style": {
+    "base": "tech",
+    "name": "cm-intro",
+    "mood": "精準、有節奏的工程感：暗底透視網格、薄荷與藍紫光，琥珀色點綴",
+    "colors": {
+      "a1": "#5ef2c6",
+      "a2": "#7aa2ff",
+      "a3": "#ffb86b"
+    },
+    "trans": [
+      "push",
+      "wipe",
+      "zoom"
+    ],
+    "music": {
+      "bpm": 120
+    },
+    "post": {
+      "grain": 0
+    }
+  },
+  "aspect": "auto",
+  "scenes": [
+    {
+      "fn": "sHook",
+      "bars": 2,
+      "energy": 0.3,
+      "trans": "zoom",
+      "_say": "一支 HTML，就是一支影片：程式逐格畫出畫面"
+    },
+    {
+      "fn": "L_kinetic",
+      "bars": 2,
+      "energy": 0.55,
+      "trans": "push",
+      "data": {
+        "words": [
+          "說需求",
+          "給情境",
+          "一次提案",
+          "直接出片"
+        ],
+        "beats": 2
+      },
+      "_say": "使用者只要說需求"
+    },
+    {
+      "fn": "L_steps",
+      "bars": 2,
+      "energy": 0.65,
+      "trans": "wipe",
+      "data": {
+        "title": "從需求到成品",
+        "steps": [
+          {
+            "title": "推斷情境",
+            "desc": "目的、觀眾、平台"
+          },
+          {
+            "title": "一次提案",
+            "desc": "規格、風格、分鏡"
+          },
+          {
+            "title": "直接製作",
+            "desc": "單一 HTML"
+          },
+          {
+            "title": "自己驗證",
+            "desc": "修到通過"
+          }
+        ]
+      },
+      "_say": "Claude 怎麼從需求做到成品"
+    },
+    {
+      "fn": "sAspect",
+      "bars": 2,
+      "energy": 0.8,
+      "trans": "push",
+      "_say": "橫式、直式各有專屬版面，不是等比縮小"
+    },
+    {
+      "fn": "L_list",
+      "bars": 2,
+      "energy": 0.9,
+      "trans": "zoom",
+      "data": {
+        "title": "穩定出片",
+        "items": [
+          "對比不足自動修正",
+          "文字裁切與重疊偵測",
+          "數字出處追溯"
+        ]
+      },
+      "_say": "穩定出片靠自動檢查"
+    },
+    {
+      "fn": "L_logo",
+      "bars": 2,
+      "energy": 1,
+      "data": {
+        "name": "Canvas Motion",
+        "tagline": "從需求直接到動畫",
+        "mark": "ring"
+      },
+      "_say": "收尾字標"
+    }
+  ]
+}

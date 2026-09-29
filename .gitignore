@@ -1,0 +1,10 @@
+# 建置與驗證產物
+dist/
+sheets/
+*.mp4
+*.wav
+__pycache__/
+*.pyc
+.DS_Store
+# 打包檔放 Releases，不進版控
+*.skill

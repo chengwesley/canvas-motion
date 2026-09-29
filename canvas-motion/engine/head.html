@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{TITLE}}</title>
+{{FONTS}}
+<style>
+  :root { box-sizing: border-box; --hud: rgba(12,14,20,.72); --hud-fg: #f2f4f8; --hud-accent: #5ef2c6; }
+  *, *::before, *::after { box-sizing: inherit; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: var(--hud-fg);
+    font-family: system-ui, -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+  [hidden] { display: none !important; }
+  #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); }
+  #cv { display: block; background: #000; touch-action: manipulation; }
+  #play { position: fixed; z-index: 10; left: 50%; top: 50%; transform: translate(-50%,-50%); border: 0; cursor: pointer;
+    padding: 18px 34px; border-radius: 999px; font: 700 18px/1 inherit; letter-spacing: .04em;
+    background: var(--hud-fg); color: #0b0d12; box-shadow: 0 10px 40px rgba(0,0,0,.45); }
+  #play:hover { transform: translate(-50%,-50%) scale(1.04); }
+  #hud { position: fixed; z-index: 10; left: 50%; transform: translateX(-50%);
+    bottom: calc(14px + env(safe-area-inset-bottom,0px)); width: min(720px, calc(100% - 24px));
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 14px;
+    background: var(--hud); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    transition: opacity .35s; font-size: 13px; }
+  #hud.idle { opacity: 0; pointer-events: none; }
+  #hud button { border: 0; background: transparent; color: var(--hud-fg); font: inherit; cursor: pointer;
+    padding: 6px 8px; border-radius: 8px; min-width: 34px; }
+  #hud button:hover { background: rgba(255,255,255,.1); }
+  #bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.18); cursor: pointer; position: relative; }
+  #fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 3px; background: var(--hud-accent); }
+  #time { font-variant-numeric: tabular-nums; opacity: .8; min-width: 84px; text-align: right; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="cv"></canvas></div>
+<button id="play" aria-label="播放">▶ 播放</button>
+<div id="hud" hidden>
+  <button id="bPlay" aria-label="播放或暫停">❚❚</button>
+  <button id="bRe" aria-label="重播">↺</button>
+  <div id="bar"><div id="fill"></div></div>
+  <span id="time">0:00 / 0:00</span>
+  <button id="bAsp" aria-label="切換比例">16:9</button>
+  <button id="bMute" aria-label="靜音">♪</button>
+</div>
+<pre id="out" hidden></pre>
