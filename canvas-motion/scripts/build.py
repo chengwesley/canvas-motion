@@ -101,7 +101,7 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
     missing = [s["fn"] for s in cfg["scenes"] if s["fn"] not in defined]
     if missing:
         fail(f"project.json 引用了未定義的場景函式：{', '.join(missing)}")
-    unused = {f for f in defined if f.startswith("s")} - {s["fn"] for s in cfg["scenes"]}
+    unused = {f for f in defined if re.match(r"s[A-Z0-9_]", f)} - {s["fn"] for s in cfg["scenes"]}   # 場景是 s＋大寫（shake、spring 等是工具）
     lint_err, lint_warn = [], []
     for p in scene_files:
         e, w = lint_scene(p.name, p.read_text("utf-8"))

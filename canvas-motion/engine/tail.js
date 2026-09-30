@@ -63,6 +63,19 @@ function frame(time) {
   MAIN.restore(); ctx = MAIN;
 }
 
+/** 動態模糊：在一格的快門時間內取 n 個子畫格平均（匯出用；n <= 1 等於 frame）。
+ *  shutter 是快門角度比例（.5 = 180°，電影標準），fps 是輸出格率 */
+function frameBlur(time, n = 1, shutter = .5, fps = 30) {
+  if (n <= 1) return frame(time);
+  const acc = buf(2);
+  acc.x.setTransform(1, 0, 0, 1, 0, 0);
+  for (let j = 0; j < n; j++) {
+    frame(time + ((j + .5) / n - .5) * shutter / fps);
+    acc.x.globalAlpha = 1 / (j + 1); acc.x.drawImage(CV, 0, 0);   // 累進平均：第 j 格佔 1/(j+1)
+  }
+  MAIN.save(); MAIN.setTransform(1, 0, 0, 1, 0, 0); MAIN.globalAlpha = 1; MAIN.drawImage(acc.c, 0, 0); MAIN.restore();
+}
+
 /* ================= 配樂合成 ================= */
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 let _nOff = 0;
@@ -168,10 +181,52 @@ function bend(A, t, m0, m1, dur, o = {}) {
   osc.start(t); osc.stop(t + dur + .05);
 }
 
+/* ================= 音效（綁在動作上，不是拍子上） =================
+ * 在 project.json 的幕裡寫 "sfx": [[拍數, "種類", 音量?], …]，拍數從本幕切點算起、可以是小數或負數（切點前）。
+ * riser 的拍數是「衝到頂」的時間點，聲音會在那之前 dur 秒開始。 */
+function _sweep(A, t, dur, f0, f1, type, peak, q = 1.2, send = 0) {
+  const s = A.ac.createBufferSource(); s.buffer = A.noise;
+  const f = A.ac.createBiquadFilter(); f.type = type; f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  const g = A.ac.createGain(); g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + dur * .6); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(A.out); if (send) g.connect(A.send);
+  s.start(t, (_nOff = (_nOff + .137) % .7)); s.stop(t + dur + .05);
+}
+function _chirp(A, t, f0, f1, dur, peak, wave = 'sine') {
+  const o = A.ac.createOscillator(); o.type = wave;
+  o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  o.connect(_env(A, t, .002, dur, peak, A.out)); o.start(t); o.stop(t + dur + .05);
+}
+const SFX = {
+  whoosh: (A, t, v) => _sweep(A, t, .38, 350, 2600, 'bandpass', .32 * v, 1.4, 1),   // 物體快速掠過
+  swish:  (A, t, v) => _sweep(A, t, .16, 1200, 5200, 'bandpass', .22 * v, 1.8),     // 小物件甩動、翻頁
+  riser:  (A, t, v, d = BAR) => _sweep(A, t, d, 300, 7000, 'highpass', .2 * v, .7, 1), // 高潮前的上升
+  impact: (A, t, v) => { kick(A, t, 1.1 * v); noiseHit(A, t, .22, 900, 'lowpass', .45 * v, .7, 1); },   // 重物落地、撞擊
+  boom:   (A, t, v) => { _chirp(A, t, 95, 28, .9, .8 * v); noiseHit(A, t, .6, 400, 'lowpass', .3 * v, .5, 1); },   // 大爆發、字標落下
+  pop:    (A, t, v) => _chirp(A, t, 480, 1500, .06, .28 * v),                        // 小東西冒出來
+  click:  (A, t, v) => woodblock(A, t, .55 * v, true),                               // 卡入、對正
+  stamp:  (A, t, v) => { woodblock(A, t, .7 * v, false); noiseHit(A, t, .06, 2400, 'bandpass', .3 * v, 1.2); },   // 蓋章、「喀」
+  chime:  (A, t, v) => [0, 7, 12].forEach((m, k) => tone(A, t + k * .045, 84 + m, .9, { wave: 'sine', peak: .09 * v, send: 1 })),   // 揭示、完成
+  gong:   (A, t, v) => gong(A, t, v, true),                                          // 大鑼：武俠、東方、開場與收尾
+  drum:   (A, t, v) => drum(A, t, v, 95),                                            // 大鼓：戰鼓、腳步、心跳
+};
+const SFXQ = [];
+PROJECT.scenes.forEach((s, i) => (s.sfx || []).forEach(e => {
+  const [beat, kind, v = 1, d] = e, k = SFX[kind] ? kind : null; if (!k) return;
+  const dur = k === 'riser' ? (d ?? BAR) : 0;
+  SFXQ.push({ time: SC[i].start + beat * BEAT - dur, kind: k, v, d: dur || undefined });
+}));
+SFXQ.sort((a, b) => a.time - b.time);
+/** rest：本幕 "rest": [起拍, 終拍] 期間配樂靜默（音效照常），高潮前留一口氣 */
+const _inRest = time => SC.some(s => s.rest && time >= s.start + s.rest[0] * BEAT - 1e-6 && time < s.start + s.rest[1] * BEAT - 1e-6);
+
 /** 第 i 個 16 分音符（在 t 秒播放）。依當下場景 energy 決定配器強度。
  *  專案若定義全域函式 MUSIC(A, i, t, info)，整支配樂改由它負責（可呼叫 tone／bend／gong／cymbal／woodblock／drum／kick／pad…）。 */
 function step(A, i, t) {
-  const M = STYLE.music, time = i * SX; if (time >= TOTAL - 1e-6) return;
+  const M = STYLE.music, time = i * SX;
+  for (const e of SFXQ) if (e.time >= time - (i ? 0 : 1) && e.time < time + SX) SFX[e.kind](A, t + Math.max(0, e.time - time), e.v, e.d);
+  if (time >= TOTAL - 1e-6 || _inRest(time)) return;
   const s = SC[sceneAt(time + 1e-6)], e = s.energy ?? .6, bar = Math.floor(i / 16), st = i % 16;
   const ch = M.chords[bar % M.chords.length], kit = M.kit || 'four';
   const isSceneStart = st === 0 && Math.abs(time - s.start) < SX / 2;
@@ -307,7 +362,8 @@ function boot() {
 }
 
 /** 給 sheet.py / export.py 呼叫的介面 */
-window.__cm = { frame, resize, renderWav, TOTAL, BAR, BPM, SC: SC.map(s => ({ fn: s.fn, start: s.start, dur: s.dur, energy: s.energy })), errors: ERRS,
+window.__cm = { frame, frameBlur, resize, renderWav, TOTAL, BAR, BEAT, BPM, TD, sfx: SFXQ,
+  SC: SC.map(s => ({ fn: s.fn, start: s.start, dur: s.dur, energy: s.energy, trans: transOf(s), hero: s.hero || null })), errors: ERRS,
   bench(n = 30, w = 1280, h = 720) { // 每格強制同步（讀回 1px），量到的是完整管線成本
     resize(w, h, 1); frame(0); MAIN.getImageData(0, 0, 1, 1); const t0 = performance.now();
     for (let i = 0; i < n; i++) { frame(TOTAL * i / n); MAIN.getImageData(0, 0, 1, 1); }

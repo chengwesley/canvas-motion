@@ -5,7 +5,7 @@
 ```json
 "style": { "base": "minimal", "name": "calm-green", "mood": "安靜、可信任",
            "colors": { "bg": "#f3f1ea", "a1": "#2f7d5b" }, "fonts": { "display": "Noto Serif TC" },
-           "music": { "bpm": 92 }, "background": { "kind": "paper", "amount": .5 } }
+           "music": { "bpm": 92 }, "background": { "kind": "paper", "amount": 0.5 } }
 ```
 
 build.py 會呼叫 `scripts/style_gen.py` 產生風格並驗證、自動修正（對比、亮底 bloom、bpm 範圍、和弦音域、轉場名稱），把修正內容印出來。完整欄位見 `styles/_schema.json`。單獨檢查一份 spec：`python3 <SKILL>/scripts/style_gen.py spec.json`；列出錨點參數：`--anchors`。

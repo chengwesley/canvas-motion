@@ -13,16 +13,20 @@ description: 把任何需求與情境直接變成穩定的動畫短片：每一�
 2. **只確認一次**。一則訊息給完提案（含構圖問題），確認後就做到完，中間不再來回。
 3. **文案與數字只來自素材**。素材撐不起的幕就刪掉，不自行編造。
 4. **穩定靠腳本，不靠運氣**。`verify.py` 自動檢查建置、場景錯誤、文字與字型，錯誤自己修到通過才交付。
+5. **好看靠手藝，不靠淡入**。每個動作都要有重量（預備、過衝、撞擊、餘波），每幕都要有一個高光瞬間，幕與幕之間有東西延續。`references/craft.md` 是手藝與自評表，taste.py 會量出「畫面沒在動、動得不對拍、高潮沒演出來」。
 
 ```
 canvas-motion/
 ├── engine/        固定引擎（head.html、infra.js、tail.js）——不要為單一作品修改
-├── library/       kit.js 繪圖小工具（kPage、kPerson、kLaptop、kGear、kBulb、kStar、kArc）、looks.js 畫風渲染＋常用形狀（withLook、lookShape、LK_SHAPES）——都是畫筆，不是版面
+├── library/       kit.js 繪圖小工具（kPage、kPerson、kLaptop、kGear、kBulb、kStar、kArc）、looks.js 畫風渲染＋常用形狀（withLook、lookShape、LK_SHAPES）——都是畫筆，不是版面；
+│                  motion.js 動作質感（spring、anticipate、withSquash、impact、lagT、trail、smear、arcPt、hit、shake、shot、layer、onTwos）；
+│                  figure.js 程序化角色（骨架、姿勢、表情、精細度、取景）；fx.js 類型特效（漫畫、動漫、電影）
 ├── styles/        錨點風格（生成風格的起點）＋ _schema.json（風格參數格式）
-├── scripts/       verify（一鍵檢查）、storyboard、build、sheet、export（MP4／GIF）、style_gen、check_env、
+├── scripts/       verify（一鍵檢查）、storyboard（含劇本模式）、castsheet（角色設定表）、build、sheet、taste（動態品味）、export（MP4／GIF）、style_gen、check_env、
 │                  selftest、new_project、preview_styles
-├── references/    direction.md（情境→規格與節奏）、looks.md（畫風與形狀）、
-│                  api.md（自訂場景、文字、錨點）、style-pack.md（風格參數）
+├── references/    direction.md（情境→規格與節奏）、craft.md（動畫手藝、導演思維、自評表）、crew.md（劇組流程：30 秒以上的故事片）、
+│                  genres.md（美漫、港漫、動漫、電影）、character.md（角色）、looks.md（畫風與形狀）、
+│                  api.md（自訂場景、文字、錨點、音效）、style-pack.md（風格參數）
 └── examples/      keynote-demo、look-gallery、shapes-demo（寫法參考，也是回歸測試；不要照抄構圖）
 ```
 
@@ -30,7 +34,7 @@ canvas-motion/
 
 ## 流程總覽
 
-檢查環境 → 推斷情境、補問素材與構圖 → 一次提案 → 分鏡轉專案 → 寫自訂場景（需要時）→ 驗證（自己修到通過）→ 發布與匯出 → 交付說明
+檢查環境 → 推斷情境、補問素材與構圖 → 一次提案（每幕含高光） → 分鏡轉專案 → 寫自訂場景 → 驗證＋品味檢查＋自評（自己修到通過） → 發布與匯出 → 交付說明
 
 ## 檢查環境
 
@@ -43,7 +47,7 @@ python3 <SKILL>/scripts/check_env.py
 | 引擎檔案遺失 | **停下來告訴使用者**。不要自己重寫引擎 |
 | Playwright 不可用 | `pip install playwright && python -m playwright install chromium`。裝不了時仍可建置並發布 HTML，但要告訴使用者「沒有做截圖與文字檢查、無法匯出 MP4／GIF」 |
 | ffmpeg 不可用 | `pip install imageio-ffmpeg`（export.py 會自動找到它；沒有 ffprobe 也能驗證輸出） |
-| 沒有中文字型 | 截圖會出現方框：`apt install fonts-noto-cjk`（Windows 需要微軟正黑體） |
+| 沒有中文字型 | 截圖會出現方框：`apt install fonts-noto-cjk`（macOS 內建 PingFang 即可，或 `brew install --cask font-noto-sans-cjk`；Windows 需要微軟正黑體） |
 
 腳本在 Windows cp950 主控台也能正常輸出中文。**修改場景 JS 時用檔案編輯工具（Write／Edit），不要用 heredoc、echo 或 sed 寫 JS**：shell 會吃掉 `\n`、`\b` 這類跳脫字元，產生難找的錯誤。
 
@@ -55,6 +59,10 @@ python3 <SKILL>/scripts/check_env.py
 - **開放詢問構圖**：畫面的主體是什麼、在哪裡、周圍是什麼場景、想要遠景還是特寫、畫面裡有什麼在動。用開放式問題問，不要給固定選項，也不要套預設畫面（範例裡「山坡上的人看夕陽」只是其中一種）。附一句你依素材想到的構圖當參考，讓使用者改。資訊圖為主的影片（功能介紹、數據報告）也一樣：數字、步驟、對比都要想成畫面裡的物件在做事（點分裂成人群、航線點亮地圖、齒輪帶動），不是排成卡片。
 - **構圖問題跟提案放在同一則訊息**，不要另開一輪。
 - 其他（規格、敘事、畫風、風格）都用推斷，寫進提案；推斷不出且影響很大的（例如完全不知道給誰看），在提案裡寫出你的假設讓使用者改，而不是先發問。
+
+## 故事片（30 秒以上）
+
+要有故事的片子（使用者說「故事」「短片」「一分鐘」、或素材本身是一段經歷）走**劇組流程**，先讀 `references/crew.md`：依序扮演製片、編劇、美術、導演、攝影、動畫、剪輯、聲音、場記、監製。storyboard 頂層加 `script`（一句話故事、主角想要／阻礙／轉變）與 `cast`（角色設定），每個鏡頭加 `act`、`beat`、`shot`、`who`、`lines`，storyboard.py 會檢查三幕比例、節拍、景別、跳軸、剪輯節奏。提案時附 `castsheet.py` 產生的角色設定表。類型（美漫、港漫、動漫、電影）讀 `references/genres.md`，角色讀 `references/character.md`。
 
 ## 一次提案
 
@@ -74,7 +82,10 @@ python3 <SKILL>/scripts/storyboard.py storyboard.json --preview
 - **每幕只講一件事**，`say` 欄位寫下那件事；寫不出來的幕就刪掉。
 - **小節用整數**（一小節 = 240 / BPM 秒），切點才會落在小節第一拍。
 - **energy 由低到高**：開場 .3 左右，高潮在後 1/3（.9 以上），最後一幕至少 2 小節收束。
-- **同一幕不要靜止超過 1.5 秒**；**轉場跟內容有關**（延續 push、揭示 wipe／iris、轉強 zoom／flash）。
+- **每幕寫 `hero`（必填）**：觀眾會記住的那一格、落在第幾拍，例如 `{"beat": 4, "what": "27 格同時對正、紙屑炸開"}`。先定高光，再往回設計預備與餘波。寫不出具體畫面的幕就刪掉或重想。
+- **第 2 幕起寫 `carry`**：上一幕的什麼變成這幕的主角。延續鏈讓整支片是一個故事，而不是換投影片（craft.md 第 3 節）。
+- **高潮前留一口氣**：高潮那幕前用 `rest` 讓配樂靜默半拍到一拍，再用 `boom` 爆開；主要的撞擊與出現寫進 `sfx`（craft.md 第 4、5 節）。
+- **同一幕不要靜止超過 1.5 秒**；**轉場跟內容有關**（延續用 cut 或 match cut、換主題 wipe／iris、轉強 zoom／flash）。
 - 敘事弧依素材自己設計；每支片的開場、高潮、收尾都應該是這支片獨有的畫面，而不是固定套路。
 - **素材太多、超過平台建議片長時**：先刪寫不出 `say` 的幕 → 合併內容相近的幕 → 還是太長就在提案裡寫「這支 N 秒＋建議拆成第二支（內容…）」，不要把每幕壓到 1 小節。
 
@@ -82,6 +93,7 @@ python3 <SKILL>/scripts/storyboard.py storyboard.json --preview
 - **每一幕都是 `s` 開頭的自訂場景**，由 Claude 依素材發想構圖、主體、動作與鏡頭。storyboard.py 不接受其他寫法。
 - 發想順序：這幕要講的一件事（`say`）→ 它可以變成什麼**具體畫面或隱喻**（物件、人物、場景、變形、因果動作）→ 畫面裡什麼在動、跟拍點怎麼對上 → 文字只當輔助。
 - 物件延續比切換更有力：上一幕的東西變成下一幕的主角（螢幕裡的文件飛出來、一個點分裂成人群），用錨點串起來。
+- **景別要變**：遠景、中景、特寫交替（`shot()`），高潮時鏡頭更近、更快；用 `layer()` 做前中後景視差。
 - 畫筆可以直接用：`library/kit.js`（文件、人物、筆電、齒輪、燈泡、星星、弧線）、`LK_SHAPES`＋`lookDraw`（房屋、室內、紙張、螢幕、手機、樹、車，會自動套畫風）、`L_look(t, T, pulse, s)` 可在場景裡當背景呼叫。沒有的就用 Canvas 自己畫——工具只是省時間，不是可選清單。
 - 同一支片裡不要有兩幕長得一樣。
 
@@ -110,7 +122,13 @@ python3 <SKILL>/scripts/storyboard.py storyboard.json <專案資料夾>
 
 ## 寫自訂場景
 
-**寫之前先讀 `references/api.md`**，並對照 `examples/`。鷹架已內建橫直式分支、`fit()`、`maxW`、`rng()` 與切點前進場，在它上面改。
+**寫之前先讀 `references/api.md` 與 `references/craft.md`**，並對照 `examples/`。鷹架已內建橫直式分支、`fit()`、`maxW`、`rng()` 與切點前進場，在它上面改。
+
+動作質感（craft.md 第 2 節）：
+- **不要每個元素都淡入＋上滑**。依物體性格選動法：重的砸下來（`impact`＋`shake`）、輕的沿弧線飄進來（`arcPt`＋`lagT`）、機械的喀一聲卡入（`spring` 高頻）。
+- **主要動作要有預備與過衝**（`anticipate`、`spring`），快速移動加擠壓伸展或抹影（`withSquash`、`smear`、`trail`）。
+- **高光那一格要誇張**：主體夠大、配衝擊（放大、閃白、`shake`、`impact` 音效），而且是整幕動作量最大的一瞬間。
+- 美漫、剪紙、蠟筆、像素畫風的主體用 `onTwos(t)`，動作會有手作的頓挫。
 
 守則（build.py 會 lint 前四項）：
 - **不用 `Math.random()`**，改用 `rng(種子)`，否則匯出時畫面會閃（build 直接擋下）。
@@ -140,6 +158,8 @@ python3 <SKILL>/scripts/verify.py <專案> [--pairs]
 | 3 | 文字問題 | 縮短文案、加寬 `maxW`、加 `fit`、壓在背景上的字改用 `txtPlate` |
 
 - build 的 `!` 也要處理：lint 警告、`{{待填}}`、「素材裡找不到這些數字」（找不到出處就刪或問）。
+- **動態品味**（verify 最後一段，只提醒）：taste.py 量每格的畫面變化，回報超過 1 秒沒動的段落、開場第 1 秒太安靜、最大動作沒對拍、hero 那一拍沒有動作高峰、energy 變強但畫面沒變強、整幕只有一小塊在動（像投影片），並畫出 `sheets/motion.png`（動作曲線對照拍點、energy、高光）。**這些提醒要當成問題處理**，改不了的在交付時說明。
+- **自評表**（craft.md 第 7 節）：看完縮圖與 motion.png 後逐題回答，任何一題答「否」就回去改。
 - 人眼要看的：直式是否太空或太擠、轉場中點兩邊是否都有內容、畫面是否好看。腳本抓不到「文案被改得不通順」，縮短文案後要再讀一次是否仍是素材的意思。
 - **迭代時只看縮圖，不要反覆匯出影片**。需要特定時間點：`sheet.py <專案> --at 3.2,7.5`。
 - 最多自己迭代 3 輪；仍有無法解決的問題時，交付時明確說明。
@@ -154,7 +174,7 @@ python3 <SKILL>/scripts/verify.py <專案> [--pairs]
 ### 匯出 MP4／GIF
 
 ```bash
-python3 <SKILL>/scripts/export.py <專案> out.mp4 --size 1920x1080 --verify 2,10,20   # MP4，匯出後抽 3 格
+python3 <SKILL>/scripts/export.py <專案> out.mp4 --size 1920x1080 --blur 5 --verify 2,10,20   # 正式 MP4：動態模糊，匯出後抽 3 格
 python3 <SKILL>/scripts/export.py <專案> out.gif                                  # GIF（640 寬、12fps、自動關顆粒）
 python3 <SKILL>/scripts/export.py <專案> out.mp4 --preview                        # 快速預覽：只看節奏
 ```
@@ -167,8 +187,9 @@ python3 <SKILL>/scripts/export.py <專案> out.mp4 --preview                    
 | GIF 太大（超過 5MB 會警告） | `--gif-width 480`、`--fps 10`、`--gif-dither none`，或改給 MP4 |
 | 離線、或要求整支片字型一致 | `--offline-fonts`（網路字型沒載入時也會自動改用系統字型） |
 | 平行渲染 | `--jobs N`（預設依 CPU 自動） |
+| 動態模糊 | `--blur 5`（正式版建議；渲染時間約 ×5；像素畫風、`onTwos` 的片不要開）、`--shutter 0.5` |
 
-匯出時間約為「片長 × fps × 每格毫秒 ÷ jobs」，每格毫秒看 `verify.py` 印出的效能（軟體繪製約 15–160ms，蠟筆、像素、低多邊形最重）。實測 28 秒、720p、30fps 用 7 個瀏覽器約 30 秒。長片先用 `--preview` 確認節奏，再出正式版。
+匯出時間約為「片長 × fps × 每格毫秒 × blur ÷ jobs」，每格毫秒看 `verify.py` 印出的效能（軟體繪製約 15–160ms，蠟筆、像素、低多邊形最重）。實測 28 秒、720p、30fps 用 7 個瀏覽器約 30 秒。長片先用 `--preview` 確認節奏，再出正式版。
 
 匯出後 `--verify` 抽出的畫格要用 `view` 看一次；腳本會印出長度、解析度、大小與音軌。場景有錯誤時 export 會以代碼 2 結束，不要交付那個檔案。
 
@@ -196,6 +217,7 @@ python3 <SKILL>/scripts/export.py <專案> out.mp4 --preview                    
 - [ ] 交付時說明：採用了哪些推斷（規格、構圖、畫風、風格方向）、風格驗證自動修正了什麼（尤其是品牌色）、沒能執行的驗證
 - [ ] 所有文案與數字都能追溯到素材，build 沒有回報 `{{待填}}` 或找不到出處的數字
 - [ ] `verify.py` 結束碼為 0，且橫式與直式縮圖都逐格看過
+- [ ] 動態品味提醒都處理了（或在交付時說明為什麼保留），craft.md 自評表每題都是「是」
 - [ ] 切點落在小節第一拍，最後一幕有明確收束
 - [ ] Artifact 能正常播放、按下播放後有聲音
 - [ ] MP4／GIF（若有）已確認長度、解析度、音軌（MP4），並看過 `--verify` 抽格；GIF 大小已告知

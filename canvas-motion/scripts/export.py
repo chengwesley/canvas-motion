@@ -9,6 +9,8 @@
   --jobs N           平行渲染的瀏覽器數（預設依 CPU 自動，1 = 不平行）
   --verify 2,10,20   匯出後抽出這些秒數的畫格（存成 <輸出>_t2.jpg…），用 view 檢查
   --offline-fonts    不載入網路字型，只用系統字型（離線環境；確保整支片字型一致）
+  --blur N           動態模糊：每格取 N 個子畫格平均（正式版建議 5；像素畫風不要開）。渲染時間約 ×N
+  --shutter 0.5      動態模糊的快門比例（0.5 = 180°，電影標準；1 = 最糊）
 常用尺寸：16:9 → 1280x720／1920x1080；9:16 → 1080x1920；1:1 → 1080x1080
 場景有錯誤時結束碼為 2；ffmpeg 失敗時為 1。
 """
@@ -34,14 +36,14 @@ def ffmpeg_bin():
         sys.exit(1)
 
 
-def worker(html, start, end, fps, w, h, outdir, no_grain):
+def worker(html, start, end, fps, w, h, outdir, no_grain, blur=0, shutter=.5):
     """子行程：渲染 [start, end) 的影格到 outdir/%06d.jpg。"""
     from _browser import open_page, grab
     with open_page(Path(html)) as pg:
         if no_grain:
             pg.evaluate("STYLE.post && (STYLE.post.grain = 0)")
         for i in range(start, end):
-            (Path(outdir) / f"{i:06d}.jpg").write_bytes(grab(pg, i / fps, w, h, "jpeg", 0.93))
+            (Path(outdir) / f"{i:06d}.jpg").write_bytes(grab(pg, i / fps, w, h, "jpeg", 0.93, blur, shutter, fps))
         errs = pg.evaluate("__cm.errors")
     if errs:
         (Path(outdir) / f"errors_{start}.json").write_text(json.dumps(errs, ensure_ascii=False), "utf-8")
@@ -80,12 +82,14 @@ def main():
     ap.add_argument("--jobs", type=int, default=0)
     ap.add_argument("--verify", default="")
     ap.add_argument("--offline-fonts", action="store_true")
+    ap.add_argument("--blur", type=int, default=0)
+    ap.add_argument("--shutter", type=float, default=.5)
     ap.add_argument("--worker", nargs=7, help=argparse.SUPPRESS)
     a = ap.parse_args()
     if a.worker:   # 內部：平行渲染的子行程
         html, s0, s1, fps, w, h, rest = a.worker
-        outdir, ng = rest.split("|")
-        return worker(html, int(s0), int(s1), float(fps), int(w), int(h), outdir, ng == "1")
+        outdir, ng, bl, sh = rest.split("|")
+        return worker(html, int(s0), int(s1), float(fps), int(w), int(h), outdir, ng == "1", int(bl), float(sh))
 
     out = Path(a.out).resolve(); out.parent.mkdir(parents=True, exist_ok=True)
     gif = out.suffix.lower() == ".gif"
@@ -128,8 +132,9 @@ def main():
         if s0 >= s1:
             continue
         procs.append(subprocess.Popen([sys.executable, __file__, "x", "x", "--worker", str(html), str(s0), str(s1), str(fps), str(w), str(h),
-                                       f"{frames}|{1 if gif else 0}"]))
-    print(f"🎞  {n} 格 × {jobs} 個瀏覽器平行渲染（{w}×{h} @ {fps}fps）…", flush=True)
+                                       f"{frames}|{1 if gif else 0}|{0 if a.preview else a.blur}|{a.shutter}"]))
+    mb_ = f"、動態模糊 ×{a.blur}" if a.blur > 1 and not a.preview else ""
+    print(f"🎞  {n} 格 × {jobs} 個瀏覽器平行渲染（{w}×{h} @ {fps}fps{mb_}）…", flush=True)
     while any(p.poll() is None for p in procs):
         done = len(list(frames.glob("*.jpg")))
         print(f"\r🎞  {done}/{n} 格  {time.time() - t0:.0f}s", end="", flush=True); time.sleep(1)

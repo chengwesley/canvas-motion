@@ -73,7 +73,7 @@ THUMB = {"16:9": (480, 270), "9:16": (225, 400), "1:1": (320, 320)}
 
 def font(sz):
     for p in ["/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", "/System/Library/Fonts/PingFang.ttc",
-              "C:/Windows/Fonts/msjh.ttc", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]:
+              "/System/Library/Fonts/STHeiti Medium.ttc", "C:/Windows/Fonts/msjh.ttc", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]:
         if Path(p).exists():
             return ImageFont.truetype(p, sz)
     return ImageFont.load_default()
@@ -90,7 +90,7 @@ def main():
     ap.add_argument("--cols", type=int, default=0)
     ap.add_argument("--no-textcheck", action="store_true")
     ap.add_argument("--strict", action="store_true", help="文字檢查有問題時以代碼 3 結束（verify.py 用）")
-    ap.add_argument("--pairs", action="store_true", help="另外取每個切點前後（前一幕 97%／下一幕 3%），檢查跨幕物件是否接得上")
+    ap.add_argument("--pairs", action="store_true", help="另外取每個切點前後（前一幕 97%%／下一幕 3%%），檢查跨幕物件是否接得上")
     a = ap.parse_args()
     proj = Path(a.project).resolve()
     html = build(proj, quiet=True)

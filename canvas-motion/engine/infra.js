@@ -91,7 +91,10 @@ const accent = i => [STYLE.c.a1, STYLE.c.a2, STYLE.c.a3][((i % 3) + 3) % 3];
 /* ---------- 版面 ---------- */
 const SAFE = {
   get x() { return Math.round(W * (PORT ? .08 : .065)); },
-  get y() { return Math.round(H * (PORT ? .07 : .09)); },
+  get y() {   // a letterboxed style (STYLE.letterbox, e.g. 2.39) pushes the safe area inside the black bars
+    const lb = typeof STYLE !== 'undefined' && STYLE.letterbox && !PORT && W / H < STYLE.letterbox ? (H - W / STYLE.letterbox) / 2 + H * .035 : 0;
+    return Math.round(Math.max(H * (PORT ? .07 : .09), lb));
+  },
   get w() { return W - 2 * this.x; },
   get h() { return H - 2 * this.y; },
   get r() { return W - this.x; },
@@ -160,7 +163,13 @@ function _wrapRaw(s, maxW, size, weight = 700, f = 'sans', c = ctx) {
 function fit(s, maxW, size, weight = 700, f = 'sans', maxLines = 1, minR = .5, track = 0) {
   let z = size; const ls = ctx.letterSpacing;
   try {
-    while (z > size * minR) { ctx.letterSpacing = track ? (track * z) + 'px' : '0px'; if (wrap(s, maxW, z, weight, f).length <= maxLines) return z; z *= .94; }
+    while (z > size * minR) {
+      ctx.letterSpacing = track ? (track * z) + 'px' : '0px';
+      const ln = wrap(s, maxW, z, weight, f);
+      // a single unbreakable word (e.g. "Canvas") always wraps to one line, so also check its real width
+      if (ln.length <= maxLines) { setFont(z, weight, f); if (Math.max(...ln.map(l => ctx.measureText(l).width)) <= maxW + .5) return z; }
+      z *= .94;
+    }
     return Math.round(size * minR);
   } finally { ctx.letterSpacing = ls; }
 }

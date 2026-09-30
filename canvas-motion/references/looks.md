@@ -21,23 +21,25 @@
 
 **做不到的**：擬真人物、動畫原畫等級的角色臉部與表情、特定插畫家的畫風。需要時請使用者提供有授權的圖片素材。
 
-## 用法一：L_look（資料驅動，不用寫程式）
+## 用法一：L_look 當背景（資料驅動）
+
+背景構圖寫在該幕的 `data`，在自訂場景第一行呼叫 `L_look(t, T, pulse, s)`，主體再疊在上面（每一幕仍是 `s` 開頭的自訂場景，storyboard.py 不接受 `L_look` 直接當 fn）：
 
 ```json
-{ "fn": "L_look", "bars": 3, "energy": .5, "data": {
+{ "fn": "sValley", "bars": 3, "energy": 0.5, "data": {
   "look": "ink",
-  "horizon": .6,
-  "sun": { "x": .72, "y": .4, "r": .07 },
+  "horizon": 0.6,
+  "sun": { "x": 0.72, "y": 0.4, "r": 0.07 },
   "clouds": 2,
   "layers": [
-    { "ridge": { "base": .57, "amp": .17, "seed": 5 }, "color": "hill1", "parallax": .02 },
-    { "ridge": { "base": .67, "amp": .12, "seed": 9 }, "color": "hill2", "parallax": .05 },
-    { "points": [[0,.9],[.3,.8],[.6,.88],[1,.92],[1,1],[0,1]], "color": "ground", "parallax": .13, "solid": true }
+    { "ridge": { "base": 0.57, "amp": 0.17, "seed": 5 }, "color": "hill1", "parallax": 0.02 },
+    { "ridge": { "base": 0.67, "amp": 0.12, "seed": 9 }, "color": "hill2", "parallax": 0.05 },
+    { "points": [[0,0.9],[0.3,0.8],[0.6,0.88],[1,0.92],[1,1],[0,1]], "color": "ground", "parallax": 0.13, "solid": true }
   ],
   "particles": { "n": 20, "color": "petal" },
   "seal": "春",
   "caption": { "title": "…", "note": "…" },
-  "port": { "horizon": .55, "sun": { "x": .6, "y": .35, "r": .08 } }
+  "port": { "horizon": 0.55, "sun": { "x": 0.6, "y": 0.35, "r": 0.08 } }
 } }
 ```
 

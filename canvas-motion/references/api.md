@@ -17,6 +17,8 @@
 12. 除錯介面
 13. 跨幕錨點（物件跨幕延續）
 14. 畫風與常用形狀（見 looks.md）
+15. 動作質感（motion.js，見 craft.md）
+16. 音效與靜默（sfx、rest）
 
 ---
 
@@ -52,6 +54,10 @@
 | `scenes[].bars` | 這幕佔幾小節。**用整數**，切點才會落在小節第一拍 |
 | `scenes[].energy` | 0–1，決定配樂密度：<.3 只有 pad；≥.3 加鼓與 bass；≥.5 加小鼓；≥.55 加主旋律；≥.8 hi-hat 加密；≥.85 旋律改 16 分音符 |
 | `scenes[].trans` | 離開這幕時用的轉場（見第 9 節）。省略時輪流使用風格包的 `trans` |
+| `scenes[].hero` | `{ "beat": 拍數, "what": "高光瞬間" }`。storyboard 必填；taste.py 檢查那一拍有沒有動作高峰 |
+| `scenes[].carry` | 上一幕的什麼變成這幕的主角（說明用，提案表會列出） |
+| `scenes[].sfx` | 音效清單 `[[拍數, 種類, 音量?, 長度?], …]`（第 16 節） |
+| `scenes[].rest` | `[起拍, 終拍]`：這段配樂靜默（第 16 節） |
 
 播放順序由 `scenes` 陣列決定；`scenes/*.js` 的檔名只影響載入順序。
 
@@ -235,8 +241,8 @@ txtB(countUp(p, 0, 12800), cx, cy, { size: fz(.28), fam: 'mono', gradient: [STYL
 
 ```json
 "anchors": {
-  "stack": { "x": .5, "y": .62, "s": 1, "r": 0, "port": { "y": .58 } },
-  "carEnd": { "x": .85, "y": .86 }
+  "stack": { "x": 0.5, "y": 0.62, "s": 1, "r": 0, "port": { "y": 0.58 } },
+  "carEnd": { "x": 0.85, "y": 0.86 }
 }
 ```
 
@@ -256,3 +262,34 @@ function sFly(t, T, pulse, s) {
 
 背景可在場景裡呼叫 `L_look`、主體用 `withLook` + `lookShape`／`LK_SHAPES` + `lookDraw`，說明與範例見 `references/looks.md`、`examples/shapes-demo`。
 
+## 15. 動作質感（motion.js）
+
+原則與範例見 `references/craft.md` 第 2、3 節。全部是 `t` 的純函式。
+
+| 函式 | 用途 |
+|---|---|
+| `spring(t, start, freq=2.2, damp=.38)` | 0→1 彈簧，會過衝再回穩 |
+| `anticipate(t, start, dur, amt=.18, wind=.3, ease)` | 先反向退 amt 再衝到 1 |
+| `vel(fn, t)` | fn(t) 的速度（數字或 {x, y}） |
+| `withSquash(x, y, vx, vy, draw, k, max)` | 沿速度方向擠壓伸展後在 (x, y) 畫 draw() |
+| `impact(t, hitT, amt=.35, dur=.32)` | 撞擊後壓扁回彈，回傳 {sx, sy} |
+| `lagT(t, i, lag=.06)` | 第 i 個延遲 lag 秒（跟隨與重疊） |
+| `trail(t, fn, draw, n, gap)` / `smear(t, fn, draw, n, dt, minPx)` / `smearLine(x0,y0,x1,y1,r,col)` | 拖尾、高速抹影 |
+| `arcPt(x1, y1, x2, y2, p, lift)` | 弧線上的點 {x, y, ang} |
+| `hit(t, beats, decay=7)` | 本幕這些拍點的衝擊衰減 0–1 |
+| `shake(t, hitT, amp, dur, seed)` | 鏡頭震動 {x, y, r} |
+| `shot({x, y, zoom, rot}, draw)` / `camLerp(a, b, p)` | 鏡頭：把一點拉到中心並放大；在兩個鏡頭間移動 |
+| `layer(depth, camX, camY, draw, blur)` | 視差圖層（0 遠、1 跟鏡頭、>1 前景），可加景深模糊 |
+| `onTwos(t, fps=12)` | 時間量化成一拍兩格（手繪類畫風） |
+
+## 16. 音效與靜默（sfx、rest）
+
+```json
+{ "fn": "sDrop", "bars": 2, "energy": 0.95,
+  "sfx": [[-0.25, "whoosh"], [0, "boom"], [3, "riser", 0.8, 1.2], [4, "impact"]],
+  "rest": [2.5, 3] }
+```
+- `sfx` 的拍數從本幕切點算起，可以是小數或負數（切點前）。riser 的拍數是「衝到頂」的時間，第 4 個值是長度秒數（預設一小節）。
+- 種類：`whoosh`、`swish`、`riser`、`impact`、`boom`、`pop`、`click`、`stamp`、`chime`（用途見 craft.md 第 5 節）。自訂配樂 `MUSIC()` 時音效照樣播放。
+- `rest` 期間配樂（含自訂 `MUSIC()`）靜默，音效照常。
+- 動態模糊不在場景裡寫，匯出時加 `export.py --blur 5`（引擎的 `__cm.frameBlur`）。

@@ -47,8 +47,9 @@ def goto(pg, html_path: Path):
     pg.evaluate("Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 4000))])")
 
 
-def grab(pg, t, w, h, fmt="jpeg", q=0.9) -> bytes:
+def grab(pg, t, w, h, fmt="jpeg", q=0.9, blur=0, shutter=0.5, fps=30) -> bytes:
+    """blur > 1 時用 blur 個子畫格做動態模糊（見 frameBlur）。"""
     url = pg.evaluate(
-        "([t,w,h,f,q]) => { if (CV.width!==w||CV.height!==h) __cm.resize(w,h,1); __cm.frame(t);"
-        " return CV.toDataURL('image/'+f, q); }", [t, w, h, fmt, q])
+        "([t,w,h,f,q,n,sh,fps]) => { if (CV.width!==w||CV.height!==h) __cm.resize(w,h,1); __cm.frameBlur(t,n,sh,fps);"
+        " return CV.toDataURL('image/'+f, q); }", [t, w, h, fmt, q, blur, shutter, fps])
     return base64.b64decode(url.split(",", 1)[1])

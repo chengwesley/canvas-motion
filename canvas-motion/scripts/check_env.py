@@ -44,6 +44,7 @@ if shutil.which("fc-list"):
     cjk = bool(subprocess.run(["fc-list", ":lang=zh"], capture_output=True, text=True).stdout.strip())
 else:   # Windows／macOS 沒有 fc-list：直接找常見中文字型檔
     cjk = any(Path(p).exists() for p in ["C:/Windows/Fonts/msjh.ttc", "C:/Windows/Fonts/msjhl.ttc", "/System/Library/Fonts/PingFang.ttc",
+                                          "/System/Library/Fonts/STHeiti Medium.ttc",
                                           "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"])
 row("中文字型", cjk, "有" if cjk else "截圖會出現方框：apt install fonts-noto-cjk（Windows 需要微軟正黑體）")
 probe = shutil.which("ffprobe")
