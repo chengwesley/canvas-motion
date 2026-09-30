@@ -56,7 +56,7 @@ def main():
     if code:
         print("✗ 截圖失敗（Playwright 無法使用？見 check_env.py）"); sys.exit(code)
     if taste:
-        print(f"! 動態品味有 {len(taste)} 則提醒：先依提醒改（最多 3 輪），改不了的在交付時說明")
+        print(f"! 動態品味有 {len(taste)} 則提醒：看看是不是刻意的；不是刻意的就改，刻意的就保留並在交付時說明")
     print("✓ 自動檢查全部通過。接著用 view 逐格看 sheets/sheet_16x9.jpg、sheet_9x16.jpg、motion.png，再照 craft.md 自評表檢查")
 
 

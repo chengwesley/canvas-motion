@@ -13,8 +13,8 @@ storyboard.json：
   "source": "source.txt",                                   // 選填：素材檔，build.py 用來追溯數字
   "scenes": [
     { "fn": "sHook", "bars": 2, "energy": 0.3, "trans": "zoom", "say": "這幕講的一件事",
-      "hero": { "beat": 4, "what": "觀眾會記住的那一格：墨點炸開成分格" },   // 必填：高光瞬間落在本幕第幾拍
-      "carry": "上一幕的什麼變成這幕的主角",                                   // 第 2 幕起建議寫：物件延續鏈
+      "hero": { "beat": 4, "what": "觀眾會記住的那一格：墨點炸開成分格" },   // 建議：高光瞬間落在本幕第幾拍（可以是爆發，也可以是一個停頓）
+      "carry": "上一幕的什麼變成這幕的主角",                                   // 選填：物件延續鏈
       "sfx": [[3.5, "whoosh"], [4, "impact"]],                                  // 選填：音效綁動作（拍數, 種類, 音量）
       "rest": [7, 8] },                                                          // 選填：這段配樂靜默，高潮前留一口氣
     { "fn": "sProduct", "bars": 3, "energy": 0.7, "say": "產品如何運作", "hero": { "beat": 6, "what": "…" } }
@@ -92,7 +92,7 @@ def check(sb):
         beats = b * 4 if isinstance(b, int) else 8
         h = s.get("hero")
         if not isinstance(h, dict) or not h.get("what") or not isinstance(h.get("beat"), (int, float)):
-            errs.append(f"第 {i} 幕缺 hero {{\"beat\": 拍數, \"what\": \"高光瞬間\"}}：寫不出觀眾會記住的那一格，這幕就沒有存在的理由")
+            warns.append(f"第 {i} 幕沒寫 hero（觀眾會記住的那一格）：想一個最有力或最意外的瞬間會很有幫助；刻意平靜的幕可以不寫")
         elif not 0 <= h["beat"] <= beats:
             errs.append(f"第 {i} 幕 hero.beat {h['beat']} 超出本幕範圍（0–{beats} 拍）")
         if i > 1 and not s.get("carry"):
@@ -104,7 +104,7 @@ def check(sb):
         if r is not None and not (isinstance(r, list) and len(r) == 2 and all(isinstance(x, (int, float)) for x in r) and 0 <= r[0] < r[1] <= beats):
             errs.append(f"第 {i} 幕 rest 要寫 [起拍, 終拍]，在 0–{beats} 拍之內")
     if isinstance(sc[-1].get("bars", 2), int) and sc[-1].get("bars", 2) < 2:
-        errs.append("最後一幕至少 2 小節，留給收束和弦與餘韻")
+        warns.append("最後一幕只有 1 小節：收束和弦會很趕；想要戛然而止的效果就保留")
     en = [s.get("energy", .5) for s in sc]
     if len(sc) >= 3:
         if en[0] > .5:
@@ -128,31 +128,34 @@ def check_script(sb):
     dur = [s.get("bars", 2) * bar for s in sc]; total = sum(dur)
     # 編劇：一句話故事與主角弧線
     if not S.get("logline"):
-        errs.append("編劇：script.logline 必填（一句話講完：誰、想要什麼、什麼擋住他、結果如何）")
+        warns.append("編劇：沒寫 logline；試著用一句話講完這支片，常常會冒出更好的點子")
     pr = S.get("protagonist") or {}
     for k, zh in (("want", "想要什麼"), ("obstacle", "阻礙"), ("change", "最後的轉變")):
         if not pr.get(k):
-            errs.append(f"編劇：script.protagonist.{k}（{zh}）必填：沒有這三件事就沒有故事，只是一串畫面")
-    # 三幕比例
+            warns.append(f"編劇：沒寫 protagonist.{k}（{zh}）；想清楚會讓故事更有張力，詩意、氛圍、實驗類的片子可以不需要")
+    # 結構：三幕只是其中一種。structure 可寫 three-act（預設）、kishotenketsu（起承轉合）、nonlinear（倒敘、插敘）、loop（循環）、oneshot（一鏡到底）、free（自由）
+    structure = S.get("structure", "three-act")
     acts = [s.get("act") for s in sc]
-    if any(a not in (1, 2, 3) for a in acts):
-        errs.append("編劇：每個鏡頭都要標 act（1、2、3）")
+    if structure != "three-act":
+        pass
+    elif any(a not in (1, 2, 3) for a in acts):
+        warns.append("編劇：有鏡頭沒標 act；不走三幕就在 script 寫 structure（kishotenketsu、nonlinear、loop、oneshot、free）")
     else:
         share = {a: sum(d for d, x in zip(dur, acts) if x == a) / total for a in (1, 2, 3)}
         for a, lo, hi in ((1, .15, .35), (2, .38, .65), (3, .15, .35)):
             if not lo <= share[a] <= hi:
                 warns.append(f"編劇：第 {a} 幕佔 {share[a]:.0%}（建議 {lo:.0%}–{hi:.0%}；常見比例 25／50／25）")
         if acts != sorted(acts):
-            errs.append("編劇：act 要依序 1 → 2 → 3，不能跳回去")
+            warns.append("編劇：act 跳回前面了；如果是倒敘或插敘，在 script 寫 structure: nonlinear")
     # 關鍵節拍
     bs = [s.get("beat") for s in sc]
     for b in bs:
         if b and b not in BEATS:
             errs.append(f"編劇：beat「{b}」不認得（可用：{'、'.join(BEATS)}）")
     need = {"hook": "開場鉤子", "inciting": "觸發事件", "midpoint": "中點轉折", "climax": "高潮", "resolution": "結局"}
-    for b, zh in need.items():
+    for b, zh in (need.items() if structure == "three-act" else []):
         if b not in bs:
-            warns.append(f"編劇：缺少 {b}（{zh}）節拍")
+            warns.append(f"編劇：沒有 {b}（{zh}）節拍；三幕結構常見，但不是必要")
     if bs and bs[0] != "hook":
         warns.append("編劇：第一個鏡頭應該是 hook（前 5 秒抓住人）")
     if "climax" in bs:
@@ -170,7 +173,7 @@ def check_script(sb):
     shots = [s.get("shot") or {} for s in sc]
     for i, sh in enumerate(shots, 1):
         if not sh.get("size"):
-            errs.append(f"導演：第 {i} 個鏡頭缺 shot.size（{'／'.join(SIZES)}）")
+            warns.append(f"導演：第 {i} 個鏡頭沒寫 shot.size（{'／'.join(SIZES)}），寫下來有助於規劃景別變化")
         elif sh["size"] not in SIZES:
             errs.append(f"導演：第 {i} 個鏡頭 size「{sh['size']}」不認得")
         if sh.get("angle") and sh["angle"] not in ANGLES:
@@ -300,6 +303,8 @@ def main():
         print(table(sb) + "\n")
     for w in warns:
         print(f"! {w}")
+    if warns:
+        print("  （以上是給構思用的建議，不是規則；刻意打破就保留，交付時說一句為什麼）")
     for e in errs:
         print(f"✗ {e}")
     if errs:
