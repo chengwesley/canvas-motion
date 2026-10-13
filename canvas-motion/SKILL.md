@@ -1,6 +1,6 @@
 ---
 name: canvas-motion
-description: 把任何需求與情境直接變成穩定的動畫短片：每一幕都由 Claude 自主發想構圖與動畫、不套版面範本，用單一 HTML（Canvas 逐幀程序化繪製 + WebAudio 即時合成配樂）產出，可發布成 Artifact 線上播放，也能匯出含配樂的 MP4 或 GIF。Claude 從使用者的目的、觀眾、平台與素材推斷規格、敘事、節奏、畫風與風格，構圖開放詢問，一次提案、確認後直接做完，並用腳本自動檢查版面、文字、對比與素材出處。內建 10 種畫風（動畫風背景、水彩、水墨、扁平插畫、像素、霓虹、低多邊形、剪紙、美漫網點、蠟筆）。產品介紹與操作示範會先擷取產品的真實畫面與品牌色，再用瀏覽器／App／手機外框、游標點擊、打字、點擊自動推近鏡頭、聚光與標籤演出操作過程。使用者說「做動畫」「做短片」「動態影片」「motion graphics」「解說動畫」「產品 Demo 動畫」「介紹動畫」「片頭」「宣傳影片」「動態 Banner」「GIF 動圖」「把這些內容做成影片」「轉成 MP4／GIF」「做一支 Reels／Shorts」「產品介紹影片」「功能展示」「操作示範」「示範怎麼用」「產品 Demo」，或「讓這份簡報動起來」「做個酷一點的介紹」時使用。不適用於：剪輯實拍影片、單張靜態海報、角色逐格手繪動畫；擬真人物、動畫原畫等級的臉部表情需要使用者提供有授權的圖片素材。
+description: 把任何需求與情境直接變成穩定的動畫短片：每一幕都由 Claude 自主發想構圖與動畫、不套版面範本，用單一 HTML（Canvas 逐幀程序化繪製 + WebAudio 即時合成配樂）產出，可發布成 Artifact 線上播放，也能匯出含配樂的 MP4 或 GIF。Claude 從使用者的目的、觀眾、平台與素材推斷規格、敘事、節奏、畫風與風格，構圖開放詢問，一次提案、確認後直接做完，並用腳本自動檢查版面、文字、對比與素材出處。內建 10 種畫風（動畫風背景、水彩、水墨、扁平插畫、像素、霓虹、低多邊形、剪紙、美漫網點、蠟筆）。產品介紹與操作示範會先擷取產品的真實畫面與品牌色，再用瀏覽器／App／手機外框、游標點擊、打字、點擊自動推近鏡頭、聚光與標籤演出操作過程。可加旁白配音（Windows 內建離線台灣中文語音，每句多版本自動挑最清楚的一版，依旁白實際長度排每幕秒數）與字幕（燒進畫面並另存 .srt），旁白出現時配樂自動壓低。使用者說「做動畫」「做短片」「動態影片」「motion graphics」「解說動畫」「產品 Demo 動畫」「介紹動畫」「片頭」「宣傳影片」「動態 Banner」「GIF 動圖」「把這些內容做成影片」「轉成 MP4／GIF」「做一支 Reels／Shorts」「產品介紹影片」「功能展示」「操作示範」「示範怎麼用」「產品 Demo」「加旁白」「配音」「加字幕」「講解影片」，或「讓這份簡報動起來」「做個酷一點的介紹」時使用。不適用於：剪輯實拍影片、單張靜態海報、角色逐格手繪動畫；擬真人物、動畫原畫等級的臉部表情需要使用者提供有授權的圖片素材。
 ---
 
 # Canvas Motion：從需求直接到穩定成品
@@ -25,10 +25,10 @@ canvas-motion/
 │                  product.js 產品示範（截圖 pic、瀏覽器／視窗／手機外框、游標、打字、鏡頭跟隨、聚光、標籤）
 ├── styles/        錨點風格（生成風格的起點）＋ _schema.json（風格參數格式）
 ├── brands/        品牌設定檔（capture.py --brand 產生：網站實際使用的強調色與字型）
-├── scripts/       verify（一鍵檢查）、capture（擷取產品真實畫面與品牌色）、storyboard（含劇本模式）、castsheet（角色設定表）、build、sheet、taste（動態品味）、export（MP4／GIF）、style_gen、check_env、
+├── scripts/       verify（一鍵檢查）、capture（擷取產品真實畫面與品牌色）、voice（旁白配音與字幕）、storyboard（含劇本模式）、castsheet（角色設定表）、build、sheet、taste（動態品味）、export（MP4／GIF）、style_gen、check_env、
 │                  selftest、new_project、preview_styles
 ├── references/    direction.md（情境→規格與節奏）、craft.md（動畫手藝、導演思維、自評表）、crew.md（劇組流程：30 秒以上的故事片）、
-│                  product.md（產品介紹與操作示範）、genres.md（美漫、港漫、動漫、電影）、character.md（角色）、looks.md（畫風與形狀）、
+│                  product.md（產品介紹與操作示範）、voice.md（旁白配音與字幕）、genres.md（美漫、港漫、動漫、電影）、character.md（角色）、looks.md（畫風與形狀）、
 │                  api.md（自訂場景、文字、錨點、音效）、style-pack.md（風格參數）
 └── examples/      keynote-demo、look-gallery、shapes-demo、product-demo（寫法參考，也是回歸測試；不要照抄構圖）
 ```
@@ -126,6 +126,20 @@ python3 <SKILL>/scripts/storyboard.py storyboard.json --preview
 - 品牌色：風格寫 `"brand": "<品牌名>"` 套用 `brands/` 的設定檔，或直接用 `colors.a1–a3`；畫風用 `pal` 覆寫主要色。
 - Logo：使用者給 SVG 時，路徑轉成 Canvas（`new Path2D(svg 的 d)`）畫在自訂場景；給 PNG 時轉成 data URI 內嵌（Artifact 不能引用外部圖片）。**使用前確認使用者有權使用該商標**；沒有 Logo 檔就在場景裡用文字字標，不要自己畫出仿製的 Logo。
 
+## 旁白配音與字幕
+
+使用者要旁白、配音、字幕，或片子是講解型（產品介紹、操作示範、教學、品牌故事）時，**讀 `references/voice.md`**，在分鏡每幕加 `vo`（旁白文字，也是字幕；念法不同時分開寫 `say`／`sub`）。提案的分鏡表會多一欄旁白，storyboard.py 會先用估計長度檢查放不放得下。
+
+分鏡轉專案之後、寫場景之前先產生配音，讓每幕長度依旁白實際長度定下來：
+
+```bash
+python3 <SKILL>/scripts/voice.py <專案> --fit
+```
+
+- 預設 Windows 內建離線語音 Yating（台灣女聲），每句 3 個版本、用內建辨識器挑最清楚的一版；放不下的幕 `--fit` 自動加小節。其他引擎與聲音見 voice.md（edge 線上語音會把文字送到微軟，要先告知使用者）。
+- 旁白文案也只能來自素材。CER 偏高的句子要用耳朵聽一次（或請使用者聽）。
+- 字幕畫在畫面下方，場景裡重要的字不要放在那個高度；動作對旁白（說到「按下」那一拍游標按下）。
+
 ## 分鏡轉專案
 
 ```bash
@@ -199,7 +213,8 @@ python3 <SKILL>/scripts/export.py <專案> out.mp4 --preview                    
 |---|---|
 | 16:9／9:16（Reels／Shorts）／1:1 | `--size 1280x720`、`1080x1920`、`1080x1080` |
 | 要傳到手機（30MB 以下） | `--mobile` |
-| 不要配樂 | `--no-audio` |
+| 不要配樂 | `--no-audio`（連旁白一起關）；只關配樂、保留旁白：project.json 寫 `"music": false` |
+| 有旁白時 | 預設字幕燒進畫面、另存 `<輸出>.srt`；平台另外上傳字幕用 `--no-subs`，不要 .srt 用 `--no-srt` |
 | GIF 太大（超過 5MB 會警告） | `--gif-width 480`、`--fps 10`、`--gif-dither none`，或改給 MP4 |
 | 離線、或要求整支片字型一致 | `--offline-fonts`（網路字型沒載入時也會自動改用系統字型） |
 | 平行渲染 | `--jobs N`（預設依 CPU 自動） |
@@ -232,6 +247,7 @@ python3 <SKILL>/scripts/export.py <專案> out.mp4 --preview                    
 ## 交付檢查清單
 
 - [ ] 交付時說明：採用了哪些推斷（規格、構圖、畫風、風格方向）、風格驗證自動修正了什麼（尤其是品牌色）、沒能執行的驗證
+- [ ] 有旁白：`voice.py` 結束碼為 0（每幕都放得下）、說明用了哪個聲音、CER 偏高的句子已請人聽過、交付 .srt
 - [ ] 所有文案與數字都能追溯到素材，build 沒有回報 `{{待填}}` 或找不到出處的數字
 - [ ] 產品片：說明截圖來源（`assets/capture.json`）、品牌色是自動推得或官方色碼；沒有自行捏造的產品介面
 - [ ] `verify.py` 結束碼為 0，且橫式與直式縮圖都逐格看過

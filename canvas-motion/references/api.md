@@ -59,6 +59,8 @@
 | `scenes[].carry` | 上一幕的什麼變成這幕的主角（說明用，提案表會列出） |
 | `scenes[].sfx` | 音效清單 `[[拍數, 種類, 音量?, 長度?], …]`（第 16 節） |
 | `scenes[].rest` | `[起拍, 終拍]`：這段配樂靜默（第 16 節） |
+| `scenes[].vo` | 旁白：字串、字串陣列，或 `{ say, sub, at, file }`（見 voice.md）。`voice.py` 產生配音後 build 自動內嵌、排時間、畫字幕 |
+| `voice` | 旁白與字幕設定：`engine`、`voice`、`rate`、`subs`、`duck`、`lead`／`gap`／`tail`、`subY`／`subSize`（見 voice.md） |
 
 播放順序由 `scenes` 陣列決定；`scenes/*.js` 的檔名只影響載入順序。
 
@@ -230,7 +232,7 @@ txtB(countUp(p, 0, 12800), cx, cy, { size: fz(.28), fam: 'mono', gradient: [STYL
 
 ## 12. 除錯介面
 
-頁面上有 `window.__cm`：`frame(t)`、`resize(w,h,dpr)`、`renderWav()`、`TOTAL`、`SC`（場景時間表）、`errors`（場景拋出的錯誤）、`bench(n,w,h)`。
+頁面上有 `window.__cm`：`frame(t)`、`resize(w,h,dpr)`、`renderWav()`（配樂＋旁白＋音效）、`TOTAL`、`SC`（場景時間表）、`vo()`（旁白與字幕時間）、`errors`（場景拋出的錯誤）、`bench(n,w,h)`、`ready`（截圖與旁白解碼完成）。
 
 場景拋錯時引擎不會整支停掉，而是在那一幕畫出紅字錯誤訊息，並記錄到 `__cm.errors`；`sheet.py` 會把它印出來並以代碼 2 結束。
 

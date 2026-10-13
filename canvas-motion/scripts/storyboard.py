@@ -17,8 +17,10 @@ storyboard.json：
       "carry": "上一幕的什麼變成這幕的主角",                                   // 選填：物件延續鏈
       "sfx": [[3.5, "whoosh"], [4, "impact"]],                                  // 選填：音效綁動作（拍數, 種類, 音量）
       "rest": [7, 8] },                                                          // 選填：這段配樂靜默，高潮前留一口氣
-    { "fn": "sProduct", "bars": 3, "energy": 0.7, "say": "產品如何運作", "hero": { "beat": 6, "what": "…" } }
-  ]
+    { "fn": "sProduct", "bars": 3, "energy": 0.7, "say": "產品如何運作", "hero": { "beat": 6, "what": "…" },
+      "vo": ["旁白第一句", { "say": "念法（二〇二六年）", "sub": "字幕（2026 年）" }] }                     // 選填：旁白與字幕（voice.py 產生配音）
+  ],
+  "voice": { "engine": "winrt", "voice": "Yating", "rate": 1.0, "subs": true, "duck": 0.28 }    // 選填：語音與字幕設定（見 references/voice.md）
 }
 音效種類：whoosh、swish、riser、impact、boom、pop、click、stamp、chime、gong、drum（見 references/craft.md）
 
@@ -40,6 +42,7 @@ import _utf8  # noqa: E402,F401  UTF-8 輸出（Windows cp950 也不會當掉）
 
 sys.path.insert(0, str(Path(__file__).parent))
 from new_project import SCAFFOLD  # noqa: E402
+import _vo  # noqa: E402
 from style_gen import anchor_info, anchor_src  # noqa: E402
 
 SKILL = Path(__file__).resolve().parent.parent
@@ -100,6 +103,12 @@ def check(sb):
         for e in s.get("sfx") or []:
             if not (isinstance(e, list) and len(e) >= 2 and isinstance(e[0], (int, float)) and e[1] in SFX):
                 errs.append(f"第 {i} 幕 sfx {e} 格式錯誤：要寫 [拍數, 種類]，種類只能是 {', '.join(sorted(SFX))}")
+        vo = _vo.items(s)
+        if vo and isinstance(b, int):
+            need = _vo.LEAD + sum(_vo.estimate(it["say"]) for it in vo) + _vo.GAP * (len(vo) - 1) + _vo.TAIL
+            have = b * 240 / int(sb.get("bpm") or style_bpm(sb.get("style", "minimal")))
+            if need > have:
+                warns.append(f"第 {i} 幕旁白估計要 {need:.1f} 秒，這幕只有 {have:.1f} 秒：加小節或縮短旁白（voice.py --fit 會依實際長度自動加）")
         r = s.get("rest")
         if r is not None and not (isinstance(r, list) and len(r) == 2 and all(isinstance(x, (int, float)) for x in r) and 0 <= r[0] < r[1] <= beats):
             errs.append(f"第 {i} 幕 rest 要寫 [起拍, 終拍]，在 0–{beats} 拍之內")
@@ -246,13 +255,17 @@ def table(sb):
             rows.append(f"| {i} | {t:.0f}–{t + d:.0f} | {s.get('act', '?')} · {s.get('beat', '')} | {cam} | {'、'.join(s.get('who') or [])} | {s.get('say', '')} | {h.get('what', '')} | {s.get('energy', .5)} |")
             t += d
         return script_page(sb) + "\n" + "\n".join(rows) + f"\n\n總長約 {t:.0f} 秒（{bpm} BPM）"
-    rows = ["| # | 小節 | 秒數 | energy | 這幕講的一件事 | 高光（第幾拍） | 延續 | 轉場 |", "|---|---|---|---|---|---|---|---|"]
+    has_vo = any(_vo.items(s) for s in sb["scenes"])
+    rows = ["| # | 小節 | 秒數 | energy | 這幕講的一件事 | 高光（第幾拍） | 延續 | 轉場 |" + (" 旁白 |" if has_vo else ""),
+            "|---|---|---|---|---|---|---|---|" + ("---|" if has_vo else "")]
     t = 0
     for i, s in enumerate(sb["scenes"], 1):
         d = s.get("bars", 2) * bar
         h = s.get("hero") if isinstance(s.get("hero"), dict) else {}
         hero = f"{h.get('what', '')}（{t + h['beat'] * bar / 4:.1f}s）" if isinstance(h.get("beat"), (int, float)) else h.get("what", "")
-        rows.append(f"| {i} | {s.get('bars', 2)} | {t:.0f}–{t + d:.0f} | {s.get('energy', .5)} | {s.get('say', '')} | {hero} | {s.get('carry', '—')} | {s.get('trans', '—')} |")
+        vo = "／".join(it["sub"] for it in _vo.items(s)) or "—"
+        rows.append(f"| {i} | {s.get('bars', 2)} | {t:.0f}–{t + d:.0f} | {s.get('energy', .5)} | {s.get('say', '')} | {hero} | {s.get('carry', '—')} | {s.get('trans', '—')} |"
+                    + (f" {vo} |" if has_vo else ""))
         t += d
     return "\n".join(rows) + f"\n\n總長約 {t:.0f} 秒（{bpm} BPM）"
 
@@ -261,7 +274,7 @@ def write(sb, d: Path, force=False, sb_dir: Path = Path(".")):
     if (d / "project.json").exists() and not force:
         sys.exit(f"✗ {d}/project.json 已存在（要覆寫加 --force）")
     (d / "scenes").mkdir(parents=True, exist_ok=True)
-    cfg = {k: sb[k] for k in ("title", "style", "aspect", "bpm", "anchors", "cast", "script") if k in sb}
+    cfg = {k: sb[k] for k in ("title", "style", "aspect", "bpm", "anchors", "cast", "script", "voice", "music") if k in sb}
     cfg.setdefault("aspect", "auto")
     cfg.setdefault("style", "minimal")
     if sb.get("source"):
@@ -272,7 +285,7 @@ def write(sb, d: Path, force=False, sb_dir: Path = Path(".")):
     existing = "\n".join(p.read_text("utf-8") for p in (d / "scenes").glob("*.js"))
     for k, s in enumerate(sb["scenes"]):
         row = {"fn": s["fn"], "bars": s.get("bars", 2), "energy": s.get("energy", .5)}
-        for key in ("trans", "data", "hero", "carry", "sfx", "rest", "act", "beat", "shot", "who", "lines"):
+        for key in ("trans", "data", "hero", "carry", "sfx", "rest", "act", "beat", "shot", "who", "lines", "vo"):
             if key in s:
                 row[key] = s[key]
         if s.get("say"):
@@ -283,7 +296,8 @@ def write(sb, d: Path, force=False, sb_dir: Path = Path(".")):
             f.write_text(SCAFFOLD.format(fn=s["fn"], note=s.get("say", "描述這幕要講的一件事")), "utf-8")
             print(f"  + 鷹架 {f.name}")
     (d / "project.json").write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n", "utf-8")
-    print(f"✓ 已寫入 {d / 'project.json'}（{len(cfg['scenes'])} 幕）  下一步：寫自訂場景 → build.py → sheet.py --trans")
+    nxt = "voice.py --fit（旁白配音）→ 寫自訂場景" if any(_vo.items(s) for s in cfg["scenes"]) else "寫自訂場景"
+    print(f"✓ 已寫入 {d / 'project.json'}（{len(cfg['scenes'])} 幕）  下一步：{nxt} → verify.py")
 
 
 def main():

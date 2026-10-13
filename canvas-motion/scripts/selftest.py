@@ -31,8 +31,9 @@ def try_build(cfg, tmp: Path, scenes: Path = None):
     if scenes and scenes.exists():
         for f in scenes.glob("*.js"):
             shutil.copy(f, tmp / "scenes" / f.name)
-        if (scenes.parent / "assets").exists():   # 產品示範範例的截圖素材
-            shutil.copytree(scenes.parent / "assets", tmp / "assets", dirs_exist_ok=True)
+        for sub in ("assets", "voice"):   # 產品示範範例的截圖素材與旁白
+            if (scenes.parent / sub).exists():
+                shutil.copytree(scenes.parent / sub, tmp / sub, dirs_exist_ok=True)
     (tmp / "project.json").write_text(json.dumps(cfg, ensure_ascii=False), "utf-8")
     err = io.StringIO()
     try:

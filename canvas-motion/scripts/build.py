@@ -11,6 +11,7 @@
   - 自訂場景 lint：Math.random、txt 沒給 maxW、寫死色碼、自己淡出
   - 素材追溯：若專案有 source.txt（或 project.json 的 "_source" 指向檔案），列出畫面上找不到出處的數字
 
+旁白與字幕：幕的 vo 欄位＋voice.py 產生的 <專案>/voice/（音檔內嵌、依實際長度排時間；還沒產生時用估計長度只排字幕）。
 截圖素材：<專案>/assets/ 底下的 png／jpg／webp／svg 會內嵌成 ASSETS（data URI），場景用 pic('檔名不含副檔名', …) 畫。
 """
 import argparse, base64, html, json, os, re, shutil, subprocess, sys, tempfile
@@ -22,6 +23,7 @@ import _utf8  # noqa: E402,F401  UTF-8 輸出（Windows cp950 也不會當掉）
 SKILL = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).parent))
 from style_gen import generate as gen_style  # noqa: E402
+import _vo  # noqa: E402
 LIMIT = 16 * 1024 * 1024
 
 
@@ -60,7 +62,7 @@ def trace_source(proj, cfg):
     if not sp.exists():
         return None
     src = re.sub(r"[,\s]", "", sp.read_text("utf-8", errors="ignore"))
-    data = json.dumps([s.get("data", {}) for s in cfg["scenes"]], ensure_ascii=False)
+    data = json.dumps([[s.get("data", {}), [it["sub"] for it in _vo.items(s)]] for s in cfg["scenes"]], ensure_ascii=False)   # 旁白字幕裡的數字也要有出處
     data = re.sub(r'"_[^"]*":\s*"[^"]*"', "", data)
     data = re.sub(r"#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)", "", data)   # 色碼不是畫面上的數字
     data = re.sub(r'"(?:pal|x|y|r|size|speed|base|amp|seed|parallax|horizon|push|n|no)":\s*[\d.]+', "", data)   # 構圖參數也不是
@@ -88,8 +90,39 @@ def load_assets(proj):
     return out, raw
 
 
-def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | None = None) -> Path:
-    """webfonts=False：不載入網路字型（離線或要求整支片字型一致時）；None＝依 project.json 的 webfonts（預設開）。"""
+def load_voice(proj, cfg, bpm, subs=None):
+    """旁白：讀 voice/voice.json 的實際長度排時間，音檔轉 data URI。回傳 (VOICE 物件, 警告)。"""
+    its = [(si, k, it) for si, sc in enumerate(cfg["scenes"]) for k, it in enumerate(_vo.items(sc))]
+    V = cfg.get("voice") or {}
+    out = {"subs": V.get("subs", True) if subs is None else subs, "duck": V.get("duck", .28), "gain": V.get("gain", 1), "lines": []}
+    for k in ("subY", "subSize"):   # 字幕位置（畫面高度比例）與字級（MIN 比例）
+        if k in V:
+            out[k] = V[k]
+    if not its:
+        return out, []
+    mp = proj / "voice" / "voice.json"
+    meta = json.loads(mp.read_text("utf-8"))["lines"] if mp.exists() else {}
+    warns, durs, srcs, stale = [], {}, {}, []
+    for si, k, it in its:
+        lid = _vo.line_id(si, k)
+        m, f = meta.get(lid), proj / "voice" / f"{lid}.mp3"
+        if m and m.get("say") == it["say"] and f.exists():
+            durs[(si, k)] = m["dur"]; srcs[lid] = "data:audio/mpeg;base64," + base64.b64encode(f.read_bytes()).decode()
+        else:
+            stale.append(lid)
+    if stale:
+        warns.append(f"{len(stale)} 句旁白還沒產生或文字改過（{', '.join(stale[:4])}）：跑 voice.py {proj.name}（目前用估計長度排字幕、沒有聲音）")
+    lines, over = _vo.layout(cfg, 240 / bpm, 60 / bpm, durs)
+    for si, nb in over.items():
+        warns.append(f"第 {si + 1} 幕 {cfg['scenes'][si]['fn']} 旁白放不下（需要 {nb} 小節）：voice.py --fit 自動加小節，或縮短旁白")
+    out["lines"] = [{"id": ln["id"], "t0": ln["t0"], "t1": ln["t1"], "src": srcs.get(ln["id"]),
+                     "sub": _vo.chunks(ln["sub"], ln["t0"], ln["t1"])} for ln in lines]
+    return out, warns
+
+
+def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | None = None, subs: bool | None = None) -> Path:
+    """webfonts=False：不載入網路字型（離線或要求整支片字型一致時）；None＝依 project.json 的 webfonts（預設開）。
+    subs=False：不在畫面上畫字幕（平台另外上傳 .srt 時）；None＝依 project.json 的 voice.subs（預設開）。"""
     proj = proj.resolve()
     cfg_p = proj / "project.json"
     if not cfg_p.exists():
@@ -136,9 +169,13 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
     miss_assets = sorted(used - set(assets))
     if miss_assets:
         fail(f"場景用到的截圖不在 assets/：{', '.join(miss_assets)}（用 capture.py 擷取，或把圖片放進 {proj / 'assets'}）")
+    bpms = re.findall(r"\"?bpm\"?:\s*(\d+)", style_src)  # 取最後一個：產生的風格會覆寫錨點
+    bpm = int(cfg.get("bpm") or (bpms[-1] if bpms else 120))
+    voice, vo_warn = load_voice(proj, cfg, bpm, subs)
     js = "\n".join([
         (eng / "infra.js").read_text("utf-8"),
         "const ASSETS = " + json.dumps(assets) + ";",
+        "const VOICE = " + json.dumps(voice, ensure_ascii=False) + ";",
         f"// ==== style: {style}\n{style_src}",
         lib_src,
         scene_src,
@@ -179,8 +216,6 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
         fail(f"輸出 {size/1e6:.1f}MB，超過 Artifact 16MB 上限")
 
     if not quiet:
-        bpms = re.findall(r"\"?bpm\"?:\s*(\d+)", style_src)  # 取最後一個：產生的風格會覆寫錨點
-        bpm = int(cfg.get("bpm") or (bpms[-1] if bpms else 120))
         bars = sum(s.get("bars", 2) for s in cfg["scenes"])
         print(f"✓ {out}  {size/1024:.0f}KB  |  風格 {style}  |  {len(cfg['scenes'])} 幕 / {bars} 小節 / "
               f"{bars*240/bpm:.1f}s @ {bpm} BPM")
@@ -191,7 +226,10 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
             print(f"✓ 內嵌截圖 {len(assets)} 張（{asset_raw/1e6:.1f}MB）" + (f"；沒用到：{', '.join(spare)}" if spare else ""))
             if asset_raw > 8e6:
                 print("! 截圖合計超過 8MB（Artifact 上限 16MB）：capture.py 用 --quality 調低、--width 縮小，或刪掉沒用到的")
-        for w in lint_warn:
+        if voice["lines"]:
+            have = sum(1 for ln in voice["lines"] if ln["src"])
+            print(f"✓ 旁白 {have}/{len(voice['lines'])} 句有音檔，字幕{'開' if voice['subs'] else '關'}")
+        for w in vo_warn + lint_warn:
             print(f"! {w}")
         missing_src = trace_source(proj, cfg)
         if missing_src:

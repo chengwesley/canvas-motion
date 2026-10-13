@@ -16,6 +16,53 @@ const SC = (() => {
 })();
 const TOTAL = SC.length ? SC[SC.length - 1].start + SC[SC.length - 1].dur : 1;
 
+/* ================= 旁白與字幕（VOICE 由 build.py 依 voice.py 的音檔注入） ================= */
+const VO = typeof VOICE !== 'undefined' ? VOICE : { lines: [], subs: false };
+const _voBuf = {};
+const VO_READY = Promise.all(VO.lines.filter(l => l.src).map(l => {
+  const bin = atob(l.src.split(',')[1]), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new OfflineAudioContext(1, 1, 44100).decodeAudioData(u8.buffer)
+    .then(b => { _voBuf[l.id] = b; }).catch(() => ERRS.push({ fn: '(voice)', i: -1, t: l.t0, msg: `旁白 ${l.id} 解碼失敗` }));
+}));
+/** 旁白排程：t0 是影片 0 秒對應的音訊時間，from 是從第幾秒開始播。配樂（A.out）在旁白期間壓到 duck 倍 */
+function voStart(A, t0, from = 0) {
+  const ac = A.ac, now = ac.currentTime, base = A.out.gain.value, duck = base * (VO.duck ?? .28);
+  const g = ac.createGain(); g.gain.value = VO.gain ?? 1; g.connect(ac.destination);
+  const spans = [];
+  for (const l of VO.lines) {
+    const b = _voBuf[l.id]; if (!b || l.t0 + b.duration <= from) continue;
+    const s = ac.createBufferSource(); s.buffer = b; s.connect(g);
+    if (l.t0 >= from) s.start(t0 + l.t0); else s.start(now + .02, from - l.t0);
+    const a = l.t0 - .25, e = l.t0 + b.duration + .4, last = spans[spans.length - 1];
+    if (last && a <= last[1] + .05) last[1] = Math.max(last[1], e); else spans.push([a, e]);
+  }
+  const P = A.out.gain; P.cancelScheduledValues(0); P.setValueAtTime(base, now);
+  for (const [a, e] of spans) {
+    const ta = t0 + a, te = t0 + e;
+    if (te <= now) continue;
+    if (ta + .25 <= now) P.setValueAtTime(duck, now); else { P.setValueAtTime(base, Math.max(now, ta)); P.linearRampToValueAtTime(duck, ta + .25); }
+    P.setValueAtTime(duck, te - .4); P.linearRampToValueAtTime(base, te);
+  }
+}
+/** 字幕：畫在所有畫面與後製之上（轉場時也穩定），會被文字檢查一起檢查 */
+const SUBS = VO.lines.flatMap(l => l.sub).filter(c => c[2]).sort((x, y) => x[0] - y[0])
+  .map((c, i, A) => [c[0], i + 1 < A.length ? Math.min(c[1] + .15, A[i + 1][0]) : c[1] + .15, c[2]]);   // 每條最多留到下一條開始
+function drawSubs(time) {
+  if (!VO.subs) return;
+  for (const [a, e, s] of SUBS) {
+    if (time < a - .05 || time >= e) continue;
+    const size = Math.round(MIN * (VO.subSize ?? (PORT ? .044 : .04))), y = H * (VO.subY ?? (PORT ? .8 : .9));
+    const al = clamp((time - a + .05) / .1) * clamp((e - time) / .1);
+    const o = { size, weight: 700, align: 'center', color: '#ffffff', maxW: SAFE.w * (PORT ? .92 : .8), alpha: al };
+    const m = measure(s, o, y), padX = size * .55, padY = size * .28;
+    MAIN.save(); MAIN.globalAlpha = al * .62; MAIN.fillStyle = '#0b0d12'; ctx = MAIN;
+    fillRR(W / 2 - m.w / 2 - padX, m.top - padY, m.w + padX * 2, m.h + padY * 2, size * .3); MAIN.restore();
+    _drawText(MAIN, s, W / 2, y, o);
+    return;
+  }
+}
+
 function sceneAt(t) { for (let i = SC.length - 1; i >= 0; i--) if (t >= SC[i].start - 1e-6) return i; return 0; }
 function beatInfo(t) {
   const b = t / BEAT, f = b - Math.floor(b);
@@ -60,6 +107,7 @@ function frame(time) {
     ctx = MAIN; (TR[tr] || TR.fade)(MAIN, ba.c, bb.c, clamp(p));
   }
   if (STYLE.overlay) { ctx = MAIN; MAIN.save(); STYLE.overlay(time, bi.pulse); MAIN.restore(); }
+  if (VO.subs) { ctx = MAIN; drawSubs(time); }
   MAIN.restore(); ctx = MAIN;
 }
 
@@ -226,6 +274,7 @@ const _inRest = time => SC.some(s => s.rest && time >= s.start + s.rest[0] * BEA
 function step(A, i, t) {
   const M = STYLE.music, time = i * SX;
   for (const e of SFXQ) if (e.time >= time - (i ? 0 : 1) && e.time < time + SX) SFX[e.kind](A, t + Math.max(0, e.time - time), e.v, e.d);
+  if (PROJECT.music === false) return;   // 沒有配樂（只有旁白與音效）
   if (time >= TOTAL - 1e-6 || _inRest(time)) return;
   const s = SC[sceneAt(time + 1e-6)], e = s.energy ?? .6, bar = Math.floor(i / 16), st = i % 16;
   const ch = M.chords[bar % M.chords.length], kit = M.kit || 'four';
@@ -266,8 +315,10 @@ function step(A, i, t) {
 /** 離線合成整支配樂，回傳 WAV 的 base64（export.py 使用） */
 async function renderWav(sr = 44100) {
   const secs = TOTAL + 2, oc = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
+  await VO_READY;
   const A = initAudio(oc, oc.destination), n = Math.ceil(TOTAL / SX);
   for (let i = 0; i < n; i++) step(A, i, i * SX + .01);
+  voStart(A, .01, 0);
   const b = await oc.startRendering(), L = b.getChannelData(0), R = b.getChannelData(1), len = L.length;
   const ab = new ArrayBuffer(44 + len * 4), v = new DataView(ab), ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
   ws(0, 'RIFF'); v.setUint32(4, 36 + len * 4, true); ws(8, 'WAVE'); ws(12, 'fmt '); v.setUint32(16, 16, true);
@@ -309,11 +360,12 @@ function stopAudio() {
 async function play(from = Player.t) {
   if (from >= TOTAL - .05) from = 0;
   stopAudio(); Player.t = from;
-  if (PROJECT.music !== false && !Player.muted) {
+  if ((PROJECT.music !== false || VO.lines.length) && !Player.muted) {
     try {
       const ac = new (window.AudioContext || window.webkitAudioContext)(); await ac.resume();
       Player.ac = ac; Player.A = initAudio(ac, ac.destination);
       Player.t0 = ac.currentTime + .06 - from; Player.next = Math.ceil(from / SX - 1e-6);
+      voStart(Player.A, Player.t0, from);
       Player.timer = setInterval(pump, 25); pump();
     } catch (e) { Player.ac = null; }
   }
@@ -363,7 +415,8 @@ function boot() {
 }
 
 /** 給 sheet.py / export.py 呼叫的介面 */
-window.__cm = { frame, frameBlur, resize, renderWav, TOTAL, BAR, BEAT, BPM, TD, sfx: SFXQ, ready: IMG_READY,
+window.__cm = { frame, frameBlur, resize, renderWav, TOTAL, BAR, BEAT, BPM, TD, sfx: SFXQ, ready: Promise.all([IMG_READY, VO_READY]),
+  vo: () => VO.lines.map(l => ({ id: l.id, t0: l.t0, t1: l.t1, sub: l.sub, audio: !!_voBuf[l.id] })),   // export.py 用來寫 .srt
   SC: SC.map(s => ({ fn: s.fn, start: s.start, dur: s.dur, energy: s.energy, trans: transOf(s), hero: s.hero || null })), errors: ERRS,
   bench(n = 30, w = 1280, h = 720) { // 每格強制同步（讀回 1px），量到的是完整管線成本
     resize(w, h, 1); frame(0); MAIN.getImageData(0, 0, 1, 1); const t0 = performance.now();

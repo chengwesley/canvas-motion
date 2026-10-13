@@ -21,6 +21,7 @@ Canvas Motion 是一個開放式的 [Claude Skill](https://docs.claude.com/en/do
 - **配樂也能自己寫**：參數調不出的曲風（戲曲、民族樂、特定樂器）可以整支自己作曲，引擎提供鑼、鈸、梆子、皮鼓、滑音弦等合成樂器，鑼鼓點也能對準角色動作的拍點。
 - **好看靠手藝**：動作函式庫（彈簧、預備動作、擠壓伸展、抹影、鏡頭、視差）、每幕必填的高光瞬間與延續、音效綁動作、高潮前靜默、匯出動態模糊；`taste.py` 會量出「畫面沒在動、沒對拍、高潮沒演出來、像投影片」。
 - **產品介紹與操作示範**：`capture.py` 先擷取產品網站的真實截圖、頁面文字與品牌色（擷取失敗就停下來要素材，不憑印象畫假介面）；再用瀏覽器／App 視窗／手機外框、像人手的游標路徑與點擊漣漪、打字效果、依點擊自動推近的鏡頭（Screen Studio 式）、聚光與功能標籤演出操作過程。參考了 HyperFrames、Screen Studio／OpenScreen、21st.dev 游標元件與 remocn 的做法。
+- **旁白配音與字幕**：每幕寫一句 `vo`，`voice.py` 用 Windows 內建的離線台灣中文語音（Yating、Hanhan、Zhiwei）配音，每句產 3 個版本、用內建語音辨識挑最清楚的一版，依旁白實際長度自動調整每幕小節數；字幕燒進畫面並另存 `.srt`，旁白出現時配樂自動壓低約 11dB。也支援 Edge 線上語音、macOS 語音或自己錄的音檔。
 - **會演戲的角色**：程序化角色骨架（走路、跑步、武術姿勢、9 種表情、自動眨眼），扁平插畫風畫法最適合當主角，也有動漫、美漫、港漫畫法；角色設定表 `castsheet.py`。
 - **類型特效**：美漫（網點、爆炸框）、港漫（氣勁、集中線、斜格）、日式動畫（衝擊幀、流線）、電影（寬銀幕、青橙調色、光束），新增 hkcomic、amcomic、cinema 三種風格。
 - **劇組流程做一分鐘故事片**：編劇（一句話故事、主角弧線、三幕節拍）、美術、導演（景別、運鏡、畫面方向）、剪輯、聲音、場記，storyboard 會檢查三幕比例、節拍、景別變化、跳軸與剪輯節奏。
@@ -71,7 +72,7 @@ cp -r canvas-motion/canvas-motion ~/.claude/skills/
 
 > 用這些數字講一個故事，重點是最後那個轉折。
 
-> 做一支 DottedSign 的功能示範影片：從官網開始，示範怎麼把簽名欄位拖到合約上。
+> 做一支 DottedSign 的功能示範影片：從官網開始，示範怎麼把簽名欄位拖到合約上，加上旁白和字幕。
 
 你只要說需求與情境。Claude 會從目的、觀眾與播放平台推斷片長、比例、敘事、畫風與風格，**一次給你一份提案**（規格、構圖、畫風、風格方向、分鏡表），你確認後就直接做到完成，並自動檢查版面、文字與素材出處。說「直接做」或短片 15 秒內時會跳過確認，直接採用建議的構圖，交付時說明。**畫面上的文案和數字只會來自你提供的素材**；素材撐不起某一幕時，Claude 會刪掉那一幕，而不是自行編造內容。
 
@@ -133,9 +134,9 @@ python3 $SKILL/scripts/export.py my-video out.gif
     ├── library/               繪圖小工具 kit.js、畫風 looks.js、產品示範 product.js（畫筆，不是版面）
     ├── brands/                品牌設定檔（capture.py --brand 產生）
     ├── styles/                風格設定
-    ├── scripts/               verify / capture / storyboard / build / sheet / export / style_gen / check_env / selftest
+    ├── scripts/               verify / capture / voice / storyboard / build / sheet / export / style_gen / check_env / selftest
     ├── references/            direction.md（情境→規格與節奏）、looks.md（畫風與常用形狀）、
-    │                          api.md（場景寫法）、style-pack.md（風格設定）、product.md（產品介紹與操作示範）
+    │                          api.md（場景寫法）、style-pack.md（風格設定）、product.md（產品介紹與操作示範）、voice.md（旁白與字幕）
     └── examples/              範例專案（也是回歸測試）
 ```
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""匯出含配樂的 MP4，或 GIF：離線合成音訊 → 逐格擷取（可多行程平行）→ ffmpeg。
+"""匯出含配樂（與旁白）的 MP4，或 GIF：離線合成音訊 → 逐格擷取（可多行程平行）→ ffmpeg。
 
 用法：
   python3 export.py <專案> out.mp4 [--size 1920x1080] [--fps 30] [--crf 19] [--mobile] [--no-audio]
@@ -11,6 +11,8 @@
   --offline-fonts    不載入網路字型，只用系統字型（離線環境；確保整支片字型一致）
   --blur N           動態模糊：每格取 N 個子畫格平均（正式版建議 5；像素畫風不要開）。渲染時間約 ×N
   --shutter 0.5      動態模糊的快門比例（0.5 = 180°，電影標準；1 = 最糊）
+  --no-subs          有旁白時預設把字幕燒進畫面；平台另外上傳字幕就加這個
+  --no-srt           有旁白時預設另存 <輸出>.srt；不需要就加這個
 常用尺寸：16:9 → 1280x720／1920x1080；9:16 → 1080x1920；1:1 → 1080x1080
 場景有錯誤時結束碼為 2；ffmpeg 失敗時為 1。
 """
@@ -76,6 +78,8 @@ def main():
     ap.add_argument("--crf", type=int, default=19)
     ap.add_argument("--mobile", action="store_true")
     ap.add_argument("--no-audio", action="store_true")
+    ap.add_argument("--no-subs", action="store_true", help="畫面上不燒字幕（平台另外上傳 .srt 時）")
+    ap.add_argument("--no-srt", action="store_true", help="不另存 .srt")
     ap.add_argument("--preview", action="store_true")
     ap.add_argument("--gif-width", type=int, default=640)
     ap.add_argument("--gif-dither", default="bayer:bayer_scale=5", help="none 會更小但漸層有色帶")
@@ -108,7 +112,7 @@ def main():
     from _browser import open_page
     webfonts = not a.offline_fonts
     for attempt in range(2):
-        html = build(proj, tmp / "export.html", quiet=True, webfonts=webfonts)   # 寫到暫存，不覆蓋 dist/
+        html = build(proj, tmp / "export.html", quiet=True, webfonts=webfonts, subs=False if a.no_subs else None)   # 寫到暫存，不覆蓋 dist/
         with open_page(html) as pg:
             missing = pg.fonts_missing if webfonts else []
             if missing and attempt == 0:
@@ -116,9 +120,10 @@ def main():
                 webfonts = False; continue
             total = pg.evaluate("__cm.TOTAL")
             music = pg.evaluate("PROJECT.music !== false")
+            vo = pg.evaluate("__cm.vo()")
             audio = None
-            if music and not a.no_audio and not gif:
-                print("♪ 離線合成配樂…")
+            if (music or any(l["audio"] for l in vo)) and not a.no_audio and not gif:
+                print("♪ 離線合成" + "＋".join(x for x, on in (("配樂", music), ("旁白", any(l["audio"] for l in vo))) if on) + "…")
                 audio = tmp / "music.wav"
                 audio.write_bytes(base64.b64decode(pg.evaluate("__cm.renderWav(44100)")))
         break
@@ -169,6 +174,11 @@ def main():
         if r.returncode:
             sys.exit(f"✗ ffmpeg 失敗：{(r.stderr or '').strip()[-400:]}")
 
+    if vo and not gif and not a.no_srt:   # 字幕檔：平台（YouTube、LinkedIn）另外上傳用
+        import _vo
+        sp = out.with_suffix(".srt")
+        sp.write_text(_vo.srt_text([c for l in vo for c in l["sub"]]), "utf-8-sig")
+        print(f"✓ 字幕檔 {sp}（{sum(len(l['sub']) for l in vo)} 條）")
     dur, vw, vh, kinds, mb = probe(ff, out)
     print(f"✓ {out}  {dur:.1f}s  {vw}×{vh}  {mb:.1f}MB  串流：{'+'.join(kinds) or '?'}")
     if audio and "audio" not in kinds:

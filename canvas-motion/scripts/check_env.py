@@ -47,6 +47,21 @@ else:   # Windows／macOS 沒有 fc-list：直接找常見中文字型檔
                                           "/System/Library/Fonts/STHeiti Medium.ttc",
                                           "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"])
 row("中文字型", cjk, "有" if cjk else "截圖會出現方框：apt install fonts-noto-cjk（Windows 需要微軟正黑體）")
+import platform  # noqa: E402
+if platform.system() == "Windows":   # 旁白配音（voice.py）：Windows 內建離線語音
+    try:
+        out = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(SKILL / "scripts" / "tts_winrt.ps1"), "-list"],
+                             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60).stdout
+        zh = [ln.split("	")[0].replace("Microsoft ", "") for ln in out.splitlines() if "zh-TW" in ln]
+        row("旁白語音", bool(zh), "台灣中文：" + "、".join(zh) if zh else "沒有 zh-TW 語音：設定 → 時間與語言 → 語音 → 新增中文（台灣）；或用 --engine edge", required=False)
+    except Exception:  # noqa: BLE001
+        row("旁白語音", False, "無法列出語音，可改用 voice.py --engine edge", required=False)
+else:
+    try:
+        import edge_tts  # noqa: F401
+        row("旁白語音", True, "edge-tts（線上）")
+    except ImportError:
+        row("旁白語音", shutil.which("say") is not None, "macOS say" if shutil.which("say") else "要旁白時：pip install edge-tts（線上）", required=False)
 probe = shutil.which("ffprobe")
 row("ffprobe", bool(probe), probe or "可缺：export.py 會改用 ffmpeg 驗證輸出", required=False)
 sys.exit(0 if ok else 1)
