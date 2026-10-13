@@ -1,6 +1,6 @@
 ---
 name: canvas-motion
-description: 把任何需求與情境直接變成穩定的動畫短片：每一幕都由 Claude 自主發想構圖與動畫、不套版面範本，用單一 HTML（Canvas 逐幀程序化繪製 + WebAudio 即時合成配樂）產出，可發布成 Artifact 線上播放，也能匯出含配樂的 MP4 或 GIF。Claude 從使用者的目的、觀眾、平台與素材推斷規格、敘事、節奏、畫風與風格，構圖開放詢問，一次提案、確認後直接做完，並用腳本自動檢查版面、文字、對比與素材出處。內建 10 種畫風（動畫風背景、水彩、水墨、扁平插畫、像素、霓虹、低多邊形、剪紙、美漫網點、蠟筆）。產品介紹與操作示範會先擷取產品的真實畫面與品牌色，再用瀏覽器／App／手機外框、游標點擊、打字、點擊自動推近鏡頭、聚光與標籤演出操作過程。可加旁白配音（Windows 內建離線台灣中文語音，每句多版本自動挑最清楚的一版，依旁白實際長度排每幕秒數）與字幕（燒進畫面並另存 .srt），旁白出現時配樂自動壓低。使用者說「做動畫」「做短片」「動態影片」「motion graphics」「解說動畫」「產品 Demo 動畫」「介紹動畫」「片頭」「宣傳影片」「動態 Banner」「GIF 動圖」「把這些內容做成影片」「轉成 MP4／GIF」「做一支 Reels／Shorts」「產品介紹影片」「功能展示」「操作示範」「示範怎麼用」「產品 Demo」「加旁白」「配音」「加字幕」「講解影片」，或「讓這份簡報動起來」「做個酷一點的介紹」時使用。不適用於：剪輯實拍影片、單張靜態海報、角色逐格手繪動畫；擬真人物、動畫原畫等級的臉部表情需要使用者提供有授權的圖片素材。
+description: 把任何需求與情境直接變成穩定的動畫短片：每一幕都由 Claude 自主發想構圖與動畫、不套版面範本，用單一 HTML（Canvas 逐幀程序化繪製 + WebAudio 即時合成配樂）產出，可發布成 Artifact 線上播放，也能匯出含配樂的 MP4 或 GIF。Claude 從使用者的目的、觀眾、平台與素材推斷規格、敘事、節奏、畫風與風格，構圖開放詢問，一次提案、確認後直接做完，並用腳本自動檢查版面、文字、對比與素材出處。內建 10 種畫風（動畫風背景、水彩、水墨、扁平插畫、像素、霓虹、低多邊形、剪紙、美漫網點、蠟筆）。人物用 Open Peeps 插畫角色（CC0，全身與半身、33 種表情、53 種髮型），靠換表情、換姿勢、眨眼、說話演戲。產品介紹與操作示範會先擷取產品的真實畫面與品牌色，再用瀏覽器／App／手機外框、游標點擊、打字、點擊自動推近鏡頭、聚光與標籤演出操作過程。可加旁白配音（Windows 內建離線台灣中文語音，每句多版本自動挑最清楚的一版，依旁白實際長度排每幕秒數）與字幕（燒進畫面並另存 .srt），旁白出現時配樂自動壓低。使用者說「做動畫」「做短片」「動態影片」「motion graphics」「解說動畫」「產品 Demo 動畫」「介紹動畫」「片頭」「宣傳影片」「動態 Banner」「GIF 動圖」「把這些內容做成影片」「轉成 MP4／GIF」「做一支 Reels／Shorts」「產品介紹影片」「功能展示」「操作示範」「示範怎麼用」「產品 Demo」「加旁白」「配音」「加字幕」「講解影片」，或「讓這份簡報動起來」「做個酷一點的介紹」時使用。不適用於：剪輯實拍影片、單張靜態海報、角色逐格手繪動畫；擬真人物、動畫原畫等級的臉部表情需要使用者提供有授權的圖片素材。
 ---
 
 # Canvas Motion：從需求直接到穩定成品
@@ -21,14 +21,14 @@ canvas-motion/
 ├── engine/        固定引擎（head.html、infra.js、tail.js）——不要為單一作品修改
 ├── library/       kit.js 繪圖小工具（kPage、kPerson、kLaptop、kGear、kBulb、kStar、kArc）、looks.js 畫風渲染＋常用形狀（withLook、lookShape、LK_SHAPES）——都是畫筆，不是版面；
 │                  motion.js 動作質感（spring、anticipate、withSquash、impact、lagT、trail、smear、arcPt、hit、shake、shot、layer、onTwos）；
-│                  figure.js 程序化角色（骨架、姿勢、表情、精細度、取景）；fx.js 類型特效（漫畫、動漫、電影）；
+│                  peeps.js 插畫角色（Open Peeps，CC0：全身、半身、表情、髮型組合，靠換表情與姿勢演戲）；fx.js 類型特效（漫畫、動漫、電影）；
 │                  product.js 產品示範（截圖 pic、瀏覽器／視窗／手機外框、游標、打字、鏡頭跟隨、聚光、標籤）
 ├── styles/        錨點風格（生成風格的起點）＋ _schema.json（風格參數格式）
 ├── brands/        品牌設定檔（capture.py --brand 產生：網站實際使用的強調色與字型）
-├── scripts/       verify（一鍵檢查）、capture（擷取產品真實畫面與品牌色）、voice（旁白配音與字幕）、storyboard（含劇本模式）、castsheet（角色設定表）、build、sheet、taste（動態品味）、export（MP4／GIF）、style_gen、check_env、
+├── scripts/       verify（一鍵檢查）、capture（擷取產品真實畫面與品牌色）、voice（旁白配音與字幕）、storyboard（含劇本模式）、castsheet（角色設定表）、peeps_catalog（角色部件型錄）、build、sheet、taste（動態品味）、export（MP4／GIF）、style_gen、check_env、
 │                  selftest、new_project、preview_styles
 ├── references/    direction.md（情境→規格與節奏）、craft.md（動畫手藝、導演思維、自評表）、crew.md（劇組流程：30 秒以上的故事片）、
-│                  product.md（產品介紹與操作示範）、voice.md（旁白配音與字幕）、genres.md（美漫、港漫、動漫、電影）、character.md（角色）、looks.md（畫風與形狀）、
+│                  motion-design.md（出場順序、時長、緩動、編排）、product.md（產品介紹與操作示範）、voice.md（旁白配音與字幕）、genres.md（美漫、港漫、動漫、電影）、character.md（角色：Open Peeps 部件型錄與演法）、looks.md（畫風與形狀）、
 │                  api.md（自訂場景、文字、錨點、音效）、style-pack.md（風格參數）
 └── examples/      keynote-demo、look-gallery、shapes-demo、product-demo（寫法參考，也是回歸測試；不要照抄構圖）
 ```
@@ -152,9 +152,10 @@ python3 <SKILL>/scripts/storyboard.py storyboard.json <專案資料夾>
 
 ## 寫自訂場景
 
-**寫之前先讀 `references/api.md` 與 `references/craft.md`**，並對照 `examples/`。鷹架已內建橫直式分支、`fit()`、`maxW`、`rng()` 與切點前進場，在它上面改。
+**寫之前先讀 `references/api.md`、`references/craft.md` 與 `references/motion-design.md`**，並對照 `examples/`。有人物時讀 `references/character.md`，用 `view` 看 `references/peeps/` 的型錄挑部件。鷹架已內建橫直式分支、`fit()`、`maxW`、`rng()` 與切點前進場，在它上面改。
 
 動作質感（craft.md 第 2 節）：
+- **一個畫面只有一個主角先出場**，其他依序跟上（錯開總長 .6 秒內）；先問「這個動作幫觀眾看懂什麼」（motion-design.md）。
 - **不要每個元素都淡入＋上滑**。依物體性格選動法：重的砸下來（`impact`＋`shake`）、輕的沿弧線飄進來（`arcPt`＋`lagT`）、機械的喀一聲卡入（`spring` 高頻）。
 - **主要動作要有預備與過衝**（`anticipate`、`spring`），快速移動加擠壓伸展或抹影（`withSquash`、`smear`、`trail`）。
 - **高光那一格要誇張**：主體夠大、配衝擊（放大、閃白、`shake`、`impact` 音效），而且是整幕動作量最大的一瞬間。

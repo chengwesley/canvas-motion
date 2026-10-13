@@ -22,7 +22,8 @@ Canvas Motion 是一個開放式的 [Claude Skill](https://docs.claude.com/en/do
 - **好看靠手藝**：動作函式庫（彈簧、預備動作、擠壓伸展、抹影、鏡頭、視差）、每幕必填的高光瞬間與延續、音效綁動作、高潮前靜默、匯出動態模糊；`taste.py` 會量出「畫面沒在動、沒對拍、高潮沒演出來、像投影片」。
 - **產品介紹與操作示範**：`capture.py` 先擷取產品網站的真實截圖、頁面文字與品牌色（擷取失敗就停下來要素材，不憑印象畫假介面）；再用瀏覽器／App 視窗／手機外框、像人手的游標路徑與點擊漣漪、打字效果、依點擊自動推近的鏡頭（Screen Studio 式）、聚光與功能標籤演出操作過程。參考了 HyperFrames、Screen Studio／OpenScreen、21st.dev 游標元件與 remocn 的做法。
 - **旁白配音與字幕**：每幕寫一句 `vo`，`voice.py` 用 Windows 內建的離線台灣中文語音（Yating、Hanhan、Zhiwei）配音，每句產 3 個版本、用內建語音辨識挑最清楚的一版，依旁白實際長度自動調整每幕小節數；字幕燒進畫面並另存 `.srt`，旁白出現時配樂自動壓低約 11dB。也支援 Edge 線上語音、macOS 語音或自己錄的音檔。
-- **會演戲的角色**：程序化角色骨架（走路、跑步、武術姿勢、9 種表情、自動眨眼），扁平插畫風畫法最適合當主角，也有動漫、美漫、港漫畫法；角色設定表 `castsheet.py`。
+- **插畫角色**：人物用 [Open Peeps](https://www.openpeeps.com)（Pablo Stanley，CC0）的插畫部件組合：站姿、坐姿、半身（含筆電、文件、咖啡）、33 種表情、53 種髮型，可套品牌色。角色靠換表情、換姿勢、自動眨眼、說話、呼吸與彈跳進場演戲；`references/peeps/` 有部件型錄，`castsheet.py` 產生角色設定表。
+- **動態設計準則**：出場順序（一個主角先行）、依元素與調性的時長、緩動、錯開與反向動作，改寫自 LottieFiles Motion Design Skill（MIT）。
 - **類型特效**：美漫（網點、爆炸框）、港漫（氣勁、集中線、斜格）、日式動畫（衝擊幀、流線）、電影（寬銀幕、青橙調色、光束），新增 hkcomic、amcomic、cinema 三種風格。
 - **劇組流程做一分鐘故事片**：編劇（一句話故事、主角弧線、三幕節拍）、美術、導演（景別、運鏡、畫面方向）、剪輯、聲音、場記，storyboard 會檢查三幕比例、節拍、景別變化、跳軸與剪輯節奏。
 - **所見即所得**：每一格都是 `frame(t)` 的純函式，所以播放、截圖驗證、匯出 MP4 的畫面完全一致。
@@ -142,12 +143,13 @@ python3 $SKILL/scripts/export.py my-video out.mp4 --size 1280x720 --crf 25   # 7
 └── canvas-motion/             ← skill 本體（安裝的就是這個資料夾）
     ├── SKILL.md               給 Claude 的操作說明
     ├── engine/                固定引擎：HTML 外殼、繪圖與排版、時間軸與配樂、播放器
-    ├── library/               繪圖小工具 kit.js、畫風 looks.js、產品示範 product.js（畫筆，不是版面）
+    ├── library/               繪圖小工具 kit.js、畫風 looks.js、產品示範 product.js、插畫角色 peeps.js（畫筆，不是版面）
     ├── brands/                品牌設定檔（capture.py --brand 產生）
     ├── styles/                風格設定
     ├── scripts/               verify / capture / voice / storyboard / build / sheet / export / style_gen / check_env / selftest
     ├── references/            direction.md（情境→規格與節奏）、looks.md（畫風與常用形狀）、
-    │                          api.md（場景寫法）、style-pack.md（風格設定）、product.md（產品介紹與操作示範）、voice.md（旁白與字幕）
+    │                          api.md（場景寫法）、style-pack.md（風格設定）、product.md（產品介紹與操作示範）、voice.md（旁白與字幕）、
+    │                          motion-design.md（出場順序與緩動）、character.md（角色）＋ peeps/（部件型錄）
     └── examples/              範例專案（也是回歸測試）
 ```
 

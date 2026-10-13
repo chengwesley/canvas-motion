@@ -1,35 +1,36 @@
-# 角色：figure.js
+# 角色：Open Peeps（library/peeps.js）
 
-程序化人偶：骨架（正向運動學）＋姿勢＋表情＋三種精細度＋類型畫法。能演戲、能被看懂，但不是擬真人物或動畫原畫等級的臉；需要特定長相時請使用者提供有授權的圖。
+需要人物時用插畫師畫好的 Open Peeps 部件組合（Pablo Stanley，CC0，可商用）。**不要自己用程式從零畫人**：比例、手、表情很難畫得自然。
+部件型錄在 `references/peeps/`：`standing.jpg`（站姿 23 種）、`sitting.jpg`（坐姿 11 種）、`bust.jpg`（半身 26 種，含筆電、文件、咖啡、手機遊戲、指向等）、
+`face.jpg`（表情 33 種）、`head.jpg`（髮型 53 種）、`beard.jpg`、`accessory.jpg`（眼鏡）。**寫場景前用 view 看型錄挑名稱。**
 
-## 建立與繪製
+## 畫角色
 ```js
-const F = figCast('leo', H * .5);                       // 從 project.json 的 cast 建立（連戲靠它）
-figDraw(F, x, groundY, figPose.walk(t / 1.2), { t, dir: 1, view: 1, face: EXPR.happy, rim: '#ffc940' });
+const ann = { body: 'BlazerColorTee', head: 'Bun', face: 'Smile', colors: { skin: 'fair', jacket: STYLE.c.a1, top: '#ffffff' } };
+peep(x, groundY, H * .6, ann, t);                                  // 全身：(x, 腳底)、全身高
+peepBust(x, deskY + H * .05, H * .45, { ...ann, body: 'Computer' }, t);   // 半身：(x, 底部)、高；放在桌子後面就是坐著工作
 ```
-- `props`（比例）：`flat` 插畫修長、`cute` 大頭可愛、`chibi` 2.5 頭身、`cartoon` 5、`teen` 6.5、`anime` 7.5、`real` 7.5、`hero` 8.5、`hk` 9。分段比例取自人體測量常數，依頭身推算。
-- `detail`：`stick`（火柴人）、`mannequin`（人偶）、`full`（衣服、頭髮、臉）。
-- `render`：**`illus`（扁平插畫風，人物主角的預設首選）**、`flat`、`cel`、`anime`、`amcomic`、`hkcomic`、`silhouette`。
-  `illus` 用曲線輪廓、粗圓頭連續四肢、大塊髮型剪影、點眼簡化五官、無描邊加柔和陰影；程序化畫人最好看的風格。搭配 `props: 'flat'`（修長）或 `'cute'`（大頭可愛）。
-  膠囊人偶畫法（cel、hkcomic 等）在特寫會顯得像關節人偶，適合遠景、剪影或漫畫類型。
-- `hair`：`short`、`spiky`、`long`、`bun`、`none`；`outfit`：`sleeve`（long／short／none）、`legs`（pants／shorts／skirt／robe）、`cape`、`sash`（會跟著 `sway` 甩）。
-- `dir` 面向（1 右、-1 左）、`view` 0 正面到 1 側面。腳會自動著地（`ground: false` 關掉，跳躍、特寫用）。
+- `body`：全身用站姿或坐姿名稱，半身用半身名稱。`head` 髮型、`face` 表情、`beard` 鬍子、`acc` 配件（`Glasses` 等）。
+- `colors`：`skin`（`light`、`fair`、`tan`、`medium`、`brown`、`deep` 或色碼）、`top`、`pants`、`jacket`、`shoes`、`hair`、`outline`（線條，預設黑）、`prop`（筆電、紙、杯子）。
+  有些衣服是固定花色（黑色襯衫、圓點外套），型錄看得出哪些會變色。
+- `dir: -1` 左右翻轉（面向左）。回傳 `{ head: {x, y} }`：頭頂位置，放對話框、驚嘆號用。
+- 同一個角色整支片一致：在 project.json 寫 `cast`，場景用 `peep(x, y, h, peepCast('ann', { face: 'Awe' }), t)`。
 
-## 姿勢
-- 循環：`figPose.walk(phase, k)`、`figPose.run(phase, k)`（關鍵影格表插值，手臂比腳晚 1–2 格），`figPose.idle(t)`。
-- 關鍵姿勢：`stand`、`crouch`、`leap`、`land`、`cheer`、`point`、`think`、`sit`、`horse`（馬步）、`bow`（弓步）、`punch`、`chamber`（收拳）、`kick`、`hero`（叉腰）、`fall`。
-- 表演：`figPose.seq(t, [[0, 'stand'], [.6, 'crouch', 'io'], [1.2, 'leap', 'expo']])`；`figPose.mix`、`figPose.add` 疊加。
-- **不滑步**：往前走的距離 = `figStride(F, 'walk') × 週期數`。
+## 讓角色演戲（不用骨架）
+插畫部件不能彎手彎腳，角色的「動」來自下面這些，組合起來就很生動：
+- **自動的**（傳入 `t` 就有）：眨眼（`blink: false` 關掉）、呼吸起伏、頭部緩慢擺動（`nod` 幅度、`idle: false` 全關）。
+- **說話**：`talk: true`（或 `talk: tt => 是否在說`）嘴巴開合；搭配旁白時，用旁白那一句的時間決定 `talk`。
+- **換表情**：情緒轉折那一拍換 `face`（例如 `Calm` → `Awe`），同一拍讓角色縮放彈一下（`spring`），觀眾才看得到變化。
+- **換姿勢**：在剪接點或快速動作中換 `body`（例如 `RestingColorPants` → `PointingFingerColorPants`）；換的那一格加擠壓或抹影，像一個動作而不是跳圖。
+- **整個人的動作**：進場用彈跳（`spring` 縮放、從畫面外滑入）、走路用 `WalkingColor*` 姿勢＋平移＋上下彈跳、驚訝時往上跳一下、沮喪時整個人下沉縮小。
+- **鏡頭**：特寫就用半身（`peepBust`），情緒戲推近臉。
 
-## 表情
-`EXPR.neutral／happy／laugh／angry／sad／surprised／determined／fear／shout`，`figExprMix(a, b, p)` 漸變。自動眨眼（閉快睜慢、偶爾連眨）。說話時嘴巴開合：`{ ...EXPR.neutral, mouth: 'open', open: .15 + .25 * Math.abs(Math.sin(t * 11)) }`。
+## 選角與構圖
+- 產品片的人物：辦公室情境用半身（`Computer`、`Paper`、`Coffee`、`Explaining`）放在桌後；介紹人物用全身站姿。
+- 多個角色時，膚色、髮型、身形要有差異，服裝用品牌色但不要每個人都同一色。
+- 角色是配角時畫小一點、放在畫面一側，讓產品畫面當主角；人物故事片才讓角色佔大畫面。
+- 避免：`Monster`、`Cyclops` 這類怪物表情與 `Doc*` 醫護裝束，除非主題需要。
 
-## 取景
-- `figFrame(F, x, groundY, 'ELS'|'LS'|'MS'|'CU'|'ECU')` → `shot()` 用的鏡頭。
-- 特寫：`const at = figPlace(F, pose, 頭x, 頭y, { dir, view }); figDraw(F, at.x, at.y, pose, { ..., ground: false })`。
-
-## 表演原則
-- 先定動勢線（C 或 S 形），關鍵姿勢四肢離開軀幹，填黑剪影也看得懂。
-- 左右不要完全對稱；一次只讓一個主動作發生。
-- 力量集中在 2–3 格內爆發，前面要有預備、後面要有停頓。
-- 同一場戲裡角色的面向（`dir`）不要亂換（見 crew.md 場記）。
+## 維護
+部件資料 `library/peeps/open-peeps.json` 由 `scripts/peeps_import.py` 從 opeepsfun/open-peeps 轉換；型錄圖由 `scripts/peeps_catalog.py` 產生。授權見 `library/peeps/LICENSE.md`。
+build 只會內嵌場景與 project.json 裡出現的部件名稱，所以部件名稱要寫成字串字面值（`'Smile'`），不要用字串拼接。

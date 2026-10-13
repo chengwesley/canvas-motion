@@ -27,7 +27,7 @@ storyboard.json：
 劇本模式（30 秒以上的故事片，見 references/crew.md）：頂層加 script 與 cast，每個鏡頭加 act、beat、shot、who：
   "script": { "logline": "一句話故事", "genre": "hkcomic",
               "protagonist": { "name": "阿明", "want": "想要什麼", "obstacle": "什麼擋住他", "change": "最後他變成怎樣" } },
-  "cast": { "kid": { "props": "teen", "hair": "spiky", "pal": { "top": "#e8e0c8" }, "render": "hkcomic", "note": "外型描述" } },
+  "cast": { "kid": { "body": "WalkingColorTee", "head": "ShortTwo", "face": "Smile", "colors": { "skin": "tan", "top": "#e8e0c8" }, "note": "外型描述" } },   // Open Peeps，見 references/character.md
   鏡頭：{ …, "act": 1, "beat": "hook", "who": ["kid"],
           "shot": { "size": "LS", "angle": "low", "move": "push", "dir": "L>R" }, "lines": ["對白或旁白"] }
   dir 是角色在畫面上面向／前進的方向；同一鏡頭多個角色方向不同時寫成 { "kid": "L>R", "master": "R>L" }

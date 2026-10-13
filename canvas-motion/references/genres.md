@@ -1,13 +1,13 @@
 # 類型指南：美漫、港漫、日式動畫、電影
 
-選類型 = 選風格錨點（`styles/`）＋一組特效（`library/fx.js`）＋一些慣例。**這些是慣例調色盤，可以借用、混搭、顛覆**：港漫氣勁配電影調色、美漫網點畫水墨山水、動漫衝擊幀用在財報影片，混得有理由就是創意。唯一要小心的是無意的混用（例如同一個角色忽而美漫頭身、忽而大眼卡通臉），那會看起來像出錯而不是風格。
+選類型 = 選風格錨點（`styles/`）＋一組特效（`library/fx.js`）＋一些慣例。**這些是慣例調色盤，可以借用、混搭、顛覆**：港漫氣勁配電影調色、美漫網點畫水墨山水、動漫衝擊幀用在財報影片，混得有理由就是創意。唯一要小心的是無意的混用（例如同一個角色忽而插畫人物、忽而剪影），那會看起來像出錯而不是風格。
 
-| 類型 | 錨點 | 人物 `props`／`render` | 招牌特效 | 字 |
+| 類型 | 錨點 | 人物（見 character.md） | 招牌特效 | 字 |
 |---|---|---|---|---|
-| 美漫（英雄、活動） | `amcomic`：新聞紙底、四色網點 | `hero`／`amcomic` | `fxHalftone`（網角 C105° M75° Y90° K45°）、`fxKrackle`、爆炸框、平行速度線 | `fxSFX`（BAM、KRAK，厚字＋描邊）、`fxBalloon`（shout／thought／radio） |
-| 港漫（武俠、熱血） | `hkcomic`：深藍紫夜色、金色輪廓光 | `hk` 或 `teen`／`hkcomic`（排線陰影＋邊光） | `fxAura`（氣勁，白核→彩色外緣）、`fxFocusLines`、斜格 `fxPanels('action')`、眼睛特寫條 `fxPanels('strip')` | 大狀聲字（轟、砰、嘭），旁白框 `fxCaption`（明體 `fam: 'serif'`） |
-| 日式動畫（作畫、動作） | 任何暗底錨點 | `anime`／`teen`＋`anime`（雙色分色＋高光） | 衝擊幀 `fxImpact`＋`fxInvert`、抹影 `smear`、集中線、流線 `fxFlowLines`、`onTwos`、火／煙／火花／閃電 | 字少，靠畫面 |
-| 電影（故事、形象） | `cinema`：寬銀幕 2.39、青橙調色、顆粒 | `real`／`anime`＋`cel` | `fxLetterbox`（錨點自帶）、`fxRays`、`fxFlare`、`layer()` 景深、甩鏡（流線＋暗化） | 字幕 `txt` 放畫面下方、片名 `fxTitle`（細字寬字距） |
+| 美漫（英雄、活動） | `amcomic`：新聞紙底、四色網點 | Open Peeps 加粗描邊配網點；英雄動作以剪影＋特效為主 | `fxHalftone`（網角 C105° M75° Y90° K45°）、`fxKrackle`、爆炸框、平行速度線 | `fxSFX`（BAM、KRAK，厚字＋描邊）、`fxBalloon`（shout／thought／radio） |
+| 港漫（武俠、熱血） | `hkcomic`：深藍紫夜色、金色輪廓光 | 剪影＋氣勁與邊光（Open Peeps 偏生活感，不適合武打） | `fxAura`（氣勁，白核→彩色外緣）、`fxFocusLines`、斜格 `fxPanels('action')`、眼睛特寫條 `fxPanels('strip')` | 大狀聲字（轟、砰、嘭），旁白框 `fxCaption`（明體 `fam: 'serif'`） |
+| 日式動畫（作畫、動作） | 任何暗底錨點 | 剪影、物件與特效為主；日常戲可用 Open Peeps | 衝擊幀 `fxImpact`＋`fxInvert`、抹影 `smear`、集中線、流線 `fxFlowLines`、`onTwos`、火／煙／火花／閃電 | 字少，靠畫面 |
+| 電影（故事、形象） | `cinema`：寬銀幕 2.39、青橙調色、顆粒 | Open Peeps 半身配景深，或剪影 | `fxLetterbox`（錨點自帶）、`fxRays`、`fxFlare`、`layer()` 景深、甩鏡（流線＋暗化） | 字幕 `txt` 放畫面下方、片名 `fxTitle`（細字寬字距） |
 
 ## 各類型的節奏
 - **動漫動作**：慢–極快–停。預備 6–12 格、出招 2–4 格（幾乎沒有中間張）、命中停 4–8 格（hit-stop）、餘波 8–16 格。

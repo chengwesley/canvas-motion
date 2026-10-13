@@ -90,6 +90,22 @@ def load_assets(proj):
     return out, raw
 
 
+def load_peeps(scene_src, cfg):
+    """場景用到 peep()／peepBust() 時，只內嵌用到的 Open Peeps 部件（名稱出現在場景或 project.json 的才放）。"""
+    if not re.search(r"\bpeep(?:Bust|Cast)?\(", scene_src):
+        return None, 0
+    data = json.loads((SKILL / "library" / "peeps" / "open-peeps.json").read_text("utf-8"))
+    text = scene_src + json.dumps(cfg, ensure_ascii=False)
+    used = set(re.findall(r"['\"`](\w+)['\"`]", text)) | {"EyesClosed", "Explaining", "Calm", "Tee"}
+    out, n = {"_layout": data["_layout"]}, 0
+    for cat, parts in data.items():
+        if cat.startswith("_"):
+            continue
+        out[cat] = {k: v for k, v in parts.items() if k in used}
+        n += len(out[cat])
+    return out, n
+
+
 def load_voice(proj, cfg, bpm, subs=None):
     """旁白：讀 voice/voice.json 的實際長度排時間，音檔轉 data URI。回傳 (VOICE 物件, 警告)。"""
     its = [(si, k, it) for si, sc in enumerate(cfg["scenes"]) for k, it in enumerate(_vo.items(sc))]
@@ -169,6 +185,7 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
     miss_assets = sorted(used - set(assets))
     if miss_assets:
         fail(f"場景用到的截圖不在 assets/：{', '.join(miss_assets)}（用 capture.py 擷取，或把圖片放進 {proj / 'assets'}）")
+    peeps, peep_n = load_peeps(scene_src, cfg)
     bpms = re.findall(r"\"?bpm\"?:\s*(\d+)", style_src)  # 取最後一個：產生的風格會覆寫錨點
     bpm = int(cfg.get("bpm") or (bpms[-1] if bpms else 120))
     voice, vo_warn = load_voice(proj, cfg, bpm, subs)
@@ -176,6 +193,7 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
         (eng / "infra.js").read_text("utf-8"),
         "const ASSETS = " + json.dumps(assets) + ";",
         "const VOICE = " + json.dumps(voice, ensure_ascii=False) + ";",
+        "const PEEPS = " + (json.dumps(peeps, separators=(",", ":")) if peeps else "null") + ";",
         f"// ==== style: {style}\n{style_src}",
         lib_src,
         scene_src,
@@ -226,6 +244,8 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
             print(f"✓ 內嵌截圖 {len(assets)} 張（{asset_raw/1e6:.1f}MB）" + (f"；沒用到：{', '.join(spare)}" if spare else ""))
             if asset_raw > 8e6:
                 print("! 截圖合計超過 8MB（Artifact 上限 16MB）：capture.py 用 --quality 調低、--width 縮小，或刪掉沒用到的")
+        if peeps:
+            print(f"✓ 角色部件 {peep_n} 個（Open Peeps，CC0）")
         if voice["lines"]:
             have = sum(1 for ln in voice["lines"] if ln["src"])
             print(f"✓ 旁白 {have}/{len(voice['lines'])} 句有音檔，字幕{'開' if voice['subs'] else '關'}")

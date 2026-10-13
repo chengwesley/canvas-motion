@@ -8,10 +8,10 @@
 |---|---|---|---|
 | 1 | 製片 | 規格：目的、觀眾、平台、片長（`script.length`） | storyboard：總長對上目標 |
 | 2 | 編劇 | 一句話故事 `logline`、主角 `want／obstacle／change`、主題、三幕節拍 | 三幕比例 25／50／25、hook／inciting／midpoint／climax／resolution 都在 |
-| 3 | 美術 | 角色設定 `cast`、佈景（共用的 `scenes/00_set.js`）、色彩 | `castsheet.py` 產生角色設定表給使用者確認 |
+| 3 | 美術 | 角色設定 `cast`、佈景（共用的 `scenes/00_set.js`）、色彩 | `castsheet.py` 產生角色設定表給使用者確認（角色用 Open Peeps，見 character.md） |
 | 4 | 導演 | 鏡頭表：每個鏡頭的 `shot`（size／angle／move／dir）、`hero`、`carry` | 景別至少 3 種、不連續 4 個同景別、開頭有遠景、運鏡至少 3 種 |
 | 5 | 攝影 | 光線方向（`light`、`rim`）、各幕色溫、景深 | 人眼看縮圖 |
-| 6 | 動畫 | 角色表演（`figPose.seq`、表情、重量） | taste.py |
+| 6 | 動畫 | 角色表演（換表情、換姿勢、說話、彈跳進場，見 character.md） | taste.py |
 | 7 | 剪輯 | 鏡頭長度節奏（`bars`）、轉場 | 鏡頭長度要有變化、第 3 幕比第 1 幕剪得快 |
 | 8 | 聲音 | 配樂 energy、`sfx`、高潮前 `rest` | storyboard 格式檢查 |
 | 9 | 場記 | 連戲：畫面方向、道具位置（錨點、共用佈景）、服裝（cast） | 同一角色畫面方向跳軸會提醒 |
@@ -27,7 +27,7 @@
 - 每個新地點先給一個遠景（ELS／LS）交代在哪裡，情緒高點才用特寫（CU／ECU）。
 - 180° 軸線：角色的前進方向（`dir`）整支片要一致。同一鏡頭多個角色方向不同時，寫成 `{"leo": "L>R", "maya": "R>L"}`。刻意轉向時加 `"cross": true`，並讓觀眾看到他轉身。
 - 高潮要有反應鏡頭：說話的人之後，切到聽的人（例：「我們投。」→ 甩鏡到主角的眼睛）。
-- 景別用 `figFrame(角色, x, 地面, 'CU')` 取景；特寫、大特寫用 `figPlace()` 先定頭的位置。
+- 景別：遠景、中景用全身 `peep()`，近景、特寫用半身 `peepBust()` 並用 `shot()` 推近臉。
 
 ## 提案（一次給完）
 一句話故事、主角弧線、畫風與風格（附理由）、`storyboard.py --preview` 的分鏡表（含幕、節拍、鏡頭、高光）、角色設定表（`castsheet.py`），最後問構圖並說「OK 就開工」。
