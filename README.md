@@ -4,7 +4,9 @@
 
 Canvas Motion 是一個開放式的 [Claude Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)，讓 Claude 用程式做出動畫短片：畫面由 Canvas 逐格繪製，配樂由 WebAudio 即時合成，整支片就是一個 HTML 檔。主題、敘事結構、畫面與視覺風格都不設限：Claude 會依你的內容與情境設計分鏡，並提出適合的風格建議。同一個檔案可以直接在瀏覽器播放、發布成 claude.ai Artifact 分享連結，也能匯出成含配樂的 MP4 或 GIF。
 
-範例專案都在 [`examples/`](examples/)：產品操作示範、UI 微動態（數據、互動）、畫風與形狀展示。
+![Canvas Motion 介紹](media/intro.gif)
+
+這支介紹動畫本身就是用 Canvas Motion 做的。範例專案都在 [`examples/`](examples/)：產品操作示範、UI 微動態（數據、互動）、畫風與形狀展示。
 
 ## 特色
 
@@ -138,6 +140,7 @@ python3 $SKILL/scripts/export.py my-video out.mp4 --size 1280x720 --crf 25   # 7
 ```
 .
 ├── README.md
+├── media/                     README 用的介紹動畫
 ├── SKILL.md                   給 Claude 的操作說明
 ├── engine/                    固定引擎：HTML 外殼、繪圖與排版、時間軸與配樂、播放器
 ├── library/                   畫筆（不是版面）：kit.js、畫風 looks.js、產品示範 product.js、UI 微動態 ui.js／uictl.js、插畫角色 peeps.js
