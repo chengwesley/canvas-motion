@@ -101,8 +101,10 @@ def check(sb):
         if i > 1 and not s.get("carry"):
             warns.append(f"第 {i} 幕沒寫 carry（上一幕的什麼變成這幕的主角）：幕與幕各自獨立，看起來像換投影片")
         for e in s.get("sfx") or []:
-            if not (isinstance(e, list) and len(e) >= 2 and isinstance(e[0], (int, float)) and e[1] in SFX):
-                errs.append(f"第 {i} 幕 sfx {e} 格式錯誤：要寫 [拍數, 種類]，種類只能是 {', '.join(sorted(SFX))}")
+            if not (isinstance(e, list) and len(e) >= 2 and isinstance(e[0], (int, float))
+                    and (e[1] in SFX or (isinstance(e[1], str) and re.fullmatch(r"@[^\s/\\]+", e[1])))):
+                errs.append(f"第 {i} 幕 sfx {e} 格式錯誤：要寫 [拍數, 種類]，種類只能是 {', '.join(sorted(SFX))}，"
+                            "或 \"@檔名\"（專案 sfx/ 資料夾裡自備的 wav／mp3／ogg）")
         vo = _vo.items(s)
         if vo and isinstance(b, int):
             need = _vo.LEAD + sum(_vo.estimate(it["say"]) for it in vo) + _vo.GAP * (len(vo) - 1) + _vo.TAIL

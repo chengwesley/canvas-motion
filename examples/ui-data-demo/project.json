@@ -1,0 +1,25 @@
+{
+  "title": "UI 資料微動態：卡片、數字、走勢、路線",
+  "style": {
+    "base": "minimal",
+    "colors": { "bg": "#eef2f8", "fg": "#0f172a", "a1": "#2563eb", "a2": "#22c55e", "a3": "#8b5cf6" },
+    "post": { "grain": 0 }
+  },
+  "aspect": "auto",
+  "bpm": 100,
+  "music": true,
+  "scenes": [
+    { "fn": "sGrowth", "bars": 2, "energy": 0.45, "trans": "push",
+      "hero": { "beat": 4, "what": "訂閱數滾到 12,480、+18% 標籤彈出；長條長成趨勢線" },
+      "sfx": [[4, "pop"], [5, "chime"]] },
+    { "fn": "sConvert", "bars": 2, "energy": 0.55, "trans": "wipe",
+      "hero": { "beat": 5, "what": "訪客粒子匯進 447 sales；三圈目標合攏打勾" },
+      "sfx": [[5, "chime"]] },
+    { "fn": "sRoute", "bars": 2, "energy": 0.6, "trans": "zoom",
+      "hero": { "beat": 5, "what": "路線串起四個新店圖釘、+38% 活動報表" },
+      "sfx": [[5, "pop"]] },
+    { "fn": "sProduct", "bars": 3, "energy": 0.7,
+      "hero": { "beat": 5, "what": "價格卡轉 360° 換成特價；字重滑到 900" },
+      "sfx": [[2.6, "whoosh"], [5, "pop"]] }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "title": "UI 互動元件：A → B 的產品瞬間",
+  "style": {
+    "base": "minimal",
+    "colors": {
+      "bg": "#eef2f7",
+      "fg": "#0f172a",
+      "a1": "#2563eb",
+      "a2": "#0f172a",
+      "a3": "#22c55e"
+    },
+    "post": {
+      "grain": 0
+    }
+  },
+  "aspect": "auto",
+  "bpm": 100,
+  "scenes": [
+    {
+      "fn": "sPlans",
+      "bars": 3,
+      "energy": 0.4,
+      "trans": "push",
+      "hero": { "beat": 9, "what": "按鈕載入後彈開成綠色 Published" },
+      "sfx": [[2, "click"], [5, "click"], [7, "click"], [9, "pop"]]
+    },
+    {
+      "fn": "sLive",
+      "bars": 3,
+      "energy": 0.5,
+      "trans": "push",
+      "hero": { "beat": 2, "what": "動態島展開成 LIVE 即時活動" },
+      "sfx": [[2, "whoosh"], [4, "pop"], [8.5, "swish"]]
+    },
+    {
+      "fn": "sPay",
+      "bars": 3,
+      "energy": 0.6,
+      "trans": "push",
+      "hero": { "beat": 4, "what": "卡片插進刷卡機、Paid 膠囊彈出" },
+      "sfx": [[3.3, "click"], [4, "chime"], [6, "whoosh"]]
+    },
+    {
+      "fn": "sBook",
+      "bars": 4,
+      "energy": 0.55,
+      "hero": { "beat": 8, "what": "事件方塊吸附到時段、Booked 彈出" },
+      "sfx": [[1, "click"], [2, "whoosh"], [8, "pop"]]
+    }
+  ]
+}

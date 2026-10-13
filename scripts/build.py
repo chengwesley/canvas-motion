@@ -72,6 +72,7 @@ def trace_source(proj, cfg):
     return sorted(n for n in nums if len(n.replace(",", "")) >= 2 and not found(n))
 
 
+SUB_STYLES = ("plate", "karaoke", "bold", "minimal", "lower")
 MIME = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".svg": "image/svg+xml"}
 
 
@@ -83,6 +84,24 @@ def load_assets(proj):
     out, raw = {}, 0
     for p in sorted(d.iterdir()):
         mt = MIME.get(p.suffix.lower())
+        if not mt:
+            continue
+        b = p.read_bytes(); raw += len(b)
+        out[p.stem] = f"data:{mt};base64," + base64.b64encode(b).decode()
+    return out, raw
+
+
+AUDIO_MIME = {".wav": "audio/wav", ".mp3": "audio/mpeg", ".ogg": "audio/ogg"}
+
+
+def load_sfx(proj):
+    """<專案>/sfx/ 的音效檔（使用者自備）→ {名稱: data URI}。名稱是不含副檔名的檔名，幕的 sfx 用 "@名稱" 播放。"""
+    d = proj / "sfx"
+    if not d.exists():
+        return {}, 0
+    out, raw = {}, 0
+    for p in sorted(d.iterdir()):
+        mt = AUDIO_MIME.get(p.suffix.lower())
         if not mt:
             continue
         b = p.read_bytes(); raw += len(b)
@@ -111,7 +130,7 @@ def load_voice(proj, cfg, bpm, subs=None):
     its = [(si, k, it) for si, sc in enumerate(cfg["scenes"]) for k, it in enumerate(_vo.items(sc))]
     V = cfg.get("voice") or {}
     out = {"subs": V.get("subs", True) if subs is None else subs, "duck": V.get("duck", .28), "gain": V.get("gain", 1), "lines": []}
-    for k in ("subY", "subSize"):   # 字幕位置（畫面高度比例）與字級（MIN 比例）
+    for k in ("subY", "subSize", "subStyle", "subHi"):   # 字幕位置（畫面高度比例）、字級（MIN 比例）、樣式、強調關鍵字
         if k in V:
             out[k] = V[k]
     if not its:
@@ -189,9 +208,18 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
     bpms = re.findall(r"\"?bpm\"?:\s*(\d+)", style_src)  # 取最後一個：產生的風格會覆寫錨點
     bpm = int(cfg.get("bpm") or (bpms[-1] if bpms else 120))
     voice, vo_warn = load_voice(proj, cfg, bpm, subs)
+    if voice.get("subStyle") and voice["subStyle"] not in SUB_STYLES:
+        vo_warn.append(f"voice.subStyle「{voice['subStyle']}」不認得，改用 plate（可用：{', '.join(SUB_STYLES)}）")
+    sfxfiles, sfx_raw = load_sfx(proj)
+    sfx_used = {e[1][1:] for s in cfg["scenes"] for e in (s.get("sfx") or [])
+                if isinstance(e, list) and len(e) >= 2 and isinstance(e[1], str) and e[1].startswith("@")}
+    sfx_miss = sorted(sfx_used - set(sfxfiles))
+    if sfx_miss:
+        vo_warn.append(f"sfx 用到的音效檔不在 sfx/：{', '.join('@' + n for n in sfx_miss)}（放 {proj / 'sfx'}／<名稱>.wav|mp3|ogg；缺的會靜音略過）")
     js = "\n".join([
         (eng / "infra.js").read_text("utf-8"),
         "const ASSETS = " + json.dumps(assets) + ";",
+        "const SFXFILES = " + json.dumps(sfxfiles) + ";",
         "const VOICE = " + json.dumps(voice, ensure_ascii=False) + ";",
         "const PEEPS = " + (json.dumps(peeps, separators=(",", ":")) if peeps else "null") + ";",
         f"// ==== style: {style}\n{style_src}",
@@ -244,6 +272,9 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
             print(f"✓ 內嵌截圖 {len(assets)} 張（{asset_raw/1e6:.1f}MB）" + (f"；沒用到：{', '.join(spare)}" if spare else ""))
             if asset_raw > 8e6:
                 print("! 截圖合計超過 8MB（Artifact 上限 16MB）：capture.py 用 --quality 調低、--width 縮小，或刪掉沒用到的")
+        if sfxfiles:
+            spare = sorted(set(sfxfiles) - sfx_used)
+            print(f"✓ 內嵌音效檔 {len(sfxfiles)} 個（{sfx_raw/1e6:.2f}MB）" + (f"；沒用到：{', '.join(spare)}" if spare else ""))
         if peeps:
             print(f"✓ 角色部件 {peep_n} 個（Open Peeps，CC0）")
         if voice["lines"]:

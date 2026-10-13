@@ -6,6 +6,7 @@
   "vo": [{ "say": "念法（數字、英文怎麼念）", "sub": "字幕（預設同 say）", "at": 2, "file": "voice/我錄的.wav" }]
 at 是這句從本幕第幾拍開始（選填；沒寫就接在上一句後面）。file 是使用者自己錄的音檔（選填）。
 project.json 頂層 voice 設定排程：{ "lead": .35, "gap": .35, "tail": .45, "subs": true, "duck": .28 }
+字幕樣式 voice.subStyle（plate／karaoke／bold／minimal／lower）由引擎 drawSubs 處理；karaoke 用 chunks() 的起訖時間逐字上色。
 """
 import hashlib, math, re
 

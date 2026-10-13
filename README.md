@@ -4,9 +4,7 @@
 
 Canvas Motion 是一個開放式的 [Claude Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)，讓 Claude 用程式做出動畫短片：畫面由 Canvas 逐格繪製，配樂由 WebAudio 即時合成，整支片就是一個 HTML 檔。主題、敘事結構、畫面與視覺風格都不設限：Claude 會依你的內容與情境設計分鏡，並提出適合的風格建議。同一個檔案可以直接在瀏覽器播放、發布成 claude.ai Artifact 分享連結，也能匯出成含配樂的 MP4 或 GIF。
 
-![範例影片](docs/demo.gif)
-
-這支介紹動畫本身就是用 Canvas Motion 做的，分鏡與場景原始檔在 [`docs/intro/`](docs/intro/)。
+範例專案都在 [`examples/`](examples/)：產品操作示範、UI 微動態（數據、互動）、畫風與形狀展示。
 
 ## 特色
 
@@ -22,6 +20,8 @@ Canvas Motion 是一個開放式的 [Claude Skill](https://docs.claude.com/en/do
 - **好看靠手藝**：動作函式庫（彈簧、預備動作、擠壓伸展、抹影、鏡頭、視差）、每幕必填的高光瞬間與延續、音效綁動作、高潮前靜默、匯出動態模糊；`taste.py` 會量出「畫面沒在動、沒對拍、高潮沒演出來、像投影片」。
 - **產品介紹與操作示範**：`capture.py` 先擷取產品網站的真實截圖、頁面文字與品牌色（擷取失敗就停下來要素材，不憑印象畫假介面）；再用瀏覽器／App 視窗／手機外框、像人手的游標路徑與點擊漣漪、打字效果、依點擊自動推近的鏡頭（Screen Studio 式）、聚光與功能標籤演出操作過程。參考了 HyperFrames、Screen Studio／OpenScreen、21st.dev 游標元件與 remocn 的做法。
 - **旁白配音與字幕**：每幕寫一句 `vo`，`voice.py` 用 Windows 內建的離線台灣中文語音（Yating、Hanhan、Zhiwei）配音，每句產 3 個版本、用內建語音辨識挑最清楚的一版，依旁白實際長度自動調整每幕小節數；字幕燒進畫面並另存 `.srt`，旁白出現時配樂自動壓低約 11dB。也支援 Edge 線上語音、macOS 語音或自己錄的音檔。
+- **高質感 UI 微動態**：40 多個「A → B」元件（`library/ui.js`、`uictl.js`）：浮起的玻璃卡片、KPI 數字滾動與成長標籤、長條長成趨勢線、按鈕從載入變成綠色完成、開關、分段切換、通知堆疊、動態島、行事曆拖曳排程、刷卡機付款、線框變成 App 畫面，範例在 `examples/ui-data-demo`、`ui-controls-demo`。
+- **字幕樣式與自訂音效**：字幕有底板、逐字亮起、短影音大字、無底板、左下角標題條五種；音效除了內建合成，也能用你放進專案 `sfx/` 的音檔。
 - **插畫角色**：人物用 [Open Peeps](https://www.openpeeps.com)（Pablo Stanley，CC0）的插畫部件組合：站姿、坐姿、半身（含筆電、文件、咖啡）、33 種表情、53 種髮型，可套品牌色。角色靠換表情、換姿勢、自動眨眼、說話、呼吸與彈跳進場演戲；`references/peeps/` 有部件型錄，`castsheet.py` 產生角色設定表。
 - **動態設計準則**：出場順序（一個主角先行）、依元素與調性的時長、緩動、錯開與反向動作，改寫自 LottieFiles Motion Design Skill（MIT）。
 - **類型特效**：美漫（網點、爆炸框）、港漫（氣勁、集中線、斜格）、日式動畫（衝擊幀、流線）、電影（寬銀幕、青橙調色、光束），新增 hkcomic、amcomic、cinema 三種風格。
@@ -44,8 +44,7 @@ Canvas Motion 是一個開放式的 [Claude Skill](https://docs.claude.com/en/do
 ### Claude Code
 
 ```bash
-git clone https://github.com/chengwesley/canvas-motion.git
-cp -r canvas-motion/canvas-motion ~/.claude/skills/
+git clone https://github.com/chengwesley/canvas-motion.git ~/.claude/skills/canvas-motion
 ```
 
 ### 環境需求
@@ -60,7 +59,7 @@ cp -r canvas-motion/canvas-motion ~/.claude/skills/
 | 旁白語音 | 旁白配音（`voice.py`） | 可缺，不配音就不需要。Windows 內建台灣中文語音（Yating、Hanhan、Zhiwei）；其他系統用 `pip install edge-tts` 或 macOS 的 `say` |
 | 中文字型 | 截圖顯示中文 | 截圖會出現方框 |
 
-執行 `python3 canvas-motion/scripts/check_env.py` 可以一次檢查。claude.ai 的程式執行環境已經全部內建。
+執行 `python3 ~/.claude/skills/canvas-motion/scripts/check_env.py` 可以一次檢查。claude.ai 的程式執行環境已經全部內建。
 
 ## 使用方式
 
@@ -81,7 +80,7 @@ cp -r canvas-motion/canvas-motion ~/.claude/skills/
 ### 手動操作
 
 ```bash
-SKILL=canvas-motion
+SKILL=~/.claude/skills/canvas-motion
 
 # 1. 寫分鏡 storyboard.json（格式見 scripts/storyboard.py 開頭），先預覽分鏡表與節奏檢查
 python3 $SKILL/scripts/storyboard.py storyboard.json --preview
@@ -126,31 +125,29 @@ python3 $SKILL/scripts/export.py my-video out.mp4 --size 1280x720 --crf 25   # 7
 ```
 
 - `fn`：這幕的場景函式，寫在 `scenes/` 裡。
-- `style`：風格參數，由 Claude 依情境決定；建置時會自動驗證對比、字體與節奏並修正（格式見 [`styles/_schema.json`](canvas-motion/styles/_schema.json)）。
+- `style`：風格參數，由 Claude 依情境決定；建置時會自動驗證對比、字體與節奏並修正（格式見 [`styles/_schema.json`](styles/_schema.json)）。
 - `bars`：這幕佔幾小節（120 BPM 時一小節 2 秒）。
 - `energy`：0–1，控制配樂密度，由低到高安排情緒起伏。
 - `trans`：離開這幕的轉場，可用 `cut` `fade` `push` `wipe` `zoom` `iris` `flash` `glitch`。
-- `vo`：這幕的旁白（選填），字串就是念的話也是字幕；念法和字幕不同時分開寫 `say`／`sub`。`voice` 設定語音、字幕與配樂壓低的程度（見 [`references/voice.md`](canvas-motion/references/voice.md)）。
+- `vo`：這幕的旁白（選填），字串就是念的話也是字幕；念法和字幕不同時分開寫 `say`／`sub`。`voice` 設定語音、字幕與配樂壓低的程度（見 [`references/voice.md`](references/voice.md)）。
 
-場景函式的寫法見 [`references/api.md`](canvas-motion/references/api.md) 與 [`examples/keynote-demo`](canvas-motion/examples/keynote-demo)。
+場景函式的寫法見 [`references/api.md`](references/api.md) 與 [`examples/keynote-demo`](examples/keynote-demo)。
 
 ## 專案結構
 
 ```
 .
 ├── README.md
-├── docs/                      README 用的圖片
-└── canvas-motion/             ← skill 本體（安裝的就是這個資料夾）
-    ├── SKILL.md               給 Claude 的操作說明
-    ├── engine/                固定引擎：HTML 外殼、繪圖與排版、時間軸與配樂、播放器
-    ├── library/               繪圖小工具 kit.js、畫風 looks.js、產品示範 product.js、插畫角色 peeps.js（畫筆，不是版面）
-    ├── brands/                品牌設定檔（capture.py --brand 產生）
-    ├── styles/                風格設定
-    ├── scripts/               verify / capture / voice / storyboard / build / sheet / export / style_gen / check_env / selftest
-    ├── references/            direction.md（情境→規格與節奏）、looks.md（畫風與常用形狀）、
-    │                          api.md（場景寫法）、style-pack.md（風格設定）、product.md（產品介紹與操作示範）、voice.md（旁白與字幕）、
-    │                          motion-design.md（出場順序與緩動）、character.md（角色）＋ peeps/（部件型錄）
-    └── examples/              範例專案（也是回歸測試）
+├── SKILL.md                   給 Claude 的操作說明
+├── engine/                    固定引擎：HTML 外殼、繪圖與排版、時間軸與配樂、播放器
+├── library/                   畫筆（不是版面）：kit.js、畫風 looks.js、產品示範 product.js、UI 微動態 ui.js／uictl.js、插畫角色 peeps.js
+├── brands/                    品牌設定檔（capture.py --brand 產生）
+├── styles/                    風格設定
+├── scripts/                   verify / capture / voice / storyboard / build / sheet / export / style_gen / check_env / selftest
+├── references/                direction.md（情境→規格與節奏）、looks.md（畫風與常用形狀）、api.md（場景寫法）、
+│                              style-pack.md（風格設定）、product.md（產品示範）、ui-kit.md（UI 微動態）、voice.md（旁白與字幕）、
+│                              motion-design.md（出場順序與緩動）、character.md（角色）＋ peeps/（部件型錄）
+└── examples/                  範例專案（也是回歸測試）
 ```
 
 ## 運作原理
@@ -189,7 +186,6 @@ dist/index.html（單一檔案：截圖與旁白都內嵌成 data URI，無外�
 修改後跑回歸測試（建置所有組合，並對範例專案做截圖與文字檢查）：
 
 ```bash
-cd canvas-motion
 python3 scripts/selftest.py --sheet
 ```
 
@@ -198,7 +194,7 @@ python3 scripts/selftest.py --sheet
 打包成 `.skill` 檔（就是 zip，最上層是 `canvas-motion/` 資料夾）：
 
 ```bash
-zip -r canvas-motion.skill canvas-motion -x "*/dist/*" "*/sheets/*" "*/__pycache__/*"
+git archive --prefix=canvas-motion/ -o canvas-motion.skill HEAD
 ```
 
-風格設定的格式見 [`references/style-pack.md`](canvas-motion/references/style-pack.md)；場景寫法見 [`references/api.md`](canvas-motion/references/api.md)。
+風格設定的格式見 [`references/style-pack.md`](references/style-pack.md)；場景寫法見 [`references/api.md`](references/api.md)。

@@ -106,15 +106,20 @@ function framePhone(cx, cy, h, o = {}, content) {
   ctx.restore(); return box;
 }
 /** 產品片背景：底色上幾團緩慢漂移的強調色光暈（Screen Studio 那種漸層桌布）。o.colors 自訂色、o.amt 濃度 */
-function backdrop(t, o = {}) {
-  ctx.fillStyle = STYLE.c.bg; ctx.fillRect(0, 0, W, H);
+const _bdC = document.createElement('canvas'), _bdX = _bdC.getContext('2d');
+function backdrop(t, o = {}) {   // 漸層畫在 1/8 解析度的小畫布再放大：柔和漸層看不出差別，速度快很多
+  const sw = Math.max(16, Math.ceil(W / 8)), sh = Math.max(16, Math.ceil(H / 8));
+  if (_bdC.width !== sw || _bdC.height !== sh) { _bdC.width = sw; _bdC.height = sh; }
+  const x = _bdX; x.setTransform(1, 0, 0, 1, 0, 0);
+  x.fillStyle = STYLE.c.bg; x.fillRect(0, 0, sw, sh);
   const cols = o.colors || [STYLE.c.a1, STYLE.c.a2, STYLE.c.a3], amt = o.amt ?? .5;
   cols.forEach((c, i) => {
-    const a = i * 2.1 + .7, x = W * (.5 + .38 * Math.cos(a + t * .07)), y = H * (.5 + .34 * Math.sin(a * 1.3 + t * .05));
-    const g = ctx.createRadialGradient(x, y, 0, x, y, Math.max(W, H) * .6);
+    const a = i * 2.1 + .7, gx = sw * (.5 + .38 * Math.cos(a + t * .07)), gy = sh * (.5 + .34 * Math.sin(a * 1.3 + t * .05));
+    const g = x.createRadialGradient(gx, gy, 0, gx, gy, Math.max(sw, sh) * .6);
     g.addColorStop(0, rgba(c, .55 * amt)); g.addColorStop(1, rgba(c, 0));
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    x.fillStyle = g; x.fillRect(0, 0, sw, sh);
   });
+  ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(_bdC, 0, 0, W, H); ctx.restore();
 }
 
 /* ---------- 游標：路徑、點擊、拖曳 ---------- */

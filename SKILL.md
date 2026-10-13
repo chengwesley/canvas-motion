@@ -22,15 +22,16 @@ canvas-motion/
 ├── library/       kit.js 繪圖小工具（kPage、kPerson、kLaptop、kGear、kBulb、kStar、kArc）、looks.js 畫風渲染＋常用形狀（withLook、lookShape、LK_SHAPES）——都是畫筆，不是版面；
 │                  motion.js 動作質感（spring、anticipate、withSquash、impact、lagT、trail、smear、arcPt、hit、shake、shot、layer、onTwos）；
 │                  peeps.js 插畫角色（Open Peeps，CC0：全身、半身、表情、髮型組合，靠換表情與姿勢演戲）；fx.js 類型特效（漫畫、動漫、電影）；
-│                  product.js 產品示範（截圖 pic、瀏覽器／視窗／手機外框、游標、打字、鏡頭跟隨、聚光、標籤）
+│                  product.js 產品示範（截圖 pic、瀏覽器／視窗／手機外框、游標、打字、鏡頭跟隨、聚光、標籤）；
+│                  ui.js／uictl.js 高質感 UI 微動態（玻璃卡片、數字滾動、KPI、按鈕狀態、開關、通知堆疊、動態島、行事曆拖曳、刷卡）
 ├── styles/        錨點風格（生成風格的起點）＋ _schema.json（風格參數格式）
 ├── brands/        品牌設定檔（capture.py --brand 產生：網站實際使用的強調色與字型）
 ├── scripts/       verify（一鍵檢查）、capture（擷取產品真實畫面與品牌色）、voice（旁白配音與字幕）、storyboard（含劇本模式）、castsheet（角色設定表）、peeps_catalog（角色部件型錄）、build、sheet、taste（動態品味）、export（MP4／GIF）、style_gen、check_env、
 │                  selftest、new_project、preview_styles
 ├── references/    direction.md（情境→規格與節奏）、craft.md（動畫手藝、導演思維、自評表）、crew.md（劇組流程：30 秒以上的故事片）、
-│                  motion-design.md（出場順序、時長、緩動、編排）、product.md（產品介紹與操作示範）、voice.md（旁白配音與字幕）、genres.md（美漫、港漫、動漫、電影）、character.md（角色：Open Peeps 部件型錄與演法）、looks.md（畫風與形狀）、
+│                  motion-design.md（出場順序、時長、緩動、編排）、ui-kit.md（UI 微動態元件）、product.md（產品介紹與操作示範）、voice.md（旁白配音與字幕）、genres.md（美漫、港漫、動漫、電影）、character.md（角色：Open Peeps 部件型錄與演法）、looks.md（畫風與形狀）、
 │                  api.md（自訂場景、文字、錨點、音效）、style-pack.md（風格參數）
-└── examples/      keynote-demo、look-gallery、shapes-demo、product-demo（寫法參考，也是回歸測試；不要照抄構圖）
+└── examples/      keynote-demo、look-gallery、shapes-demo、product-demo、ui-data-demo、ui-controls-demo（寫法參考，也是回歸測試；不要照抄構圖）
 ```
 
 以下 `<SKILL>` 代表這個 skill 資料夾的路徑。
@@ -79,6 +80,7 @@ python3 <SKILL>/scripts/capture.py <產品網址> <專案> --name home --brand <
 - 擷取失敗會寫 `assets/BLOCKED.md`：停下來請使用者給截圖（`--file`）或公開網址，**不要畫一個假的產品介面冒充真實畫面**。需要登入的畫面請使用者自己截圖。
 - 提案時附上擷取到的截圖（用 `view` 看過、估好要操作的位置），說明每幕示範哪一個操作。
 - 動作語彙：游標移過去 → 鏡頭推近 → 按下（漣漪＋`click` 音效）→ 介面反應 → 聚光／標籤。一幕只示範一個操作。
+- 「完成、成長、送出」這類瞬間用 `references/ui-kit.md` 的元件演（按鈕變綠打勾、數字滾動、通知堆疊），看 `examples/ui-data-demo`、`ui-controls-demo`。
 
 ## 一次提案
 

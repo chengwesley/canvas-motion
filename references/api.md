@@ -57,10 +57,10 @@
 | `scenes[].trans` | 離開這幕時用的轉場（見第 9 節）。省略時輪流使用風格包的 `trans` |
 | `scenes[].hero` | `{ "beat": 拍數, "what": "高光瞬間" }`。建議寫；taste.py 會看那一拍有沒有動作高峰（刻意安靜的高光可以忽略） |
 | `scenes[].carry` | 上一幕的什麼變成這幕的主角（說明用，提案表會列出） |
-| `scenes[].sfx` | 音效清單 `[[拍數, 種類, 音量?, 長度?], …]`（第 16 節） |
+| `scenes[].sfx` | 音效清單 `[[拍數, 種類, 音量?, 長度?], …]`；種類也可以是 `"@檔名"`，播放 `<專案>/sfx/` 裡自備的音檔（第 16 節） |
 | `scenes[].rest` | `[起拍, 終拍]`：這段配樂靜默（第 16 節） |
 | `scenes[].vo` | 旁白：字串、字串陣列，或 `{ say, sub, at, file }`（見 voice.md）。`voice.py` 產生配音後 build 自動內嵌、排時間、畫字幕 |
-| `voice` | 旁白與字幕設定：`engine`、`voice`、`rate`、`subs`、`duck`、`lead`／`gap`／`tail`、`subY`／`subSize`（見 voice.md） |
+| `voice` | 旁白與字幕設定：`engine`、`voice`、`rate`、`subs`、`duck`、`lead`／`gap`／`tail`、`subY`／`subSize`、`subStyle`（`plate`／`karaoke`／`bold`／`minimal`／`lower`）、`subHi`（`bold` 要標色的關鍵字）（見 voice.md） |
 
 播放順序由 `scenes` 陣列決定；`scenes/*.js` 的檔名只影響載入順序。
 
@@ -294,6 +294,7 @@ function sFly(t, T, pulse, s) {
 ```
 - `sfx` 的拍數從本幕切點算起，可以是小數或負數（切點前）。riser 的拍數是「衝到頂」的時間，第 4 個值是長度秒數（預設一小節）。
 - 種類：`whoosh`、`swish`、`riser`、`impact`、`boom`、`pop`、`click`、`stamp`、`chime`（用途見 craft.md 第 5 節）。自訂配樂 `MUSIC()` 時音效照樣播放。
+- **自備音效檔**：把 `.wav`／`.mp3`／`.ogg` 放進 `<專案>/sfx/`，build 會內嵌成 `SFXFILES`（data URI，算進 16MB 上限），種類寫 `"@檔名"`（不含副檔名），例如 `[4, "@click"]`、`[4, "@whoosh", 0.8]`。拍數是音檔開始播放的時間（沒有 riser 的長度參數），第 3 個值是音量倍率。網頁播放與 `export.py` 匯出都會播。本 skill 不附任何音檔，請使用者提供有授權的檔案。`sfx/` 裡沒有的名稱 build 會警告並靜音略過，不會中斷。檔名跟內建種類同名也沒關係（`@click` 是檔案、`click` 是合成音）。
 - `rest` 期間配樂（含自訂 `MUSIC()`）靜默，音效照常。
 - 動態模糊不在場景裡寫，匯出時加 `export.py --blur 5`（引擎的 `__cm.frameBlur`）。
 

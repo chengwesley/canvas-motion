@@ -45,20 +45,116 @@ function voStart(A, t0, from = 0) {
     P.setValueAtTime(duck, te - .4); P.linearRampToValueAtTime(base, te);
   }
 }
-/** 字幕：畫在所有畫面與後製之上（轉場時也穩定），會被文字檢查一起檢查 */
+/** 字幕：畫在所有畫面與後製之上（轉場時也穩定），會被文字檢查一起檢查（全部經過 _drawText）。
+ *  voice.subStyle：plate（預設，深色底板）、karaoke（逐字變強調色）、bold（短影音大字描邊＋彈出，數字強調色）、
+ *  minimal（無底板、細描邊）、lower（左下角強調色橫條） */
 const SUBS = VO.lines.flatMap(l => l.sub).filter(c => c[2]).sort((x, y) => x[0] - y[0])
-  .map((c, i, A) => [c[0], i + 1 < A.length ? Math.min(c[1] + .15, A[i + 1][0]) : c[1] + .15, c[2]]);   // 每條最多留到下一條開始
+  .map((c, i, A) => [c[0], i + 1 < A.length ? Math.min(c[1] + .15, A[i + 1][0]) : c[1] + .15, c[2], c[1]]);   // 每條最多留到下一條開始；第 4 個是念完的時間
+const SUB_STYLE = VO.subStyle || 'plate';
+const SUB_DEF = {   // 各樣式預設：字級（MIN 比例）、中心高度（H 比例）、最大寬（SAFE.w 比例）、字重 —— [橫式, 直式]
+  plate:   { size: [.04, .044], y: [.9, .8], maxW: [.8, .92], weight: 700 },
+  karaoke: { size: [.042, .046], y: [.9, .8], maxW: [.8, .92], weight: 800 },
+  bold:    { size: [.06, .066], y: [.85, .74], maxW: [.86, .94], weight: 900 },
+  minimal: { size: [.034, .038], y: [.91, .82], maxW: [.78, .9], weight: 600 },
+  lower:   { size: [.036, .04], y: [.86, .82], maxW: [.6, .82], weight: 700 },
+};
+const _lum = c => { const [r, g, b] = rgb(c); return r * .299 + g * .587 + b * .114; };
+/** 深底／白字上的強調色：a1 太暗就換 a2/a3，都太暗就把 a1 調亮 */
+function _subAccent() {
+  for (const c of [STYLE.c.a1, STYLE.c.a2, STYLE.c.a3]) if (c && _lum(c) > 105) { const [r, g, b] = rgb(c); if (Math.max(r, g, b) - Math.min(r, g, b) > 40) return c; }
+  const base = STYLE.c.a1 || '#ffcc33';   // 只調亮到夠用（lum ≥ 135），保留飽和度，跟白字才分得出來
+  for (let p = .1; p < .6; p += .05) { const c = mixc(base, '#ffffff', p); if (_lum(c) >= 135) return c; }
+  return mixc(base, '#ffffff', .6);
+}
+/** 跟 _drawText 一樣的換行與位置，回傳每行的 { s, x0, top, w } */
+function _subLines(s, x, y, o) {
+  setFont(o.size, o.weight, 'sans', MAIN); MAIN.letterSpacing = '0px';
+  const ls = o.maxW ? wrap(s, o.maxW, o.size, o.weight, 'sans', MAIN) : String(s).split('\n');
+  const lh = o.size * 1.28, y0 = y - lh * ls.length / 2;
+  return ls.map((l, i) => { const w = MAIN.measureText(l).width;
+    return { s: l, w, top: y0 + lh * i, h: lh, base: y0 + lh * (i + .52), x0: o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x }; });
+}
+/** 描邊（＋陰影）：在 _drawText 填字之前畫，文字檢查只看填字那次 */
+function _subStroke(L, o, lw, col, shadow) {
+  MAIN.save(); setFont(o.size, o.weight, 'sans', MAIN); MAIN.textAlign = 'left'; MAIN.textBaseline = 'middle';
+  MAIN.globalAlpha *= o.alpha; MAIN.lineJoin = 'round'; MAIN.miterLimit = 2; MAIN.lineWidth = lw; MAIN.strokeStyle = col;
+  if (shadow) { MAIN.shadowColor = shadow; MAIN.shadowBlur = o.size * .35; MAIN.shadowOffsetY = o.size * .08; }
+  for (const l of L) MAIN.strokeText(l.s, l.x0, l.base);
+  MAIN.restore();
+}
+/** 只在 rects 範圍內用另一個顏色重畫同一段字（同字串重畫，文字檢查不會當成疊字） */
+function _subOverlay(s, x, y, o, rects, color) {
+  if (!rects.length) return;
+  MAIN.save(); MAIN.beginPath(); for (const [rx, ry, rw, rh] of rects) MAIN.rect(rx, ry, rw, rh); MAIN.clip();
+  _drawText(MAIN, s, x, y, { ...o, color }); MAIN.restore();
+}
+const _SUB_UNIT = /[A-Za-z0-9]+(?:[.,'’%\-][A-Za-z0-9]+)*%?|[⺀-鿿豈-﫿぀-ヿ가-힯]/g;   // 中日韓一字一單位，英數一詞一單位
+/** 卡拉 OK：念到哪裡、亮到哪裡（依字數比例分配時間） */
+function _karaokeRects(L, p) {
+  const U = L.map(l => [...l.s.matchAll(_SUB_UNIT)]), n = U.reduce((a, u) => a + u.length, 0) || 1;
+  let k = clamp(p) * n; const out = [];
+  L.forEach((l, i) => {
+    if (k <= 0) return;
+    const u = U[i];
+    if (k >= u.length) { out.push([l.x0 - l.h, l.top, l.w + l.h * 2, l.h]); k -= u.length; return; }
+    const m = u[Math.floor(k)], f = k - Math.floor(k), a = MAIN.measureText(l.s.slice(0, m.index)).width, b = MAIN.measureText(l.s.slice(0, m.index + m[0].length)).width;
+    out.push([l.x0 - l.h, l.top, l.h + a + (b - a) * f, l.h]); k = 0;
+  });
+  return out;
+}
+/** 數字（與 voice.subHi 關鍵字）的範圍 */
+const _SUB_HI = new RegExp('[0-9０-９][0-9０-９,.%：:／/]*%?' + (VO.subHi || []).map(w => '|' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(''), 'g');
+function _hiRects(L) {
+  const out = [];
+  for (const l of L) for (const m of l.s.matchAll(_SUB_HI)) {
+    const a = MAIN.measureText(l.s.slice(0, m.index)).width, b = MAIN.measureText(l.s.slice(0, m.index + m[0].length)).width;
+    out.push([l.x0 + a - 1, l.top, b - a + 2, l.h]);
+  }
+  return out;
+}
 function drawSubs(time) {
   if (!VO.subs) return;
-  for (const [a, e, s] of SUBS) {
+  for (const [a, e, s, b] of SUBS) {
     if (time < a - .05 || time >= e) continue;
-    const size = Math.round(MIN * (VO.subSize ?? (PORT ? .044 : .04))), y = H * (VO.subY ?? (PORT ? .8 : .9));
+    const st = SUB_DEF[SUB_STYLE] ? SUB_STYLE : 'plate', D = SUB_DEF[st], pi = PORT ? 1 : 0;
+    const size = Math.round(MIN * (VO.subSize ?? D.size[pi])), y = H * (VO.subY ?? D.y[pi]);
     const al = clamp((time - a + .05) / .1) * clamp((e - time) / .1);
-    const o = { size, weight: 700, align: 'center', color: '#ffffff', maxW: SAFE.w * (PORT ? .92 : .8), alpha: al };
-    const m = measure(s, o, y), padX = size * .55, padY = size * .28;
-    MAIN.save(); MAIN.globalAlpha = al * .62; MAIN.fillStyle = '#0b0d12'; ctx = MAIN;
-    fillRR(W / 2 - m.w / 2 - padX, m.top - padY, m.w + padX * 2, m.h + padY * 2, size * .3); MAIN.restore();
-    _drawText(MAIN, s, W / 2, y, o);
+    const o = { size, weight: D.weight, align: 'center', color: '#ffffff', maxW: SAFE.w * D.maxW[pi], alpha: al };
+    MAIN.save(); ctx = MAIN;
+    if (st === 'bold') {   // 每條字幕彈出：0.3 秒內從 .7 倍過衝到 1
+      const k = clamp((time - a + .05) / .3), c1 = 2.2, sc = k >= 1 ? 1 : .7 + .3 * (1 + (c1 + 1) * (k - 1) ** 3 + c1 * (k - 1) ** 2);
+      o.alpha = clamp((time - a + .05) / .06) * clamp((e - time) / .1);
+      const z1 = fit(s, o.maxW, size, o.weight, 'sans', 1, .78);   // 縮一點就能一行放下時用一行（大字換行很散）
+      if (z1 > Math.round(size * .78)) o.size = z1;
+      MAIN.translate(W / 2, y); MAIN.scale(sc, sc); MAIN.translate(-W / 2, -y);
+      const L = _subLines(s, W / 2, y, o);
+      _subStroke(L, o, size * .2, '#0a0a10', 'rgba(0,0,0,.55)');
+      _drawText(MAIN, s, W / 2, y, o);
+      _subOverlay(s, W / 2, y, o, _hiRects(L), _subAccent());
+    } else if (st === 'minimal') {
+      const L = _subLines(s, W / 2, y, o);
+      _subStroke(L, o, size * .14, 'rgba(8,8,14,.7)', 'rgba(0,0,0,.6)');
+      _drawText(MAIN, s, W / 2, y, o);
+    } else if (st === 'lower') {   // 左下角強調色橫條，從左滑入
+      const k = clamp((time - a + .05) / .25), ease = 1 - (1 - k) ** 3, padX = size * .7, padY = size * .34;
+      const bar = STYLE.c.a1 || '#2b6cff', dark = _lum(bar) > 165;
+      o.align = 'left'; o.color = dark ? '#111318' : '#ffffff';
+      const x = SAFE.x + padX - (1 - ease) * size * 1.2, m = measure(s, o, y);
+      MAIN.globalAlpha = al * .94; fillRR(x - padX, m.top - padY, m.w + padX * 2, m.h + padY * 2, size * .38, bar);
+      MAIN.globalAlpha = al * .9;
+      fillRR(x - padX + size * .22, m.top - padY + size * .3, size * .12, m.h + padY * 2 - size * .6, size * .06, dark ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.85)');
+      MAIN.globalAlpha = 1; _drawText(MAIN, s, x, y, o);
+    } else {   // plate、karaoke：深色底板
+      const m = measure(s, o, y), padX = size * .55, padY = size * .28;
+      MAIN.globalAlpha = al * (st === 'karaoke' ? .7 : .62);
+      fillRR(W / 2 - m.w / 2 - padX, m.top - padY, m.w + padX * 2, m.h + padY * 2, size * .3, '#0b0d12'); MAIN.globalAlpha = 1;
+      _drawText(MAIN, s, W / 2, y, o);
+      if (st === 'karaoke') {
+        const L = _subLines(s, W / 2, y, o);   // 也設定好量字用的字型
+        _subOverlay(s, W / 2, y, o, _karaokeRects(L, (time - a) / Math.max(.05, (b ?? e) - a)), _subAccent());
+      }
+    }
+    MAIN.restore(); ctx = MAIN;
     return;
   }
 }
@@ -259,9 +355,27 @@ const SFX = {
   gong:   (A, t, v) => gong(A, t, v, true),                                          // 大鑼：武俠、東方、開場與收尾
   drum:   (A, t, v) => drum(A, t, v, 95),                                            // 大鼓：戰鼓、腳步、心跳
 };
+/* 使用者提供的音效檔：<專案>/sfx/*.wav|mp3|ogg 由 build.py 內嵌成 SFXFILES，sfx 種類寫 "@檔名" */
+const _SFXF = typeof SFXFILES !== 'undefined' ? SFXFILES : {}, _sfxBuf = {};
+const SFX_READY = Promise.all(Object.entries(_SFXF).map(([name, src]) => {
+  const bin = atob(src.split(',')[1]), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new OfflineAudioContext(1, 1, 44100).decodeAudioData(u8.buffer)
+    .then(b => { _sfxBuf[name] = b; }).catch(() => ERRS.push({ fn: '(sfx)', i: -1, t: 0, msg: `音效檔 ${name} 解碼失敗` }));
+}));
+function _sfxFile(A, t, name, v = 1) {
+  const b = _sfxBuf[name]; if (!b) return;
+  const s = A.ac.createBufferSource(), g = A.ac.createGain(); s.buffer = b; g.gain.value = v;
+  s.connect(g); g.connect(A.out); s.start(t);
+}
 const SFXQ = [];
 PROJECT.scenes.forEach((s, i) => (s.sfx || []).forEach(e => {
-  const [beat, kind, v = 1, d] = e, k = SFX[kind] ? kind : null; if (!k) return;
+  const [beat, kind, v = 1, d] = e;
+  if (typeof kind === 'string' && kind[0] === '@') {
+    if (_SFXF[kind.slice(1)]) SFXQ.push({ time: SC[i].start + beat * BEAT, kind, file: kind.slice(1), v });
+    return;
+  }
+  const k = SFX[kind] ? kind : null; if (!k) return;
   const dur = k === 'riser' ? (d ?? BAR) : 0;
   SFXQ.push({ time: SC[i].start + beat * BEAT - dur, kind: k, v, d: dur || undefined });
 }));
@@ -273,7 +387,9 @@ const _inRest = time => SC.some(s => s.rest && time >= s.start + s.rest[0] * BEA
  *  專案若定義全域函式 MUSIC(A, i, t, info)，整支配樂改由它負責（可呼叫 tone／bend／gong／cymbal／woodblock／drum／kick／pad…）。 */
 function step(A, i, t) {
   const M = STYLE.music, time = i * SX;
-  for (const e of SFXQ) if (e.time >= time - (i ? 0 : 1) && e.time < time + SX) SFX[e.kind](A, t + Math.max(0, e.time - time), e.v, e.d);
+  for (const e of SFXQ) if (e.time >= time - (i ? 0 : 1) && e.time < time + SX) {
+    if (e.file) _sfxFile(A, t + Math.max(0, e.time - time), e.file, e.v); else SFX[e.kind](A, t + Math.max(0, e.time - time), e.v, e.d);
+  }
   if (PROJECT.music === false) return;   // 沒有配樂（只有旁白與音效）
   if (time >= TOTAL - 1e-6 || _inRest(time)) return;
   const s = SC[sceneAt(time + 1e-6)], e = s.energy ?? .6, bar = Math.floor(i / 16), st = i % 16;
@@ -315,7 +431,7 @@ function step(A, i, t) {
 /** 離線合成整支配樂，回傳 WAV 的 base64（export.py 使用） */
 async function renderWav(sr = 44100) {
   const secs = TOTAL + 2, oc = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
-  await VO_READY;
+  await VO_READY; await SFX_READY;
   const A = initAudio(oc, oc.destination), n = Math.ceil(TOTAL / SX);
   for (let i = 0; i < n; i++) step(A, i, i * SX + .01);
   voStart(A, .01, 0);
@@ -360,7 +476,7 @@ function stopAudio() {
 async function play(from = Player.t) {
   if (from >= TOTAL - .05) from = 0;
   stopAudio(); Player.t = from;
-  if ((PROJECT.music !== false || VO.lines.length) && !Player.muted) {
+  if ((PROJECT.music !== false || VO.lines.length || SFXQ.length) && !Player.muted) {
     try {
       const ac = new (window.AudioContext || window.webkitAudioContext)(); await ac.resume();
       Player.ac = ac; Player.A = initAudio(ac, ac.destination);
@@ -415,7 +531,7 @@ function boot() {
 }
 
 /** 給 sheet.py / export.py 呼叫的介面 */
-window.__cm = { frame, frameBlur, resize, renderWav, TOTAL, BAR, BEAT, BPM, TD, sfx: SFXQ, ready: Promise.all([IMG_READY, VO_READY]),
+window.__cm = { frame, frameBlur, resize, renderWav, TOTAL, BAR, BEAT, BPM, TD, sfx: SFXQ, ready: Promise.all([IMG_READY, VO_READY, SFX_READY]),
   vo: () => VO.lines.map(l => ({ id: l.id, t0: l.t0, t1: l.t1, sub: l.sub, audio: !!_voBuf[l.id] })),   // export.py 用來寫 .srt
   SC: SC.map(s => ({ fn: s.fn, start: s.start, dur: s.dur, energy: s.energy, trans: transOf(s), hero: s.hero || null })), errors: ERRS,
   bench(n = 30, w = 1280, h = 720) { // 每格強制同步（讀回 1px），量到的是完整管線成本
