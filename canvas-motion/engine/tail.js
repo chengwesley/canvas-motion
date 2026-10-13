@@ -359,10 +359,11 @@ function boot() {
     else if (e.key === 'r') play(0);
   });
   if (document.fonts) document.fonts.ready.then(() => { _caches.clear(); if (!Player.playing) frame(Player.t); });
+  IMG_READY.then(() => { _caches.clear(); if (!Player.playing) frame(Player.t); });   // 截圖解碼完重畫
 }
 
 /** 給 sheet.py / export.py 呼叫的介面 */
-window.__cm = { frame, frameBlur, resize, renderWav, TOTAL, BAR, BEAT, BPM, TD, sfx: SFXQ,
+window.__cm = { frame, frameBlur, resize, renderWav, TOTAL, BAR, BEAT, BPM, TD, sfx: SFXQ, ready: IMG_READY,
   SC: SC.map(s => ({ fn: s.fn, start: s.start, dur: s.dur, energy: s.energy, trans: transOf(s), hero: s.hero || null })), errors: ERRS,
   bench(n = 30, w = 1280, h = 720) { // 每格強制同步（讀回 1px），量到的是完整管線成本
     resize(w, h, 1); frame(0); MAIN.getImageData(0, 0, 1, 1); const t0 = performance.now();

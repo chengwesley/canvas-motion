@@ -20,6 +20,7 @@ def open_page(html_path: Path):
         pg.on("pageerror", lambda e: logs.append(f"[pageerror] {e}"))
         pg.goto(Path(html_path).resolve().as_uri())
         pg.wait_for_function("window.__cm !== undefined", timeout=15000)
+        pg.evaluate("Promise.race([__cm.ready, new Promise(r => setTimeout(r, 10000))])")   # 截圖解碼完才截圖
         # 等網路字型：最多 8 秒，逐一確認每個字族都已載入；沒載入的列在 pg.fonts_missing
         pg.evaluate("Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 4000))])")
         pg.fonts_missing = pg.evaluate(r"""async () => {
@@ -44,6 +45,7 @@ def goto(pg, html_path: Path):
     """同一個分頁改開另一個建置結果（省下重開瀏覽器的時間）。"""
     pg.goto(Path(html_path).resolve().as_uri())
     pg.wait_for_function("window.__cm !== undefined", timeout=15000)
+    pg.evaluate("Promise.race([__cm.ready, new Promise(r => setTimeout(r, 10000))])")
     pg.evaluate("Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 4000))])")
 
 

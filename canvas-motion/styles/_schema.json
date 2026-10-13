@@ -5,6 +5,7 @@
   "type": "object",
   "required": ["base"],
   "properties": {
+    "brand": { "type": "string", "description": "品牌設定檔名稱（brands/<名稱>.json，capture.py --brand 產生）或 json 路徑。colors／fonts 墊在底下，spec 自己寫的優先" },
     "base": { "type": "string", "description": "錨點風格（styles/ 底下的檔名）。挑結構最接近的：亮底紙感 minimal/editorial/warm/ink/pastel/corporate/brutalist，暗底 tech/data/neon。背景圖形、音色與特有輔助函式都繼承自錨點。" },
     "name": { "type": "string", "description": "英數小寫，顯示在建置訊息與註解" },
     "mood": { "type": "string", "description": "一句話的感覺描述，寫進產出檔註解，方便回溯" },

@@ -155,11 +155,36 @@ def fonts_from(spec_fonts):
     return url, stacks
 
 
+def brand_path(name):
+    """品牌設定檔：brands/<name>.json（skill 內共用），或直接給 json 路徑。"""
+    p = Path(name)
+    return p if p.suffix == ".json" and p.exists() else SKILL / "brands" / f"{name}.json"
+
+
+def apply_brand(spec, rep):
+    """把品牌設定檔的 colors／fonts 墊在 spec 底下（spec 自己寫的優先）。"""
+    p = brand_path(spec["brand"])
+    if not p.exists():
+        avail = ", ".join(x.stem for x in (SKILL / "brands").glob("*.json")) or "（還沒有，用 capture.py --brand 建立）"
+        rep.append(f"! 找不到品牌 {spec['brand']}，已略過（可用：{avail}）")
+        return spec
+    b = json.loads(p.read_text("utf-8"))
+    out = dict(spec)
+    for k in ("colors", "fonts"):
+        if b.get(k):
+            out[k] = {**b[k], **spec.get(k, {})}
+    out.setdefault("name", re.sub(r"[^a-z0-9_-]", "", str(b.get("name", spec["brand"])).lower()))
+    rep.append(f"✓ 套用品牌 {b.get('name', spec['brand'])}（{p.name}，來源 {b.get('url', '未記錄')}）")
+    return out
+
+
 def generate(spec):
     """回傳 (js 原始碼, 報告列表)。報告每筆以 '✓'、'!' 開頭。"""
     if isinstance(spec, str):
         return anchor_src(spec), []
     rep = []
+    if spec.get("brand"):
+        spec = apply_brand(spec, rep)
     base = spec.get("base") or "minimal"
     src = anchor_src(base)
     info = anchor_info(src)

@@ -1,6 +1,6 @@
 ---
 name: canvas-motion
-description: 把任何需求與情境直接變成穩定的動畫短片：每一幕都由 Claude 自主發想構圖與動畫、不套版面範本，用單一 HTML（Canvas 逐幀程序化繪製 + WebAudio 即時合成配樂）產出，可發布成 Artifact 線上播放，也能匯出含配樂的 MP4 或 GIF。Claude 從使用者的目的、觀眾、平台與素材推斷規格、敘事、節奏、畫風與風格，構圖開放詢問，一次提案、確認後直接做完，並用腳本自動檢查版面、文字、對比與素材出處。內建 10 種畫風（動畫風背景、水彩、水墨、扁平插畫、像素、霓虹、低多邊形、剪紙、美漫網點、蠟筆）。使用者說「做動畫」「做短片」「動態影片」「motion graphics」「解說動畫」「產品 Demo 動畫」「介紹動畫」「片頭」「宣傳影片」「動態 Banner」「GIF 動圖」「把這些內容做成影片」「轉成 MP4／GIF」「做一支 Reels／Shorts」，或「讓這份簡報動起來」「做個酷一點的介紹」時使用。不適用於：剪輯實拍影片、單張靜態海報、角色逐格手繪動畫；擬真人物、動畫原畫等級的臉部表情需要使用者提供有授權的圖片素材。
+description: 把任何需求與情境直接變成穩定的動畫短片：每一幕都由 Claude 自主發想構圖與動畫、不套版面範本，用單一 HTML（Canvas 逐幀程序化繪製 + WebAudio 即時合成配樂）產出，可發布成 Artifact 線上播放，也能匯出含配樂的 MP4 或 GIF。Claude 從使用者的目的、觀眾、平台與素材推斷規格、敘事、節奏、畫風與風格，構圖開放詢問，一次提案、確認後直接做完，並用腳本自動檢查版面、文字、對比與素材出處。內建 10 種畫風（動畫風背景、水彩、水墨、扁平插畫、像素、霓虹、低多邊形、剪紙、美漫網點、蠟筆）。產品介紹與操作示範會先擷取產品的真實畫面與品牌色，再用瀏覽器／App／手機外框、游標點擊、打字、點擊自動推近鏡頭、聚光與標籤演出操作過程。使用者說「做動畫」「做短片」「動態影片」「motion graphics」「解說動畫」「產品 Demo 動畫」「介紹動畫」「片頭」「宣傳影片」「動態 Banner」「GIF 動圖」「把這些內容做成影片」「轉成 MP4／GIF」「做一支 Reels／Shorts」「產品介紹影片」「功能展示」「操作示範」「示範怎麼用」「產品 Demo」，或「讓這份簡報動起來」「做個酷一點的介紹」時使用。不適用於：剪輯實拍影片、單張靜態海報、角色逐格手繪動畫；擬真人物、動畫原畫等級的臉部表情需要使用者提供有授權的圖片素材。
 ---
 
 # Canvas Motion：從需求直接到穩定成品
@@ -21,14 +21,16 @@ canvas-motion/
 ├── engine/        固定引擎（head.html、infra.js、tail.js）——不要為單一作品修改
 ├── library/       kit.js 繪圖小工具（kPage、kPerson、kLaptop、kGear、kBulb、kStar、kArc）、looks.js 畫風渲染＋常用形狀（withLook、lookShape、LK_SHAPES）——都是畫筆，不是版面；
 │                  motion.js 動作質感（spring、anticipate、withSquash、impact、lagT、trail、smear、arcPt、hit、shake、shot、layer、onTwos）；
-│                  figure.js 程序化角色（骨架、姿勢、表情、精細度、取景）；fx.js 類型特效（漫畫、動漫、電影）
+│                  figure.js 程序化角色（骨架、姿勢、表情、精細度、取景）；fx.js 類型特效（漫畫、動漫、電影）；
+│                  product.js 產品示範（截圖 pic、瀏覽器／視窗／手機外框、游標、打字、鏡頭跟隨、聚光、標籤）
 ├── styles/        錨點風格（生成風格的起點）＋ _schema.json（風格參數格式）
-├── scripts/       verify（一鍵檢查）、storyboard（含劇本模式）、castsheet（角色設定表）、build、sheet、taste（動態品味）、export（MP4／GIF）、style_gen、check_env、
+├── brands/        品牌設定檔（capture.py --brand 產生：網站實際使用的強調色與字型）
+├── scripts/       verify（一鍵檢查）、capture（擷取產品真實畫面與品牌色）、storyboard（含劇本模式）、castsheet（角色設定表）、build、sheet、taste（動態品味）、export（MP4／GIF）、style_gen、check_env、
 │                  selftest、new_project、preview_styles
 ├── references/    direction.md（情境→規格與節奏）、craft.md（動畫手藝、導演思維、自評表）、crew.md（劇組流程：30 秒以上的故事片）、
-│                  genres.md（美漫、港漫、動漫、電影）、character.md（角色）、looks.md（畫風與形狀）、
+│                  product.md（產品介紹與操作示範）、genres.md（美漫、港漫、動漫、電影）、character.md（角色）、looks.md（畫風與形狀）、
 │                  api.md（自訂場景、文字、錨點、音效）、style-pack.md（風格參數）
-└── examples/      keynote-demo、look-gallery、shapes-demo（寫法參考，也是回歸測試；不要照抄構圖）
+└── examples/      keynote-demo、look-gallery、shapes-demo、product-demo（寫法參考，也是回歸測試；不要照抄構圖）
 ```
 
 以下 `<SKILL>` 代表這個 skill 資料夾的路徑。
@@ -64,6 +66,19 @@ python3 <SKILL>/scripts/check_env.py
 ## 故事片（30 秒以上）
 
 要有故事的片子（使用者說「故事」「短片」「一分鐘」、或素材本身是一段經歷）走**劇組流程**，先讀 `references/crew.md`：依序扮演製片、編劇、美術、導演、攝影、動畫、剪輯、聲音、場記、監製。storyboard 頂層加 `script`（一句話故事、主角想要／阻礙／轉變）與 `cast`（角色設定），每個鏡頭加 `act`、`beat`、`shot`、`who`、`lines`，storyboard.py 會檢查三幕比例、節拍、景別、跳軸、剪輯節奏。提案時附 `castsheet.py` 產生的角色設定表。類型（美漫、港漫、動漫、電影）讀 `references/genres.md`，角色讀 `references/character.md`。
+
+## 產品介紹與操作示範
+
+做產品介紹、功能展示、操作示範時，**先讀 `references/product.md`**，並在提案前擷取真實畫面：
+
+```bash
+python3 <SKILL>/scripts/capture.py <產品網址> <專案> --name home --brand <品牌名>
+```
+
+- 截圖存到 `<專案>/assets/`、頁面文字附加到 `source.txt`（文案與數字只能用這些）、品牌色存到 `brands/<品牌名>.json`（推測值，提案時給使用者確認）。
+- 擷取失敗會寫 `assets/BLOCKED.md`：停下來請使用者給截圖（`--file`）或公開網址，**不要畫一個假的產品介面冒充真實畫面**。需要登入的畫面請使用者自己截圖。
+- 提案時附上擷取到的截圖（用 `view` 看過、估好要操作的位置），說明每幕示範哪一個操作。
+- 動作語彙：游標移過去 → 鏡頭推近 → 按下（漣漪＋`click` 音效）→ 介面反應 → 聚光／標籤。一幕只示範一個操作。
 
 ## 一次提案
 
@@ -108,7 +123,7 @@ python3 <SKILL>/scripts/storyboard.py storyboard.json --preview
 風格寫成參數物件放進 storyboard 的 `style`：選最接近的錨點當 `base`，再覆寫 colors、fonts、music、background（`styles/_schema.json`、`references/style-pack.md`）。build 時自動驗證與修正：對比不足會調整顏色（**品牌色被調過要告訴使用者**）、亮底強制關 bloom、bpm 夾在 70–140、不合法的和弦與轉場會被移除並回報。使用者點名某個內建風格（例如「要 neon」）時直接用 `"style": "neon"`，但不要主動列出風格清單。
 
 ### 品牌素材
-- 品牌色：風格用 `colors.a1–a3`，畫風用 `pal` 覆寫主要色。
+- 品牌色：風格寫 `"brand": "<品牌名>"` 套用 `brands/` 的設定檔，或直接用 `colors.a1–a3`；畫風用 `pal` 覆寫主要色。
 - Logo：使用者給 SVG 時，路徑轉成 Canvas（`new Path2D(svg 的 d)`）畫在自訂場景；給 PNG 時轉成 data URI 內嵌（Artifact 不能引用外部圖片）。**使用前確認使用者有權使用該商標**；沒有 Logo 檔就在場景裡用文字字標，不要自己畫出仿製的 Logo。
 
 ## 分鏡轉專案
@@ -207,7 +222,8 @@ python3 <SKILL>/scripts/export.py <專案> out.mp4 --preview                    
 - **截圖出現方框**：沒有中文字型，見「檢查環境」。
 - **轉場期間畫面空白**：前一幕自己淡出了，見「寫自訂場景」。
 - **畫面閃爍**：用了 `Math.random()`，改用 `rng()`。
-- **遮罩沒作用**：`txt()` 是延後繪製，不受 `clip()` 影響，改用 `txtB()`。
+- **遮罩沒作用**：`txt()` 是延後繪製，不受 `clip()` 影響，改用 `txtB()`。介面模型（瀏覽器、視窗、手機）裡的字一律 `txtB(…, { ui: true })`。
+- **截圖沒出現**：檔案要在 `<專案>/assets/`，`pic('home')` 對應 `assets/home.jpg`；改了截圖要重新 build。
 - **同一個烘焙鍵畫出舊內容**：`cached(key, w, h, fn, deps)` 的內容依賴顏色或資料時，把它們放進 `deps`。
 - **shell 吃掉跳脫字元**：用 heredoc 或 sed 寫 JS／Python 會把 `\n`、`\b` 變成控制字元，改用檔案編輯工具。
 - **明文 email 被改寫**：託管服務可能把 email 改成連結或遮蔽，要在執行時才把字串拼出來。
@@ -217,6 +233,7 @@ python3 <SKILL>/scripts/export.py <專案> out.mp4 --preview                    
 
 - [ ] 交付時說明：採用了哪些推斷（規格、構圖、畫風、風格方向）、風格驗證自動修正了什麼（尤其是品牌色）、沒能執行的驗證
 - [ ] 所有文案與數字都能追溯到素材，build 沒有回報 `{{待填}}` 或找不到出處的數字
+- [ ] 產品片：說明截圖來源（`assets/capture.json`）、品牌色是自動推得或官方色碼；沒有自行捏造的產品介面
 - [ ] `verify.py` 結束碼為 0，且橫式與直式縮圖都逐格看過
 - [ ] 動態品味提醒都處理了（或在交付時說明為什麼保留），craft.md 自評表每題都是「是」
 - [ ] 切點落在小節第一拍，最後一幕有明確收束

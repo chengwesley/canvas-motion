@@ -19,6 +19,7 @@
 14. 畫風與常用形狀（見 looks.md）
 15. 動作質感（motion.js，見 craft.md）
 16. 音效與靜默（sfx、rest）
+17. 產品示範：截圖、外框、游標、鏡頭跟隨（product.js，見 product.md）
 
 ---
 
@@ -293,3 +294,24 @@ function sFly(t, T, pulse, s) {
 - 種類：`whoosh`、`swish`、`riser`、`impact`、`boom`、`pop`、`click`、`stamp`、`chime`（用途見 craft.md 第 5 節）。自訂配樂 `MUSIC()` 時音效照樣播放。
 - `rest` 期間配樂（含自訂 `MUSIC()`）靜默，音效照常。
 - 動態模糊不在場景裡寫，匯出時加 `export.py --blur 5`（引擎的 `__cm.frameBlur`）。
+
+## 17. 產品示範：截圖、外框、游標、鏡頭跟隨
+
+`library/product.js`。完整說明與導演思維見 `references/product.md`，範例 `examples/product-demo`。
+
+```js
+function sDemo(t, T, pulse) {
+  backdrop(t);                                                     // 漸層桌布
+  const fx = W * .1, fy = H * .12, fw = W * .8, fh = H * .76;
+  const cb = browserContent(fx, fy, fw, fh), po = { fit: 'width' };
+  const m = picMap('home', cb.x, cb.y, cb.w, cb.h, po), btn = m.at(.43, .44);   // 截圖上的相對位置 → 畫面座標
+  const keys = [{ t: 0, x: W * .8, y: H * .9 }, { t: BEAT * 3, x: btn.x, y: btn.y, click: true }];
+  shot(follow(t, camFromClicks(keys, { zoom: 1.8 })), () => {
+    frameBrowser(fx, fy, fw, fh, { url: 'example.com' }, box => pic('home', box.x, box.y, box.w, box.h, po));
+    drawCursor(cursorAt(t, keys), t);
+  });
+}
+```
+- 截圖放在 `<專案>/assets/`（`capture.py` 產生），build 內嵌成 data URI；`pic('home')` 對應 `assets/home.jpg`。場景用到但不存在的截圖 build 直接擋下。
+- 介面模型裡的字用 `txtB(…, { ui: true })`（會被裁切、不受文字檢查），顏色用 `UI.*`。
+- 字幕、標題放在 `shot()` 外面，才不會跟著鏡頭放大。

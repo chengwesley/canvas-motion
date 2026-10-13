@@ -25,7 +25,7 @@ from _browser import open_page, grab  # noqa: E402
 
 HOOK = r"""(() => { if (window.__tb) return; window.__tb = []; window.__rec = false; const o = _drawText;
   _drawText = function (c, s, x, y, op) { const r = o(c, s, x, y, op);
-    if (window.__rec && c === MAIN && String(s).trim()) {
+    if (window.__rec && c === MAIN && !op.ui && String(s).trim()) {   // ui: true 是介面模型裡的字（像截圖內容），不檢查
       const al = c.globalAlpha * (op.alpha ?? 1);
       if (al > .6) { const m = c.getTransform(), w = r.w, x0 = op.align === 'center' ? x - w / 2 : op.align === 'right' ? x - w : x;
         const P = [[x0, r.top], [x0 + w, r.bottom]].map(([px, py]) => [m.a * px + m.c * py + m.e, m.b * px + m.d * py + m.f]);

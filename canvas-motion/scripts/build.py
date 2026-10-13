@@ -10,8 +10,10 @@
 建置時另外做兩項檢查（只警告、不中斷，Math.random 除外）：
   - 自訂場景 lint：Math.random、txt 沒給 maxW、寫死色碼、自己淡出
   - 素材追溯：若專案有 source.txt（或 project.json 的 "_source" 指向檔案），列出畫面上找不到出處的數字
+
+截圖素材：<專案>/assets/ 底下的 png／jpg／webp／svg 會內嵌成 ASSETS（data URI），場景用 pic('檔名不含副檔名', …) 畫。
 """
-import argparse, html, json, os, re, shutil, subprocess, sys, tempfile
+import argparse, base64, html, json, os, re, shutil, subprocess, sys, tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -68,6 +70,24 @@ def trace_source(proj, cfg):
     return sorted(n for n in nums if len(n.replace(",", "")) >= 2 and not found(n))
 
 
+MIME = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".svg": "image/svg+xml"}
+
+
+def load_assets(proj):
+    """<專案>/assets/ 的圖片 → {名稱: data URI}。名稱是不含副檔名的檔名。"""
+    d = proj / "assets"
+    if not d.exists():
+        return {}, 0
+    out, raw = {}, 0
+    for p in sorted(d.iterdir()):
+        mt = MIME.get(p.suffix.lower())
+        if not mt:
+            continue
+        b = p.read_bytes(); raw += len(b)
+        out[p.stem] = f"data:{mt};base64," + base64.b64encode(b).decode()
+    return out, raw
+
+
 def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | None = None) -> Path:
     """webfonts=False：不載入網路字型（離線或要求整支片字型一致時）；None＝依 project.json 的 webfonts（預設開）。"""
     proj = proj.resolve()
@@ -111,8 +131,14 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
     holes = re.findall(r"\{\{[^}]*\}\}", json.dumps(cfg, ensure_ascii=False))
 
     eng = SKILL / "engine"
+    assets, asset_raw = load_assets(proj)
+    used = set(re.findall(r"\bpic\(\s*['\"]([^'\"]+)['\"]", scene_src))
+    miss_assets = sorted(used - set(assets))
+    if miss_assets:
+        fail(f"場景用到的截圖不在 assets/：{', '.join(miss_assets)}（用 capture.py 擷取，或把圖片放進 {proj / 'assets'}）")
     js = "\n".join([
         (eng / "infra.js").read_text("utf-8"),
+        "const ASSETS = " + json.dumps(assets) + ";",
         f"// ==== style: {style}\n{style_src}",
         lib_src,
         scene_src,
@@ -160,6 +186,11 @@ def build(proj: Path, out: Path | None = None, quiet=False, webfonts: bool | Non
               f"{bars*240/bpm:.1f}s @ {bpm} BPM")
         for r in style_rep:
             print(r)
+        if assets:
+            spare = sorted(set(assets) - used)
+            print(f"✓ 內嵌截圖 {len(assets)} 張（{asset_raw/1e6:.1f}MB）" + (f"；沒用到：{', '.join(spare)}" if spare else ""))
+            if asset_raw > 8e6:
+                print("! 截圖合計超過 8MB（Artifact 上限 16MB）：capture.py 用 --quality 調低、--width 縮小，或刪掉沒用到的")
         for w in lint_warn:
             print(f"! {w}")
         missing_src = trace_source(proj, cfg)
