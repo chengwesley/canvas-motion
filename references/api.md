@@ -300,7 +300,7 @@ function sFly(t, T, pulse, s) {
 
 ## 17. 產品示範：截圖、外框、游標、鏡頭跟隨
 
-`library/product.js`。完整說明與導演思維見 `references/product.md`，範例 `examples/product-demo`。
+`library/product.js`。完整說明與導演思維見 `references/product.md`。
 
 ```js
 function sDemo(t, T, pulse) {

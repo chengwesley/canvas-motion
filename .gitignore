@@ -8,3 +8,6 @@ __pycache__/
 .DS_Store
 # 打包檔放 Releases，不進版控
 *.skill
+
+# 品牌設定檔（capture.py --brand 產生）屬於各自的專案，不進公開 repo
+brands/*.json

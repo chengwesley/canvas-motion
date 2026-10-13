@@ -31,7 +31,7 @@ canvas-motion/
 ├── references/    direction.md（情境→規格與節奏）、craft.md（動畫手藝、導演思維、自評表）、crew.md（劇組流程：30 秒以上的故事片）、
 │                  motion-design.md（出場順序、時長、緩動、編排）、ui-kit.md（UI 微動態元件）、product.md（產品介紹與操作示範）、voice.md（旁白配音與字幕）、genres.md（美漫、港漫、動漫、電影）、character.md（角色：Open Peeps 部件型錄與演法）、looks.md（畫風與形狀）、
 │                  api.md（自訂場景、文字、錨點、音效）、style-pack.md（風格參數）
-└── examples/      keynote-demo、look-gallery、shapes-demo、product-demo、ui-data-demo、ui-controls-demo（寫法參考，也是回歸測試；不要照抄構圖）
+└── examples/      keynote-demo、look-gallery、shapes-demo、ui-data-demo、ui-controls-demo（寫法參考，也是回歸測試；不要照抄構圖）
 ```
 
 以下 `<SKILL>` 代表這個 skill 資料夾的路徑。

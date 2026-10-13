@@ -1,6 +1,6 @@
 # 產品介紹與操作示範
 
-做產品介紹、功能展示、操作示範（「怎麼用」）、上線公告時讀這份。範例：`examples/product-demo`。
+做產品介紹、功能展示、操作示範（「怎麼用」）、上線公告時讀這份。
 
 做法參考了 HyperFrames（先擷取真實網站再動手、擷取失敗就停）、Screen Studio／OpenScreen（點擊自動推近、浮起的視窗配漸層桌布）、21st.dev 游標元件與 remocn（游標 → 按下 → 漣漪 → 介面反應的動作語彙）、digitalsamba toolkit（品牌設定檔）。
 

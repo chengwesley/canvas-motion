@@ -7,7 +7,7 @@
   python3 capture.py <網址> <專案> --name hero --element "header"     # 只截某個元素（按鈕、卡片、表單）
   python3 capture.py <網址> <專案> --name menu --click "#open-menu"   # 先點開再截（可重複 --click）
   python3 capture.py <網址> <專案> --name m --size 390x844 --scale 3  # 手機版
-  python3 capture.py <網址> <專案> --name home --brand dottedsign     # 另外存品牌設定檔 brands/dottedsign.json
+  python3 capture.py <網址> <專案> --name home --brand mybrand        # 另外存品牌設定檔 brands/mybrand.json（不進版控）
   python3 capture.py --file 截圖.png <專案> --name editor             # 匯入使用者給的截圖（登入後的畫面用這個）
 
 產出：
@@ -159,7 +159,8 @@ def main():
             except Exception:  # noqa: BLE001
                 b.close(); blocked(proj, a.url, f"找不到要點擊的元素 {sel}")
         text = pg.evaluate("document.body ? document.body.innerText : ''")
-        if re.search(r"(?i)(sign in|log in|登入|登录)", pg.title() + text[:400]) and len(text) < 600:
+        has_pw = pg.evaluate("!!document.querySelector('input[type=password]')")   # 有密碼欄才算登入頁；導覽列的「登入」連結不算
+        if has_pw and re.search(r"(?i)(sign in|log in|password|登入|登录|密碼)", pg.title() + text[:800]):
             b.close(); blocked(proj, a.url, "看起來是登入頁（需要帳號的畫面請使用者自己截圖後用 --file 匯入）")
         if len(text.strip()) < 15 and not a.element:
             print("! 頁面幾乎沒有文字，可能還沒載入完：用 --wait 3000 再試，或用 view 看一下截圖")
