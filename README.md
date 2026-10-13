@@ -55,7 +55,8 @@ cp -r canvas-motion/canvas-motion ~/.claude/skills/
 | Node.js | 建置時的語法檢查 | 可缺，會略過檢查 |
 | Playwright + Chromium | 截圖驗證、MP4 匯出 | 可缺，但只能產出 HTML |
 | ffmpeg | MP4 匯出 | 可用 `pip install imageio-ffmpeg` 代替 |
-| Pillow | 縮圖總覽 | 截圖時必要 |
+| Pillow | 縮圖總覽、產品截圖處理 | 截圖時必要 |
+| 旁白語音 | 旁白配音（`voice.py`） | 可缺，不配音就不需要。Windows 內建台灣中文語音（Yating、Hanhan、Zhiwei）；其他系統用 `pip install edge-tts` 或 macOS 的 `say` |
 | 中文字型 | 截圖顯示中文 | 截圖會出現方框 |
 
 執行 `python3 canvas-motion/scripts/check_env.py` 可以一次檢查。claude.ai 的程式執行環境已經全部內建。
@@ -87,6 +88,12 @@ python3 $SKILL/scripts/storyboard.py storyboard.json --preview
 # 2. 產生專案（project.json + 自訂場景鷹架）
 python3 $SKILL/scripts/storyboard.py storyboard.json my-video
 
+# （產品片）擷取產品網站的真實截圖、頁面文字與品牌色 → my-video/assets/、source.txt、brands/
+python3 $SKILL/scripts/capture.py https://產品網址 my-video --name home --brand 品牌名
+
+# （有旁白）每幕寫好 vo 後產生配音，--fit 依旁白實際長度自動加小節
+python3 $SKILL/scripts/voice.py my-video --fit
+
 # 3. 需要自訂畫面時，在 my-video/scenes/ 編輯場景函式（寫法見 references/api.md）
 
 # 4. 一鍵檢查（建置＋縮圖＋文字檢查），結束碼 0 才算通過
@@ -95,6 +102,7 @@ python3 $SKILL/scripts/verify.py my-video                # → my-video/dist/ind
 # 5. 匯出 MP4 或 GIF
 python3 $SKILL/scripts/export.py my-video out.mp4 --size 1080x1920 --mobile --verify 2,10
 python3 $SKILL/scripts/export.py my-video out.gif
+python3 $SKILL/scripts/export.py my-video out.mp4 --size 1280x720 --crf 25   # 720p、檔案較小；有旁白時另存 out.srt，加 --no-subs 不燒字幕
 ```
 
 `dist/index.html` 用任何瀏覽器打開就能播放；空白鍵暫停，左右鍵前後跳一小節，右下角可以切換比例。
@@ -108,9 +116,11 @@ python3 $SKILL/scripts/export.py my-video out.gif
   "aspect": "auto",
   "scenes": [
     { "fn": "sHook",    "bars": 2, "energy": 0.35, "trans": "zoom" },
-    { "fn": "sFeature", "bars": 3, "energy": 0.7,  "trans": "push" },
+    { "fn": "sFeature", "bars": 3, "energy": 0.7,  "trans": "push",
+      "vo": ["一句旁白，也是字幕", { "say": "上傳 P D F 文件", "sub": "上傳 PDF 文件" }] },
     { "fn": "sOutro",   "bars": 2, "energy": 1 }
-  ]
+  ],
+  "voice": { "engine": "winrt", "voice": "Yating", "subs": true, "duck": 0.28 }
 }
 ```
 
@@ -119,6 +129,7 @@ python3 $SKILL/scripts/export.py my-video out.gif
 - `bars`：這幕佔幾小節（120 BPM 時一小節 2 秒）。
 - `energy`：0–1，控制配樂密度，由低到高安排情緒起伏。
 - `trans`：離開這幕的轉場，可用 `cut` `fade` `push` `wipe` `zoom` `iris` `flash` `glitch`。
+- `vo`：這幕的旁白（選填），字串就是念的話也是字幕；念法和字幕不同時分開寫 `say`／`sub`。`voice` 設定語音、字幕與配樂壓低的程度（見 [`references/voice.md`](canvas-motion/references/voice.md)）。
 
 場景函式的寫法見 [`references/api.md`](canvas-motion/references/api.md) 與 [`examples/keynote-demo`](canvas-motion/examples/keynote-demo)。
 
@@ -143,27 +154,30 @@ python3 $SKILL/scripts/export.py my-video out.gif
 ## 運作原理
 
 ```
-project.json + scenes/*.js
+project.json + scenes/*.js（＋ assets/ 截圖、voice/ 旁白音檔）
         │  build.py
         ▼
 engine/infra.js ─ 風格設定 ─ 場景 ─ engine/tail.js
         │
         ▼
-dist/index.html（單一檔案，無外部依賴，字體從 Google Fonts 載入）
+dist/index.html（單一檔案：截圖與旁白都內嵌成 data URI，無外部依賴，字體從 Google Fonts 載入）
         │
-        ├── 瀏覽器播放：requestAnimationFrame → frame(t)，AudioContext 即時排程配樂
+        ├── 瀏覽器播放：requestAnimationFrame → frame(t)，AudioContext 即時排程配樂與旁白
         ├── sheet.py：Playwright 呼叫 frame(t) 截圖 → 縮圖總覽
-        └── export.py：OfflineAudioContext 合成 WAV → 逐格 frame(i/fps) → ffmpeg（H.264 + AAC）
+        └── export.py：OfflineAudioContext 合成 WAV（配樂＋旁白＋音效）→ 逐格 frame(i/fps) → ffmpeg（H.264 + AAC）＋ .srt
 ```
 
 - **時間軸**：場景長度以小節計算，切點落在小節第一拍。轉場中點對齊切點，期間同時繪製前後兩幕再合成。
 - **文字**：`txt()` 延後到後製之後才繪製，所以不會被 bloom 糊掉；中文換行支援避頭點。
 - **配樂**：每 16 分音符呼叫一次 `step()`，依當下場景的 energy 決定要加入哪些聲部（pad、鼓、bass、主旋律），和弦進行與音色由風格設定決定。專案若在 `scenes/` 定義全域函式 `MUSIC(A, i, t, info)`，整支配樂改由它負責（樂器：`tone`、`bend`、`gong`、`cymbal`、`woodblock`、`drum`、`kick`、`pad`…）。
+- **旁白與字幕**：`voice.py` 產生的音檔依實際長度排在每幕裡（幕首、句間、幕尾留白可調），引擎播放旁白時把配樂匯流排壓到約 0.28 倍、講完再回升；字幕依標點切成短句、依字數分配時間，畫在所有畫面與後製之上，也會接受文字檢查。
+- **產品截圖**：`assets/` 的圖片內嵌後由 `pic()` 繪製，`picMap()` 把截圖上的相對位置換成畫面座標，游標、鏡頭推近、聚光都用它定位；所有圖片與旁白解碼完才開始截圖或匯出。
 - **效能**：DPR 上限 1.5，背景與光暈預先烘焙成低解析度圖層，重複繪製的元素快取到 offscreen canvas。
 
 ## 已知限制
 
-- 不處理實拍影片、照片素材或角色逐格動畫。
+- 不處理實拍影片或角色逐格動畫。照片與截圖可以當素材（產品截圖用 `capture.py` 擷取，或匯入使用者提供的圖片），需要登入的產品畫面要自己截圖。
+- 離線旁白（winrt）只能在 Windows 執行；語音辨識常把同音字聽錯，挑版本用的字錯率只能比較好壞，交片前仍要用耳朵聽一次。
 - 程式執行環境無法連上 Google Fonts，所以截圖使用系統的 Noto Sans CJK；線上播放時才會用風格設定指定的字體，兩者字型會略有不同。
 - 在沒有 GPU 的環境（例如雲端容器）中繪製較慢，但只影響截圖與匯出的速度，不影響成品品質。
 - 瀏覽器規定必須由使用者點擊後才能播放聲音，所以頁面一定會先顯示播放鈕。
