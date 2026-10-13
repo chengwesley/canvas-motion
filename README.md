@@ -6,7 +6,7 @@ Canvas Motion 是一個開放式的 [Claude Skill](https://docs.claude.com/en/do
 
 ![Canvas Motion 介紹](media/intro.gif)
 
-這支介紹動畫本身就是用 Canvas Motion 做的。範例專案都在 [`examples/`](examples/)：產品操作示範、UI 微動態（數據、互動）、畫風與形狀展示。
+這支介紹動畫本身就是用 Canvas Motion 做的：每一格都由程式算出、配樂即時合成、數字追溯素材、自動檢查到通過。範例專案都在 [`examples/`](examples/)：產品操作示範、UI 微動態（數據、互動）、畫風與形狀展示。
 
 ## 特色
 
