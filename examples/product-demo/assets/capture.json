@@ -1,0 +1,18 @@
+[
+  {
+    "name": "home",
+    "url": "examples/product-demo/source/page.html",
+    "viewport": [
+      1440,
+      900
+    ],
+    "scale": 2.0,
+    "full": false,
+    "element": null,
+    "size": [
+      2400,
+      1500
+    ],
+    "time": "2026-10-14 09:45"
+  }
+]
