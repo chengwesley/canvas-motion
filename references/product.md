@@ -4,7 +4,7 @@
 
 做法參考了 HyperFrames（先擷取真實網站再動手、擷取失敗就停）、Screen Studio／OpenScreen（點擊自動推近、浮起的視窗配漸層桌布）、21st.dev 游標元件與 remocn（游標 → 按下 → 漣漪 → 介面反應的動作語彙）、digitalsamba toolkit（品牌設定檔）。
 
-完整範例與回歸測試：`examples/product-demo`（虛構產品 Notely：本機頁面 `source/page.html` 擷取成截圖 → 瀏覽器外框、游標、點擊推近、聚光與標籤 → 程序化編輯器裡拖曳、打字、打勾 → 旁白與字幕）。
+完整範例與回歸測試：`examples/product-demo`（虛構產品 Notely，痛點 → 操作 → 成果 → 行動呼籲：散落的筆記卡片與找不到的搜尋 → 本機頁面 `source/page.html` 擷取的截圖、立體傾斜進場、游標、點擊推近、聚光與標籤 → 程序化編輯器裡拖曳、打字、打勾 → 清單全勾、Logo 與按鈕停住；全程旁白與字幕）。
 
 ## 1. 素材先行：先擷取真實畫面
 
@@ -39,6 +39,8 @@ python3 <SKILL>/scripts/capture.py --file 使用者給的截圖.png <專案> --n
 | 產品介紹（20–45 秒） | 痛點（不用產品時的麻煩）→ 產品登場（真實畫面）→ 2–3 個關鍵功能，每個一個操作 → 成果（素材裡的證據）→ 行動（網址、按鈕） | 最關鍵的那一次點擊：按下後問題消失 |
 | 操作示範（30–90 秒） | 目標（要完成什麼）→ 步驟 1…N，每步一個鏡頭 → 完成畫面 → 下一步 | 最容易卡住的那一步 |
 
+- **先講結果，不只講怎麼點**：教學讓人知道「哪裡點」，產品片要讓人看到「得到什麼」。操作段之後一定要有成果畫面（清單全勾、報表出來、時間變短），最後停在行動呼籲。大約比例：痛點 1 小節、操作 2–4 小節、成果 1–2 小節、行動呼籲至少 1 小節停住。
+- **在分鏡上標 part**：storyboard 頂層寫 `"kind": "product"`，每幕標 `"part": "pain"｜"demo"｜"result"｜"cta"`（一幕兼兩段寫 `"result+cta"`），storyboard.py 會提醒缺了哪段、順序亂了、操作佔太長、行動呼籲沒停住。完整示範：`examples/product-demo`。
 - **一幕只示範一個操作**，`say` 寫「做了什麼、得到什麼」。步驟太多就拆片，不要每步壓到 1 小節。
 - **高光是因果**：按下 → 介面變了。高光拍點放在「介面反應」那一格，不是游標移動途中。
 - **延續**：上一幕的截圖推近成下一幕的特寫、按下的按鈕變成下一幕的視窗，比換一張新截圖有力。
@@ -60,6 +62,7 @@ python3 <SKILL>/scripts/capture.py --file 使用者給的截圖.png <專案> --n
 ## 5. 版面
 
 - **浮起的視窗配漸層桌布**：`backdrop(t)` 當背景，視窗用 `frameBrowser`／`frameWindow`，陰影會自動畫。視窗進場用 `spring()` 從下方彈上來，`lift` 跟著變大。
+- **立體傾斜進場**：外框都收 `tilt`（1 = 斜躺、0 = 正面），配 `tiltIn(t, 開始秒數)` 讓視窗斜躺著從下方升起、轉正時帶一點過衝。轉正後才開始游標操作（傾斜中的截圖座標對不上 `picMap`）。Canvas 2D 用斜切近似透視，角度上限 15°。不是外框的東西用 `tilted(cx, cy, k, () => …)` 包起來。
 - **直式**：桌面截圖不要等比縮小成一條。改用 `pic(…, { fit: 'cover', u, v })` 對準正在操作的區域，或改用手機版截圖放進 `framePhone`。
 - **先算座標再畫**：鏡頭要在畫之前知道點擊位置，所以用 `browserContent()` 算內容區、`picMap()` 算截圖換算器，再用 `m.at(u, v)` 取得按鈕的畫面座標。`u, v` 是截圖上的相對位置（0–1），用 `view` 看截圖估出來。
 - **字幕與標題放在 `shot()` 外面**，才不會跟著鏡頭放大、被推出畫面。標籤（`callout`）放在裡面，才會黏在按鈕上。
@@ -79,7 +82,8 @@ python3 <SKILL>/scripts/capture.py --file 使用者給的截圖.png <專案> --n
 | `pic(name, x, y, w, h, { fit, u, v, z, r, alpha })` | 畫截圖。`fit`：`cover`／`contain`／`width`；`u, v` 對準點；`z` 再放大。回傳 `m`，`m.at(u, v)` → 畫面座標 |
 | `picMap(…)` | 同 `pic` 但不畫，只回傳換算器 |
 | `frameBrowser(x, y, w, h, { url, dark, lift, r }, box => …)` | 瀏覽器外框，內容畫在回呼裡（自動裁切）。`browserContent(x, y, w, h)` 先算內容區 |
-| `frameWindow(x, y, w, h, { title, dark, lift }, box => …)` | 桌面 App 視窗 |
+| `frameWindow(x, y, w, h, { title, dark, lift, tilt }, box => …)` | 桌面 App 視窗（三種外框都收 `tilt`、`deg`、`rise`） |
+| `tiltIn(t, at, { dur })`、`tilted(cx, cy, k, draw, { deg, rise })` | 立體傾斜：`tiltIn` 回傳 1 → 0（帶過衝）的傾斜量，`tilted` 把任何東西畫成斜躺 |
 | `framePhone(cx, cy, h, { body, island, lift }, box => …)` | 手機外框，h 是機身高 |
 | `backdrop(t, { colors, amt })`、`floatShadow(x, y, w, h, r, lift)` | 漸層桌布、浮起陰影 |
 | `cursorAt(t, keys, { hide })` | keys：`[{ t, x, y, click?, drag?, focus?, zoom?, dur? }]`，t 是抵達秒數。回傳 `{ x, y, down, clickAt, vx, vy, alpha }`；hide 閒置幾秒後淡出（預設 1.6，false 關閉） |

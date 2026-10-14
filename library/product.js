@@ -65,9 +65,23 @@ function floatShadow(x, y, w, h, r, lift = .5) {
  * o.url：網址列文字；o.dark：深色外框（預設跟風格明暗）；o.lift：陰影浮起量；o.r：圓角
  * 內容區裡的字用 txtB(…, { ui: true })：txt() 延後繪製，不會被裁切、會蓋在游標上面；ui: true 讓文字檢查把它當成畫面內容
  */
+/* ---------- 立體傾斜進場 ---------- */
+/** 傾斜程度：at 秒前是 1（斜躺），之後彈簧轉正到 0、帶一點過衝（會短暫小於 0）。o.dur 大約幾秒轉正 */
+function tiltIn(t, at, o = {}) { return 1 - spring(t, at, 1.1 / (o.dur ?? .9), .5); }
+/** 以 (cx, cy) 為中心把 draw() 畫成斜躺的樣子：k 1 = 最斜、0 = 正面。o.deg 傾斜角（上限 15°，Canvas 2D 用斜切近似透視，再大會像平行四邊形）、o.rise 下沉量 */
+function tilted(cx, cy, k, draw, o = {}) {
+  if (Math.abs(k) < .002) return draw();
+  const deg = Math.min(o.deg ?? 15, 15) * Math.PI / 180, ry = deg * k, rx = deg * .6 * k, s = 1 - .14 * Math.max(0, k);
+  ctx.save(); ctx.translate(cx, cy + Math.max(0, k) * H * (o.rise ?? .14));
+  ctx.transform(s * Math.cos(ry), -s * Math.sin(ry) * .35, s * Math.sin(rx) * .35, s * Math.cos(rx), 0, 0);
+  ctx.translate(-cx, -cy);
+  try { return draw(); } finally { ctx.restore(); }
+}
+
 /** 瀏覽器外框的內容區（不畫）：先算好截圖、游標、鏡頭的位置再畫時用 */
 const browserContent = (x, y, w, h) => { const bh = Math.max(MIN * .045, h * .065); return { x, y: y + bh, w, h: h - bh }; };
 function frameBrowser(x, y, w, h, o = {}, content) {
+  if (o.tilt) return tilted(x + w / 2, y + h / 2, o.tilt, () => frameBrowser(x, y, w, h, { ...o, tilt: 0 }, content), o);
   const P = _uiPal(o.dark), r = o.r ?? MIN * .014, bh = browserContent(x, y, w, h).y - y;
   floatShadow(x, y, w, h, r, o.lift ?? .5);
   ctx.save(); ctx.fillStyle = P.body; fillRR(x, y, w, h, r);
@@ -83,6 +97,7 @@ function frameBrowser(x, y, w, h, o = {}, content) {
 }
 /** App 視窗（桌面軟體）：標題列＋紅黃綠鈕＋可選標題。用法同 frameBrowser */
 function frameWindow(x, y, w, h, o = {}, content) {
+  if (o.tilt) return tilted(x + w / 2, y + h / 2, o.tilt, () => frameWindow(x, y, w, h, { ...o, tilt: 0 }, content), o);
   const P = _uiPal(o.dark), r = o.r ?? MIN * .014, bh = Math.max(MIN * .036, h * .05);
   floatShadow(x, y, w, h, r, o.lift ?? .5);
   ctx.save(); ctx.fillStyle = P.body; fillRR(x, y, w, h, r);
@@ -96,6 +111,7 @@ function frameWindow(x, y, w, h, o = {}, content) {
 }
 /** 手機外框：(cx, cy) 是中心、h 是機身高。回傳螢幕區；o.body 機身色、o.island 動態島（預設開） */
 function framePhone(cx, cy, h, o = {}, content) {
+  if (o.tilt) return tilted(cx, cy, o.tilt, () => framePhone(cx, cy, h, { ...o, tilt: 0 }, content), o);
   const w = h * .49, x = cx - w / 2, y = cy - h / 2, r = w * .17, b = w * .035;
   floatShadow(x, y, w, h, r, o.lift ?? .5);
   ctx.save(); ctx.fillStyle = o.body || '#1b1c20'; fillRR(x, y, w, h, r);

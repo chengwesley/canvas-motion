@@ -1,22 +1,119 @@
 {
-  "title": "產品示範：截圖、游標、鏡頭跟隨、旁白",
+  "title": "產品示範：痛點、操作、成果、行動呼籲（截圖、游標、鏡頭、旁白）",
   "style": {
     "base": "minimal",
-    "colors": { "bg": "#fbfaf7", "fg": "#1f2937", "a1": "#c2700a", "a2": "#10b981", "a3": "#b45309" },
-    "post": { "grain": 0 }
+    "colors": {
+      "bg": "#fbfaf7",
+      "fg": "#1f2937",
+      "a1": "#c2700a",
+      "a2": "#10b981",
+      "a3": "#b45309"
+    },
+    "post": {
+      "grain": 0
+    }
   },
   "aspect": "auto",
   "bpm": 100,
+  "voice": {
+    "engine": "winrt",
+    "voice": "Yating"
+  },
+  "kind": "product",
   "scenes": [
-    { "fn": "sSite", "bars": 4, "energy": 0.4, "trans": "zoom",
-      "hero": { "beat": 7, "what": "游標按下免費試用、鏡頭推近" },
-      "sfx": [[7, "click"]],
-      "vo": [{ "say": "Notely，把想法、待辦事項和會議，收進同一本筆記", "sub": "Notely 把想法、待辦事項和會議，收進同一本筆記" }, "按下免費試用，馬上開始"] },
-    { "fn": "sNote", "bars": 3, "energy": 0.45,
-      "hero": { "beat": 4, "what": "待辦卡片落進清單、彈一下後打勾" },
-      "sfx": [[4, "pop"], [8, "chime"]],
+    {
+      "fn": "sPain",
+      "bars": 2,
+      "energy": 0.35,
+      "trans": "push",
+      "hero": {
+        "beat": 4,
+        "what": "搜尋找不到、紅色問號彈出"
+      },
+      "sfx": [
+        [
+          4,
+          "pop"
+        ]
+      ],
+      "vo": [
+        "筆記散在不同地方，要用時總是找不到"
+      ],
+      "part": "pain"
+    },
+    {
+      "fn": "sSite",
+      "bars": 4,
+      "energy": 0.4,
+      "trans": "zoom",
+      "hero": {
+        "beat": 7,
+        "what": "游標按下免費試用、鏡頭推近"
+      },
+      "sfx": [
+        [
+          7,
+          "click"
+        ]
+      ],
+      "vo": [
+        {
+          "say": "Notely，把想法、待辦事項和會議，收進同一本筆記",
+          "sub": "Notely 把想法、待辦事項和會議，收進同一本筆記"
+        },
+        "按下免費試用，馬上開始"
+      ],
+      "carry": "上一幕的筆記卡片往下落，瀏覽器從下方斜躺著升起",
+      "part": "demo"
+    },
+    {
+      "fn": "sNote",
+      "bars": 3,
+      "energy": 0.5,
+      "hero": {
+        "beat": 4,
+        "what": "待辦卡片落進清單、彈一下後打勾"
+      },
+      "sfx": [
+        [
+          4,
+          "pop"
+        ],
+        [
+          8,
+          "chime"
+        ]
+      ],
       "carry": "首頁上的清單變成可操作的編輯器",
-      "vo": ["把待辦事項拖進清單，寫好就能打勾"] }
-  ],
-  "voice": { "engine": "winrt", "voice": "Yating" }
+      "vo": [
+        "把待辦事項拖進清單，寫好就能打勾"
+      ],
+      "trans": "wipe",
+      "part": "demo"
+    },
+    {
+      "fn": "sEnd",
+      "bars": 3,
+      "energy": 0.4,
+      "hero": {
+        "beat": 6,
+        "what": "清單全部打勾後，Logo 與免費試用按鈕彈出"
+      },
+      "sfx": [
+        [
+          3.25,
+          "chime"
+        ],
+        [
+          6,
+          "pop"
+        ]
+      ],
+      "carry": "編輯器裡打勾的清單變成整週完成的成果",
+      "vo": [
+        "所有待辦一目了然。現在就免費試用 Notely"
+      ],
+      "part": "result+cta"
+    }
+  ]
 }

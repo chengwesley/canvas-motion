@@ -11,6 +11,7 @@ storyboard.json：
   "title": "片名", "aspect": "auto", "bpm": 100,            // bpm 選填，預設取風格
   "style": "minimal" 或 { "base": "minimal", ... },         // 風格參數見 styles/_schema.json
   "source": "source.txt",                                   // 選填：素材檔，build.py 用來追溯數字
+  "kind": "product",                                         // 選填：產品片，每幕標 "part": "pain"|"demo"|"result"|"cta"（一幕兼兩段寫 "result+cta"），檢查敘事順序
   "scenes": [
     { "fn": "sHook", "bars": 2, "energy": 0.3, "trans": "zoom", "say": "這幕講的一件事",
       "hero": { "beat": 4, "what": "觀眾會記住的那一格：墨點炸開成分格" },   // 建議：高光瞬間落在本幕第幾拍（可以是爆發，也可以是一個停頓）
@@ -125,10 +126,40 @@ def check(sb):
     if sb.get("script"):
         e2, w2 = check_script(sb)
         errs += e2; warns += w2
+    if sb.get("kind") == "product":
+        warns += check_product(sb)
     tr = [s.get("trans") for s in sc[:-1] if s.get("trans")]
     if len(tr) >= 3 and len(set(tr)) == 1:
         warns.append(f"整支片只用 {tr[0]} 轉場，依內容關係換幾種（延續 push、揭示 wipe/iris、轉強 zoom/flash）")
     return errs, warns
+
+
+PARTS = {"pain": "痛點", "demo": "操作", "result": "成果", "cta": "行動呼籲"}
+
+
+def check_product(sb):
+    """產品片：先講結果，不只講怎麼點。順序 pain → demo → result → cta（見 references/product.md 第 2 節）"""
+    sc, warns = sb.get("scenes", []), []
+    parts = [s.get("part") for s in sc]   # 一幕可以兼兩段，寫 "result+cta"
+    seq = [q for p in parts if p for q in p.split("+")]
+    if not any(parts):
+        return ["產品片：每幕標 part（pain／demo／result／cta），照「痛點 → 操作 → 成果 → 行動呼籲」排，觀眾才知道為什麼要看操作"]
+    for i, p in enumerate(parts, 1):
+        if p and any(q not in PARTS for q in p.split("+")):
+            warns.append(f"產品片：第 {i} 幕 part「{p}」不認得，用 {'／'.join(PARTS)}")
+    for k, zh in PARTS.items():
+        if k not in seq:
+            warns.append(f"產品片：沒有{zh}（{k}）那一段" + ("；純功能教學可以不放" if k in ("pain", "cta") else "；只看到怎麼點、看不到得到什麼"))
+    order = [list(PARTS).index(q) for q in seq if q in PARTS]
+    if order != sorted(order):
+        warns.append("產品片：part 順序跳來跳去；常見是 pain → demo → result → cta，刻意先秀成果再倒敘就保留")
+    bars = [s.get("bars", 1) for s in sc]
+    demo = sum(b for b, p in zip(bars, parts) if p == "demo")
+    if sum(bars) and demo / sum(bars) > .7:
+        warns.append(f"產品片：操作佔 {demo / sum(bars):.0%}，偏長；挑最關鍵的一兩個操作，留時間給成果")
+    if parts and "cta" in (parts[-1] or "").split("+") and bars[-1] < 2:
+        warns.append("產品片：行動呼籲只有 1 小節，Logo 和按鈕出現後要停住至少一小節讓人看清楚")
+    return warns
 
 
 def check_script(sb):
