@@ -116,6 +116,7 @@ function drawSubs(time) {
   if (!VO.subs) return;
   for (const [a, e, s, b] of SUBS) {
     if (time < a - .05 || time >= e) continue;
+    cue('sub', (time - a + .05) / .35);
     const st = SUB_DEF[SUB_STYLE] ? SUB_STYLE : 'plate', D = SUB_DEF[st], pi = PORT ? 1 : 0;
     const size = Math.round(MIN * (VO.subSize ?? D.size[pi])), y = H * (VO.subY ?? D.y[pi]);
     const al = clamp((time - a + .05) / .1) * clamp((e - time) / .1);

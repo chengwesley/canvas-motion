@@ -129,26 +129,42 @@ function backdrop(t, o = {}) {   // 漸層畫在 1/8 解析度的小畫布再放
  * drag: true 表示從上一點按住拖過來（移動期間 down = 1）。
  * 回傳 { x, y, down（0–1 按下程度）, clickAt（最近一次點擊的秒數，沒有則 null）}
  */
-function cursorAt(t, keys) {
-  const k0 = keys[0]; let x = k0.x, y = k0.y, down = 0, clickAt = null;
-  for (let i = 1; i < keys.length; i++) {
-    const a = keys[i - 1], b = keys[i], d = b.dur ?? Math.min(.75, Math.max(.25, (b.t - a.t) * .8));
-    const p = E.io(prog(t, b.t - d, b.t));
-    if (p > 0) { const q = arcPt(a.x, a.y, b.x, b.y, p, b.lift ?? .12); x = q.x; y = q.y; }
-    if (b.drag && t > b.t - d - .12 && t < b.t + .1) down = 1;
-  }
-  for (const k of keys) if (k.click) {
-    const ct = k.t + .06; if (t >= ct - .1) clickAt = ct;
-    const e = t - ct; if (e > -.1 && e < .22) down = Math.max(down, e < 0 ? 1 + e / .1 : 1 - e / .22);
-  }
-  if (k0.click && t < k0.t) clickAt = null;
-  return { x, y, down: clamp(down), clickAt };
+function cursorAt(t, keys, o = {}) {
+  const at = tt => {
+    const k0 = keys[0]; let x = k0.x, y = k0.y, down = 0, clickAt = null, last = k0.t ?? 0, next = Infinity;
+    for (let i = 1; i < keys.length; i++) {
+      const a = keys[i - 1], b = keys[i], d = b.dur ?? Math.min(.75, Math.max(.25, (b.t - a.t) * .8));
+      const p = E.io(prog(tt, b.t - d, b.t));
+      if (p > 0) { const q = arcPt(a.x, a.y, b.x, b.y, p, b.lift ?? .12); x = q.x; y = q.y; }
+      if (b.drag && tt > b.t - d - .12 && tt < b.t + .1) down = 1;
+      if (tt >= b.t) last = b.t; else if (b.t - d < next) next = b.t - d;
+    }
+    for (const k of keys) if (k.click) {
+      const ct = k.t + .06; if (tt >= ct - .1) clickAt = ct;
+      const e = tt - ct; if (e > -.1 && e < .22) down = Math.max(down, e < 0 ? 1 + e / .1 : 1 - e / .22);
+    }
+    if (k0.click && tt < k0.t) clickAt = null;
+    return { x, y, down: clamp(down), clickAt, last, next };
+  };
+  const c = at(t), b = at(t - 1 / 30), hide = o.hide ?? 1.6;
+  c.vx = (c.x - b.x) * 30; c.vy = (c.y - b.y) * 30;   // 速度（像素／秒），drawCursor 用來畫動態模糊
+  // 停著超過 hide 秒就淡出，下一段移動前 0.25 秒淡回來（Tella 式；hide: false 關閉）
+  c.alpha = hide === false || c.down > 0 ? 1 : Math.max(1 - clamp((t - c.last - hide) / .35), clamp(1 - (c.next - t) / .25));
+  delete c.last; delete c.next; return c;
 }
-/** 畫游標。c 來自 cursorAt；o.kind：'arrow'（預設）或 'hand'；o.size；o.ripple：點擊漣漪顏色（false 關閉） */
+/** 畫游標。c 來自 cursorAt；o.kind：'arrow'（預設）或 'hand'；o.size；o.ripple：點擊漣漪顏色（false 關閉）；
+ *  o.blur：快速移動時的殘影（預設開，false 關閉）。c.alpha（閒置淡出）會自動套用 */
 function drawCursor(c, t, o = {}) {
-  const s = (o.size || MIN * .034) * (1 - c.down * .14);
+  const s = (o.size || MIN * .034) * (1 - c.down * .14), a = c.alpha ?? 1;
   if (o.ripple !== false && c.clickAt !== null) clickRipple(c.x, c.y, t - c.clickAt, o.ripple || STYLE.c.a1);
-  ctx.save(); ctx.translate(c.x, c.y); ctx.scale(s / 24, s / 24);
+  if (a <= .01) return;
+  const sp = Math.hypot(c.vx || 0, c.vy || 0);
+  if (o.blur !== false && sp > MIN * 1.2 && !o._ghost) {   // 動態模糊：沿速度反方向畫幾個淡的殘影（約 1/40 秒的軌跡）
+    const n = 4;
+    for (let i = n; i >= 1; i--) { const k = i / n * .025;
+      ctx.save(); ctx.globalAlpha *= a * .22 * (1 - i / (n + 1)); drawCursor({ ...c, x: c.x - c.vx * k, y: c.y - c.vy * k, clickAt: null, alpha: 1 }, t, { ...o, _ghost: true }); ctx.restore(); }
+  }
+  ctx.save(); ctx.globalAlpha *= a; ctx.translate(c.x, c.y); ctx.scale(s / 24, s / 24);
   ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2;
   ctx.beginPath();
   if (o.kind === 'hand') {
@@ -183,10 +199,19 @@ function typing(s, t, start, cps = 14) {
  * o.breathe：推近停住時的緩慢呼吸幅度（預設 .015，0 關閉），避免停在特寫時畫面完全靜止
  */
 function follow(t, keys, o = {}) {
-  let c = { x: keys[0].x ?? W / 2, y: keys[0].y ?? H / 2, zoom: keys[0].zoom ?? 1 };
-  for (let i = 1; i < keys.length; i++) {
-    const k = keys[i], d = k.dur ?? .7, p = E.io(prog(t, k.t - d, k.t));
-    if (p > 0) c = camLerp(c, { x: k.x ?? W / 2, y: k.y ?? H / 2, zoom: k.zoom ?? 1 }, p);
+  const at = (tt, log) => {
+    let c = { x: keys[0].x ?? W / 2, y: keys[0].y ?? H / 2, zoom: keys[0].zoom ?? 1 };
+    for (let i = 1; i < keys.length; i++) {
+      const k = keys[i], d = k.dur ?? .7, p = E.io(prog(tt, k.t - d, k.t));
+      if (log && (k.zoom ?? 1) > c.zoom + .05) cue('zoom', prog(tt, k.t - d, k.t));
+      if (p > 0) c = camLerp(c, { x: k.x ?? W / 2, y: k.y ?? H / 2, zoom: k.zoom ?? 1 }, p);
+    }
+    return c;
+  };
+  const c = at(t, true);
+  if (o.blur !== false) {   // 動態模糊量：鏡頭在 1/30 秒內移動、縮放了多少（shot() 依 cam.blur 套用）
+    const b = at(t - 1 / 30), v = Math.hypot(c.x - b.x, c.y - b.y) * c.zoom / MIN + Math.abs(Math.log(c.zoom / b.zoom));
+    c.blur = clamp((v - .006) * 45, 0, 1) * (o.blur ?? 1);
   }
   if (c.zoom > 1.01) c.zoom *= 1 + (o.breathe ?? .015) * (c.zoom - 1) * Math.sin(t * 1.1);
   if (o.bound !== false) {   // 放大後半個可視範圍內不能超出畫面
@@ -214,7 +239,7 @@ function camFromClicks(keys, o = {}) {
 /* ---------- 標註 ---------- */
 /** 聚光：把框外壓暗、框線描強調色。p 0–1 進場程度；o.dim 壓暗量、o.r 圓角、o.pad 外擴、o.col 框線色 */
 function spotlight(x, y, w, h, p, o = {}) {
-  if (p <= 0) return;
+  if (p <= 0) return; cue('spotlight', p);
   const pad = o.pad ?? MIN * .01, r = o.r ?? MIN * .012, e = E.out(clamp(p));
   const X = x - pad, Y = y - pad, Wd = w + pad * 2, Hd = h + pad * 2;
   ctx.save(); ctx.fillStyle = `rgba(8,10,16,${(o.dim ?? .5) * e})`;
@@ -228,7 +253,7 @@ function spotlight(x, y, w, h, p, o = {}) {
  * 回傳標籤的量測結果。文字用 txt()（延後繪製、保持銳利），所以標籤會在最上層
  */
 function callout(px, py, lx, ly, s, p, o = {}) {
-  if (p <= 0) return null;
+  if (p <= 0) return null; cue('callout', p);
   const col = o.col || STYLE.c.a1, size = o.size || fz('small'), e = E.out(clamp(p));
   const m = measure(s, { size, weight: 700, maxW: o.maxW || MIN * .5 });
   const ex = lerp(px, lx, e), ey = lerp(py, ly, e);

@@ -52,8 +52,10 @@ python3 <SKILL>/scripts/capture.py --file 使用者給的截圖.png <專案> --n
 - **鏡頭跟動作**：`camFromClicks()` 由點擊自動產生鏡頭，推近 1.5–2 倍（直式 1.3–1.6）。連續的操作直接平移、不要每次拉回全景。只想讓觀眾看清楚、不點擊的地方加 `focus: true`。
 - **按下要有回饋**：`drawCursor` 自帶漣漪，`sfx` 在同一拍放 `click`；介面的反應（按鈕變色、彈出視窗）用 `spring()` 彈出來，不要淡入。
 - **打字**：`typing()` 每秒 10–16 字，中文一字一個；打完游標閃爍半拍再進下一步。
-- **標註少而準**：一個畫面最多一個 `spotlight` 或兩個 `callout`。標籤文字用素材裡的功能名稱。
+- **一次一個重點**：推近、聚光、標籤、字幕同一刻只讓一種進場，其餘錯開半拍以上（例：按下時聚光，聚光到位後才出標籤）。一個畫面最多一個 `spotlight` 或兩個 `callout`，標籤文字用素材裡的功能名稱。taste.py 會抓「同一刻 3 種以上強調一起進場」或聚光／標籤／推近兩兩疊在一起。
 - **停住時不要完全靜止**：`follow()` 推近時預設會輕微呼吸（`breathe`），背景用 `backdrop(t)` 緩慢漂移。
+- **動態模糊（預設開）**：鏡頭快速推拉時 `follow()` 算出 `cam.blur`，`shot()` 整個畫面模糊一次；游標快速移動時 `drawCursor` 畫幾個淡殘影。看起來像拍出來的，不像截圖拼接。要銳利到底就 `follow(t, keys, { blur: false })`、`drawCursor(c, t, { blur: false })`。
+- **游標閒置會淡出（預設 1.6 秒）**：停著不動就淡掉，下一段移動前 0.25 秒淡回來，畫面比較乾淨。要一直顯示就 `cursorAt(t, keys, { hide: false })`，或給秒數 `{ hide: 3 }`。
 
 ## 5. 版面
 
@@ -80,10 +82,10 @@ python3 <SKILL>/scripts/capture.py --file 使用者給的截圖.png <專案> --n
 | `frameWindow(x, y, w, h, { title, dark, lift }, box => …)` | 桌面 App 視窗 |
 | `framePhone(cx, cy, h, { body, island, lift }, box => …)` | 手機外框，h 是機身高 |
 | `backdrop(t, { colors, amt })`、`floatShadow(x, y, w, h, r, lift)` | 漸層桌布、浮起陰影 |
-| `cursorAt(t, keys)` | keys：`[{ t, x, y, click?, drag?, focus?, zoom?, dur? }]`，t 是抵達秒數。回傳 `{ x, y, down, clickAt }` |
-| `drawCursor(c, t, { kind: 'arrow'｜'hand', size, ripple })`、`clickRipple(x, y, age, col)` | 畫游標（含點擊漣漪） |
+| `cursorAt(t, keys, { hide })` | keys：`[{ t, x, y, click?, drag?, focus?, zoom?, dur? }]`，t 是抵達秒數。回傳 `{ x, y, down, clickAt, vx, vy, alpha }`；hide 閒置幾秒後淡出（預設 1.6，false 關閉） |
+| `drawCursor(c, t, { kind: 'arrow'｜'hand', size, ripple, blur })`、`clickRipple(x, y, age, col)` | 畫游標（含點擊漣漪） |
 | `typing(s, t, start, cps)` | 打字：`{ text, caret, done }` |
-| `follow(t, camKeys, { bound, breathe })`、`camFromClicks(keys, { zoom, lead, hold, dur })` | 鏡頭跟隨；搭配 `shot(cam, () => …)` |
+| `follow(t, camKeys, { bound, breathe, blur })`、`camFromClicks(keys, { zoom, lead, hold, dur })` | 鏡頭跟隨；搭配 `shot(cam, () => …)` |
 | `spotlight(x, y, w, h, p, { dim, r, pad, col })` | 框外壓暗、框線強調 |
 | `callout(px, py, lx, ly, s, p, { col, size, align, maxW })` | 從指向點拉線到標籤 |
 | `UI.*`、`IMG`、`imgOK(name)` | 介面中性色、已載入的截圖 |

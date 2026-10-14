@@ -69,6 +69,8 @@ function countUp(p, from, to, decimals = 0) {
   return v.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 /** 打字效果：依 p 回傳前 n 個字 */
+/** 強調登記：spotlight／callout／鏡頭推近／字幕進場時呼叫，taste.py 用來找「同一刻疊太多強調」。平常不做事 */
+function cue(kind, p) { if (window.__cues && p > 0 && p < 1) window.__cues.add(kind); }
 const typeOn = (s, p) => { const a = Array.from(String(s)); return a.slice(0, Math.round(a.length * clamp(p))).join(''); };
 
 /* ---------- 色彩 ---------- */

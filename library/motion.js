@@ -85,12 +85,16 @@ function shake(t, hitT, amp = .015, dur = .35, seed = 1) {
   return { x: noise1(f) * k, y: noise1(f + 91) * k, r: noise1(f + 47) * k / MIN * .5 };
 }
 
-/** 鏡頭：把畫面上的 (x, y) 放到畫面中心、放大 zoom 倍、旋轉 rot，再畫 draw()。
+/** 鏡頭：把畫面上的 (x, y) 放到畫面中心、放大 zoom 倍、旋轉 rot，再畫 draw()。cam.blur 0–1（follow() 會自動給）＝動態模糊。
  *  景別：遠景 zoom 1、中景約 1.8、特寫約 3。用 lerp 在兩個鏡頭之間移動就是推軌、搖鏡 */
 function shot(cam, draw) {
-  const z = cam.zoom ?? 1;
-  ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(cam.rot || 0); ctx.scale(z, z);
-  ctx.translate(-(cam.x ?? W / 2), -(cam.y ?? H / 2)); draw(); ctx.restore();
+  const z = cam.zoom ?? 1, bl = cam.blur || 0, view = () => {
+    ctx.translate(W / 2, H / 2); ctx.rotate(cam.rot || 0); ctx.scale(z, z); ctx.translate(-(cam.x ?? W / 2), -(cam.y ?? H / 2)); draw(); };
+  if (bl < .05) { ctx.save(); view(); ctx.restore(); return; }
+  // follow() 算出的動態模糊：只在鏡頭快速推拉時出現。整個畫面先畫到緩衝區、只模糊一次（逐筆套濾鏡很慢）
+  const b = buf(3), outer = ctx, m = outer.getTransform();
+  b.x.setTransform(m); ctx = b.x; try { ctx.save(); view(); ctx.restore(); } finally { ctx = outer; }
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = `blur(${(bl * MIN * .002 * DPR).toFixed(2)}px)`; ctx.drawImage(b.c, 0, 0); ctx.restore();
 }
 const camLerp = (a, b, p) => ({ x: lerp(a.x ?? W / 2, b.x ?? W / 2, p), y: lerp(a.y ?? H / 2, b.y ?? H / 2, p),
   zoom: lerp(a.zoom ?? 1, b.zoom ?? 1, p), rot: lerp(a.rot || 0, b.rot || 0, p) });

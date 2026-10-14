@@ -9,6 +9,7 @@
   - 對拍：每幕最大的動作沒落在拍點附近
   - 高光：hero 那一拍沒有明顯的動作高峰
   - 動的範圍：整幕只有一小塊在動（像投影片）
+  - 強調太多：同一刻有 3 種以上強調一起進場（推近、聚光、標籤、字幕），或聚光／標籤／推近兩兩疊在一起
 動作量＝相鄰兩格的平均亮度差（0–255），在小尺寸、關掉顆粒下量，轉場期間不計。
 """
 import argparse, statistics as st, sys
@@ -30,10 +31,10 @@ JS = r"""([w, h, fps]) => {
   const n = Math.floor(__cm.TOTAL * fps), SCn = __cm.SC, skip = [];
   SCn.forEach((s, i) => { if (!i) return; const p = SCn[i - 1];
     skip.push(p.trans === 'cut' ? [s.start - .5 / fps, s.start + 1.5 / fps] : [s.start - __cm.TD / 2 - .5 / fps, s.start + __cm.TD / 2 + 1.5 / fps]); });
-  const masks = SCn.map(() => new Uint8Array(w * h)), d = [], ok = [], con = [];
+  const masks = SCn.map(() => new Uint8Array(w * h)), d = [], ok = [], con = [], cues = [];
   let prev = null; const hist = [], lagN = Math.max(1, Math.round(fps / 4));   // 動的範圍：跟 0.25 秒前比，慢而大的移動也算
   for (let k = 0; k <= n; k++) {
-    const t = Math.min(k / fps, __cm.TOTAL - 1e-3); __cm.frame(t);
+    const t = Math.min(k / fps, __cm.TOTAL - 1e-3); window.__cues = new Set(); __cm.frame(t); cues.push([...window.__cues]);
     const px = MAIN.getImageData(0, 0, w, h).data, lum = new Float32Array(w * h);
     let m1 = 0, m2 = 0;
     for (let j = 0, q = 0; j < lum.length; j++, q += 4) { const L = px[q] * .299 + px[q + 1] * .587 + px[q + 2] * .114; lum[j] = L; m1 += L; m2 += L * L; }
@@ -47,7 +48,8 @@ JS = r"""([w, h, fps]) => {
       d.push(sum / lum.length); } else d.push(0);
     ok.push(keep && k > 0); prev = lum; hist.push(lum); if (hist.length > lagN) hist.shift();
   }
-  return { d, ok, con, cover: masks.map(m => m.reduce((a, b) => a + b, 0) / m.length), SC: SCn, BEAT: __cm.BEAT, BAR: __cm.BAR, TOTAL: __cm.TOTAL };
+  window.__cues = undefined;
+  return { d, ok, con, cues, cover: masks.map(m => m.reduce((a, b) => a + b, 0) / m.length), SC: SCn, BEAT: __cm.BEAT, BAR: __cm.BAR, TOTAL: __cm.TOTAL };
 }"""
 
 
@@ -105,6 +107,25 @@ def analyze(r, fps):
             if not good:
                 warns.append(f"{s['fn']}：高光「{h.get('what', '')}」（{ht:.1f}s）附近沒有明顯的動作高峰；高光要是整幕最有力的一瞬間")
         rows.append(info)
+
+    # 強調太多：一次只用一種強調（Screenhance／Screen Studio 的原則）。數「正在進場」的強調種類
+    VIS = {"zoom", "spotlight", "callout"}
+    NAME = {"zoom": "推近", "spotlight": "聚光", "callout": "標籤", "sub": "字幕"}
+    cues = r.get("cues") or [[] for _ in d]
+    run = None
+    for k, c in enumerate(cues + [[]]):
+        c = set(c); bad = len(c) >= 3 or len(c & VIS) >= 2
+        if bad and run is None:
+            run = (k, set(c))
+        elif bad:
+            run[1].update(c)
+        if not bad and run is not None:
+            t0 = run[0] / fps
+            if (k - run[0]) / fps >= 2 / fps:   # 只疊 1 格不算
+                fn = next((s["fn"] for s in reversed(SC) if t0 >= s["start"] - 1e-6), SC[0]["fn"])
+                kinds = "、".join(NAME.get(x, x) for x in sorted(run[1], key=lambda x: list(NAME).index(x) if x in NAME else 99))
+                warns.append(f"{fn}：{t0:.1f}s 同時進場 {kinds}，視線不知道看哪；一次一個重點，其餘錯開半拍以上或拿掉一個")
+            run = None
 
     for a, b in zip(rows, rows[1:]):
         if b["energy"] - a["energy"] >= .15 and b["motion"] < a["motion"] * .8:

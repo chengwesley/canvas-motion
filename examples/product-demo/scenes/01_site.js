@@ -1,4 +1,4 @@
-/* 首頁截圖放進瀏覽器外框 → 游標掃過導覽與標題 → 移到「免費試用」→ 鏡頭推近、點擊、聚光、標籤 */
+/* 首頁截圖放進瀏覽器外框 → 游標掃過導覽與標題 → 移到「免費試用」→ 鏡頭推近、點擊、聚光，聚光到位後才出標籤（一次一個重點） */
 function sSite(t, T, pulse) {
   backdrop(t);
   const fw = PORT ? SAFE.w * 1.04 : Math.min(SAFE.w * .86, SAFE.h * 1.45), fh = PORT ? SAFE.h * .6 : fw / 1.6;
@@ -18,7 +18,7 @@ function sSite(t, T, pulse) {
     frameBrowser(fx, fy, fw, fh, { url: 'notely.example', lift: .4 + enter * .3 }, box => pic('home', box.x, box.y, box.w, box.h, po));
     ctx.restore();
     spotlight(b0.x, b0.y, b1.x - b0.x, b1.y - b0.y, tw(t, BEAT * 7.2, .4), { r: (b1.y - b0.y) / 2, dim: .35 });
-    callout(b1.x, b1.y, b1.x + MIN * .1, b1.y + MIN * .07, '免費試用', tw(t, BEAT * 7.6, .5), { size: MIN * .022 });
+    callout(b1.x, b1.y, b1.x + MIN * .1, b1.y + MIN * .07, '免費試用', tw(t, BEAT * 8.3, .5), { size: MIN * .022 });
     drawCursor(cursorAt(t, keys), t, { kind: t > BEAT * 5.6 ? 'hand' : 'arrow', size: MIN * .03 });
   });
 }
