@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""一鍵檢查：建置 → 縮圖總覽（橫＋直、轉場中點）→ 文字檢查（嚴格）→ 場景錯誤 → 字型 → 效能 → 動態品味（只提醒）。
+"""一鍵檢查：建置 → 縮圖總覽（橫＋直、轉場中點）→ 文字檢查（嚴格）→ 場景錯誤 → 字型 → 效能 → 動態品味（關卡）。
 
 用法：python3 verify.py <專案> [--aspects 16:9,9:16] [--pairs]
-結束碼：0 全部通過；1 建置失敗；2 場景錯誤；3 文字問題。有非 0 就修，修完重跑，直到 0。
-通過後再用 view 逐格看 sheets/*.jpg 與 sheets/motion.png，並照 references/craft.md 的自評表檢查一次。
+結束碼：0 全部通過；1 建置失敗；2 場景錯誤；3 文字問題；4 動態品味有未處理的提醒。有非 0 就修，修完重跑，直到 0。
+通過後交給審查 agent（references/agents.md）用 references/rubric.md 評分；製作者不自己打分。
 """
 import argparse, subprocess, sys
 from pathlib import Path
@@ -40,11 +40,12 @@ def main():
     code, out = run(args)
     print("── 縮圖與文字檢查"); print(out)
 
-    taste = []
+    taste, kept = [], []
     if code in (0, 3) and not a.no_taste:
         tc, tout = run([str(HERE / "taste.py"), a.project])
-        print("── 動態品味（提醒，不擋交付）"); print(tout)
+        print("── 動態品味（關卡）"); print(tout)
         taste = [l for l in tout.splitlines() if l.startswith("!")]
+        kept = [l for l in tout.splitlines() if l.startswith("~")]
 
     print("── 結果")
     if warn:
@@ -56,8 +57,10 @@ def main():
     if code:
         print("✗ 截圖失敗（Playwright 無法使用？見 check_env.py）"); sys.exit(code)
     if taste:
-        print(f"! 動態品味有 {len(taste)} 則提醒：看看是不是刻意的；不是刻意的就改，刻意的就保留並在交付時說明")
-    print("✓ 自動檢查全部通過。接著用 view 逐格看 sheets/sheet_16x9.jpg、sheet_9x16.jpg、motion.png，再照 craft.md 自評表檢查")
+        print(f"✗ 動態品味有 {len(taste)} 則未處理：修掉，或在 storyboard 該幕寫 intent {{代碼: 理由}} 交審查 agent 判斷"); sys.exit(4)
+    if kept:
+        print(f"~ 有 {len(kept)} 則提醒以 intent 保留：審查 agent 必須逐條判斷理由是否成立")
+    print("✓ 自動檢查全部通過。接著交審查 agent 用 references/rubric.md 評分（見 references/agents.md）")
 
 
 if __name__ == "__main__":

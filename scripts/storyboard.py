@@ -17,7 +17,8 @@ storyboard.json：
       "hero": { "beat": 4, "what": "觀眾會記住的那一格：墨點炸開成分格" },   // 建議：高光瞬間落在本幕第幾拍（可以是爆發，也可以是一個停頓）
       "carry": "上一幕的什麼變成這幕的主角",                                   // 選填：物件延續鏈
       "sfx": [[3.5, "whoosh"], [4, "impact"]],                                  // 選填：音效綁動作（拍數, 種類, 音量）
-      "rest": [7, 8] },                                                          // 選填：這段配樂靜默，高潮前留一口氣
+      "rest": [7, 8],                                                            // 選填：這段配樂靜默，高潮前留一口氣
+      "intent": { "cover": "理由" } },                                            // 選填：保留某則 taste 提醒的理由（交審查 agent 判斷）
     { "fn": "sProduct", "bars": 3, "energy": 0.7, "say": "產品如何運作", "hero": { "beat": 6, "what": "…" },
       "vo": ["旁白第一句", { "say": "念法（二〇二六年）", "sub": "字幕（2026 年）" }] }                     // 選填：旁白與字幕（voice.py 產生配音）
   ],
@@ -318,7 +319,7 @@ def write(sb, d: Path, force=False, sb_dir: Path = Path(".")):
     existing = "\n".join(p.read_text("utf-8") for p in (d / "scenes").glob("*.js"))
     for k, s in enumerate(sb["scenes"]):
         row = {"fn": s["fn"], "bars": s.get("bars", 2), "energy": s.get("energy", .5)}
-        for key in ("trans", "data", "hero", "carry", "sfx", "rest", "act", "beat", "shot", "who", "lines", "vo"):
+        for key in ("trans", "data", "hero", "carry", "sfx", "rest", "act", "beat", "shot", "who", "lines", "vo", "intent"):
             if key in s:
                 row[key] = s[key]
         if s.get("say"):

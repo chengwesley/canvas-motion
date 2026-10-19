@@ -8,7 +8,7 @@
 輸出預設為 <專案>/dist/index.html。
 
 建置時另外做兩項檢查（只警告、不中斷，Math.random 除外）：
-  - 自訂場景 lint：Math.random、txt 沒給 maxW、寫死色碼、自己淡出
+  - 自訂場景 lint：Math.random、txt 沒給 maxW、寫死色碼、自己淡出、人物用 kPerson 剪影
   - 素材追溯：若專案有 source.txt（或 project.json 的 "_source" 指向檔案），列出畫面上找不到出處的數字
 
 旁白與字幕：幕的 vo 欄位＋voice.py 產生的 <專案>/voice/（音檔內嵌、依實際長度排時間；還沒產生時用估計長度只排字幕）。
@@ -50,6 +50,11 @@ def lint_scene(name, src):
     hexes = set(re.findall(r"['\"]#[0-9a-fA-F]{3,6}['\"]", code))
     if hexes:
         warns.append(f"{name}：寫死色碼 {', '.join(sorted(hexes)[:3])}，換風格會不協調，改用 STYLE.c.*")
+    for v in re.findall(r"\b(\w+)\s*=\s*shake\(", code):   # shake() 已經回傳像素，再乘 MIN／W／H 會放大上千倍
+        if re.search(rf"\b{v}\.[xy]\s*\*\s*(MIN|W|H)\b", code):
+            errs.append(f"{name}：{v} = shake(…) 已經是像素，{v}.x／{v}.y 又乘了 MIN／W／H，震動會放大上千倍（匯出後變殘影）")
+    if re.search(r"\bkPerson\(", code):
+        warns.append(f"{name}：用了 kPerson（幾何剪影）；人物請用 peep()／peepBust()（Open Peeps，見 references/character.md），kPerson 只適合小於畫面 5% 的圖示")
     if re.search(r"1\s*-\s*tw\(\s*t\s*,\s*T", code):
         warns.append(f"{name}：看起來在幕尾自己淡出；有轉場時會讓轉場只剩背景")
     return errs, warns
