@@ -1,5 +1,7 @@
 # Canvas Motion
 
+**繁體中文** | [English](README.en.md)
+
 **一支 HTML，就是一支影片。**
 
 讓 Claude 用程式做動畫短片的 [Claude Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)。畫面由 Canvas 逐格繪製，配樂由 WebAudio 即時合成，整支片就是一個 HTML 檔：可以直接在瀏覽器播放、發布成 claude.ai Artifact，也能匯出含配樂的 MP4 或 GIF。
