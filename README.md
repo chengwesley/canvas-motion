@@ -80,6 +80,27 @@ git clone https://github.com/chengwesley/canvas-motion.git ~/.claude/skills/canv
 
 你只要說需求、素材與參考風格。Claude 會從目的、觀眾與播放平台推斷片長、比例與敘事，由劇組提出故事與視覺隱喻、互評選定後做出第一版，**每一版都先給你看**；你說方向對了，才精修細節、匯出影片，並自動檢查版面、文字與素材出處。**畫面上的文案和數字只會來自你提供的素材**；素材撐不起某一幕時，Claude 會刪掉那一幕，而不是自行編造內容。
 
+### Claude 的工作流程
+
+```mermaid
+flowchart TD
+    A["你：需求、素材、參考風格"] --> B["Claude 補問：要不要人物／旁白、平台與比例、禁區"]
+    B --> C["整理 brief.md、source.txt<br/>把素材串成因果故事線 story.md"]
+    C --> D["3 位導演平行提案<br/>各提一種故事＋視覺隱喻"]
+    D --> E["導演互評、投票<br/>合併借用元素 → spec.md"]
+    E --> F["製作做出一版<br/>verify.py 自動檢查"]
+    F --> G["方向審查 ×3<br/>故事因果、視覺隱喻、視覺傳達、素材忠實度"]
+    G -->|不通過| F
+    G -->|通過| H{"給你看：方向對嗎？"}
+    H -->|要改故事或畫面| D
+    H -->|要調整做法| F
+    H -->|OK| I["精修審查<br/>rubric 一票否決＋七維度逐格檢查"]
+    I --> J["匯出 MP4／GIF 或發布 HTML"]
+    J --> K["交付說明：故事線、採用的案、取捨、未驗證項目"]
+```
+
+前段只對故事與畫面方向，像素級細節要等你確認方向後才修。分工細節見 `references/agents.md`。
+
 ### 手動操作
 
 ```bash
@@ -147,8 +168,10 @@ python3 $SKILL/scripts/export.py my-video out.mp4 --size 1280x720 --crf 25   # 7
 ├── library/                   畫筆（不是版面）：kit.js、畫風 looks.js、產品示範 product.js、UI 微動態 ui.js／uictl.js、插畫角色 peeps.js
 ├── brands/                    品牌設定檔（capture.py --brand 產生）
 ├── styles/                    風格設定
-├── scripts/                   verify / capture / voice / storyboard / build / sheet / export / style_gen / check_env / selftest
-├── references/                direction.md（情境→規格與節奏）、looks.md（畫風與常用形狀）、api.md（場景寫法）、
+├── scripts/                   verify / capture / voice / storyboard / build / sheet / taste / castsheet / export / style_gen /
+│                              check_env / selftest / new_project / preview_styles / peeps_catalog / peeps_import
+├── references/                agents.md（劇組分工）、rubric.md（兩階段評分）、craft.md（動畫手藝與自評）、crew.md（故事片劇組）、
+│                              genres.md（美漫、港漫、動漫、電影）、direction.md（情境→規格與節奏）、looks.md（畫風與常用形狀）、api.md（場景寫法）、
 │                              style-pack.md（風格設定）、product.md（產品示範）、ui-kit.md（UI 微動態）、voice.md（旁白與字幕）、
 │                              motion-design.md（出場順序與緩動）、character.md（角色）＋ peeps/（部件型錄）
 └── examples/                  範例專案（也是回歸測試）
