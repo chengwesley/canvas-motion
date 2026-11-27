@@ -12,7 +12,7 @@ import hashlib, math, re
 
 LEAD, GAP, TAIL = .35, .35, .45
 SUB_MAX = 16                                  # 一條字幕最多幾個字（CJK）；英文約 2 倍字元
-SPLIT = re.compile(r"(?<=[，。！？；：、,.!?;:])")
+SPLIT = re.compile(r"(?<=[，。！？；：、])|(?<=[,.!?;:])(?!\d)")   # don't split inside numbers like 1,935 / 3.7
 CJK = re.compile(r"[⺀-鿿豈-﫿]")
 PUNCT = re.compile(r"[，。、：；！？「」『』《》（）\s,.!?:;\"'…—\-]")
 
