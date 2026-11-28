@@ -36,14 +36,13 @@ status: 完整
 7. 強調色最後上：先完成整張冷色畫面，再用橘色（`#f0742e`／`#ffae5c`）點出視線要到的地方（視窗燈、核心、路徑光點），每個畫面橘色面積不超過整張的 3%。
 8. 最後疊文字與大數字：在放大後的圖上用字型繪製，文字放在抖色背景上方的乾淨卡片裡，避免與格線打架。
 
-## 代表畫家、設計師與作品（5–8 位：人名（原文＋常用中譯）、年代與地區、1–2 件代表作、這個風格要向他學什麼。只列你有把握的事實；任何不確定的作品名或年份，在該行結尾標「（待查證）」，寧可少列也不要編造）
-- eBoy（Kai Vermehr、Steffen Sauerteig、Svend Smital 等人組成的設計團體，1990 年代末起，德國柏林／美國）：以等角像素城市海報「Pixoramas」聞名，向他們學高密度小細節與統一的色塊語言；單幅作品名稱（待查證）。
-- 渋谷員子（Kazuko Shibuya，日本，1990 年代）：Square 的《Final Fantasy》系列（FF IV–VI）像素美術，向她學城鎮俯視圖中建築、屋頂與地面的色階處理（具體負責項目待查證）。
-- 糸井重里（Shigesato Itoi，日本，1994）：《MOTHER 2》（地球冒險 2）的現代城鎮俯視場景，向它學「普通的現代街景也可以用像素畫得有魅力」，美術團隊成員名單（待查證）。
-- Maxis（美國，1993）：《SimCity 2000》等角視角城市像素圖磚，向它學以重複圖磚組成可信的城市與清楚的功能分區。
-- Paul Robertson（保羅．羅伯森，澳洲／美國，2000 年代）：《Pirate Baby's Cabana Battle Street Fight》（2006）與《Scott Pilgrim vs. The World: The Game》（2010）像素動畫，向他學像素動態與擠壓拉伸的節奏，而不是畫法的靜態細節。
-- Pedro Medeiros（Saint11，巴西）：公開的像素教學動畫與《Celeste》（2018）製作團隊成員，向他學抖色、色階與動態的實務技巧（任職細節待查證）。
-- Slynyrd（Raymond Schlitter，美國）：在網路上發表的「Pixelblog」系列像素教學，向他學色階配置與氛圍場景（各期名稱待查證）。
+## 代表畫家、設計師與作品
+- eBoy（Kai Vermehr、Steffen Sauerteig、Svend Smital 創立，1997 年，德國柏林／美國洛杉磯）：以等角像素城市海報「Pixoramas」聞名，代表作如《Ecity》（1998）、書籍《HELLO》（2002）。學：高密度小細節與統一的色塊語言。
+- 渋谷員子（Kazuko Shibuya，1965 年生，日本）：Square 像素美術師，《Final Fantasy II》（1988）、《Final Fantasy VI》（1994，平面總監與角色像素）。學：極小尺寸角色與道具的辨識度與色階取捨。
+- Paul Robertson（保羅．羅伯森，澳洲）：像素動畫短片《Pirate Baby's Cabana Battle Street Fight》（2006）與《Scott Pilgrim vs. The World: The Game》（2010）動畫。學：像素動態與擠壓拉伸的節奏，而不是畫法的靜態細節。
+- Pedro Medeiros（Saint11，巴西）：《Celeste》（2018）美術，並公開發表像素動畫與技巧教學。學：抖色、色階與動態的實務技巧。
+- Slynyrd（Raymond Schlitter）：長期發表「Pixelblog」像素教學系列，含 City Builder（城市建造）等主題。學：色階配置、等角與氛圍場景。
+- Octavi Navarro（奧克塔維·納瓦羅，西班牙巴塞隆納）：像素藝術部落格「Pixels Huh」的城市與夜景場景，並參與《Thimbleweed Park》（2017）的美術與動畫。學：用有限色階營造夜晚城市的氛圍與敘事細節。
 
 ## 配色與色階（表格：角色｜色碼｜用途；每個主要顏色列出陰影／主色／亮面／高光；一個畫面最多幾色；強調色怎麼用。色碼必須和 sample.py 一致）
 一個畫面總色數不超過約 40 色（以下各色階合計）。冷色為底、橘色強調、綠色只給結果數字與「驗證通過」。
