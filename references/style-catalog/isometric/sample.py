@@ -127,6 +127,9 @@ cast(dx0, CY1, dx1 - dx0, DPULL, dz1)
 cast(RX, RY, 1.9, 1.6, 4.2)
 cast(.5, 5.6, 1.1, .8, .5)
 cast(7.4, 4.6, .9, .9, 1.0)
+for i in range(3):                                          # Escher stair: 3 treads climbing toward -y
+    cast(4.7, 6.0 - i * .5 + .0, 1.2, .5, .2 * (i + 1))
+cast(4.95, 5.05, .5, .5, 1.1)                               # crate stack on the top tread
 clip = Image.new('L', SHM.size, 0)
 ImageDraw.Draw(clip).polygon([iso(0, 0), iso(PX, 0), iso(PX, PY), iso(0, PY)], fill=255)
 from PIL import ImageChops
@@ -198,6 +201,13 @@ for k, lab in enumerate((CORAL, SUN, TEAL)):
     box(.58, 5.68, .22 + k * .09, .94, .64, .07, CARD, edge=False)
     face_y(6.321, .65 + k * .22, .85 + k * .22, .22 + k * .09, .29 + k * .09, lab[1])
 
+# Escher stair + eBoy props, all snapped to the 0.5-unit grid: three treads climb toward -y (risers face +y)
+for i in (2, 1, 0):                                         # far (highest) tread first
+    y0_ = 6.0 - i * .5
+    box(4.7, y0_, 0, 1.2, .5, .2 * (i + 1), DARK)
+for (cx_, cy_, cz_, cr) in ((4.95, 5.05, .6, SUN), (4.95, 5.05, 1.1, CORAL)):
+    box(cx_, cy_, cz_, .5, .5, .5, cr)                      # modular 0.5-unit crates
+    face_y(cy_ + .501, cx_ + .1, cx_ + .4, cz_ + .2, cz_ + .3, CARD[2])   # label strip
 # a small network node on the right, linked to the cabinet by a floor cable
 d.line([iso(7.85, 2.3, .01), iso(7.85, 4.6, .01)], fill=NAVY[3], width=int(3 * S))
 box(7.4, 4.6, 0, .9, .9, .7, NAVY)

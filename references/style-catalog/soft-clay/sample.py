@@ -107,6 +107,21 @@ def text_mask(t, font, xy, puff=0):
     m = new_mask(); ImageDraw.Draw(m).text(xy, t, font=font, fill=255, stroke_width=puff, stroke_fill=255); return m
 
 
+def rot(mask, deg, center=(301, 571)):
+    # tilt a hand-placed lump about the head centre (clay is never perfectly square)
+    return mask.rotate(deg, center=center, resample=Image.BICUBIC)
+
+
+def thumbprint(c, cx, cy, rx=22, ry=14, tilt=-18):
+    # shallow oval dent pressed by a thumb: shadow on the upper-left rim, light lip on the lower-right
+    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=255)
+    m = m.rotate(tilt, center=(cx, cy), resample=Image.BICUBIC)
+    lip = ImageChops.subtract(ImageChops.offset(m, 2, 3), m).filter(ImageFilter.GaussianBlur(1.2))
+    dent = ImageChops.subtract(m, ImageChops.offset(m, 3, 4)).filter(ImageFilter.GaussianBlur(1.6))
+    c.paste(solid((W, H), (255, 248, 240)), (0, 0), lip.point(lambda v: min(255, v * 2) * 6 // 10))
+    c.paste(solid((W, H), SHADOW), (0, 0), dent.point(lambda v: min(255, v * 2) * 5 // 10))
+
+
 def groove(c, pts, width=6):
     # tool-pressed line: dark trough, light lip just below
     d = new_mask(); ImageDraw.Draw(d).line(pts, fill=255, width=width, joint="curve")
@@ -153,14 +168,16 @@ def main():
     clay(c, rr([cx0, cy0, cx1, cy1], 54), MINT, soft=20)
     dw, dh = 160, 118
     cols = [632, 812]; rows = [632, 772, 900]
+    JIT = {(0, 0): (0, 0), (0, 1): (2, -3), (1, 0): (-3, 2), (1, 1): (1, 3), (2, 0): (3, -2), (2, 1): (-2, 1)}
     for r, y in enumerate(rows):
         for q, x in enumerate(cols):
             if r == 0 and q == 0:
                 # open slot: dark recess
                 clay(c, rr([x - 4, y - 8, x + dw + 4, y + dh + 4], 22), [CAVITY, mix(CAVITY, MINT[0], .35), mix(CAVITY, MINT[0], .5), MINT[0]], soft=10, shadow=False, gloss=False)
                 continue
-            clay(c, rr([x, y, x + dw, y + dh], 24), MINT, soft=10, shadow=False)
-            clay(c, rr([x + 52, y + 50, x + dw - 52, y + 74], 12), ORANGE, soft=5)   # handle
+            jx, jy = JIT[(r, q)]
+            clay(c, rr([x + jx, y + jy, x + dw + jx, y + dh + jy], 24), MINT, soft=10, shadow=False)
+            clay(c, rot(rr([x + 52 + jx, y + 50 + jy, x + dw - 52 + jx + (q * 4 - 2), y + 74 + jy], 12), (r + q) % 3 * 2 - 2, (x + dw // 2 + jx, y + 62 + jy)), ORANGE, soft=5)   # handle, each pressed on by hand
     # filed cards standing inside the open drawer (tops only)
     for i, x in enumerate(range(648, 776, 26)):
         clay(c, rr([x, 640 + (i % 2) * 8, x + 20, 720], 8), CREAM, soft=5, shadow=False, gloss=False)
@@ -194,12 +211,12 @@ def main():
         clay(c, ell([254 + i * 36, 796, 278 + i * 36, 820]), col, soft=4, shadow=False)
     groove(c, [(240, 890), (362, 890)])
     clay(c, rr([270, 664, 332, 712], 14), SHELL, soft=8)                    # neck
-    clay(c, ell([150, 552, 194, 596]), ORANGE, soft=7)                      # ear bolts
-    clay(c, ell([408, 552, 452, 596]), ORANGE, soft=7)
-    clay(c, rr([170, 456, 432, 686], 96), SHELL, soft=24)                   # head
-    clay(c, rr([200, 532, 402, 606], 37), VISOR, soft=10, shadow=False)     # visor band
+    clay(c, rot(ell([150, 552, 194, 596]), 4), ORANGE, soft=7)                      # ear bolts
+    clay(c, rot(ell([408, 552, 452, 596]), 4), ORANGE, soft=7)
+    clay(c, rot(rr([170, 456, 432, 686], 96), 4), SHELL, soft=24)                   # head, tilted 4 deg
+    clay(c, rot(rr([200, 532, 402, 606], 37), 7), VISOR, soft=10, shadow=False)     # visor band: the one expressive line, tilted 7 deg
     # visor reflection sweep (a light strip, not eyes)
-    vm = new_mask(); ImageDraw.Draw(vm).rounded_rectangle([224, 546, 330, 558], 6, fill=150)
+    vm = new_mask(); ImageDraw.Draw(vm).rounded_rectangle([224, 546, 330, 558], 6, fill=150); vm = rot(vm, 7)
     c.paste(solid((W, H), VISOR[3]), (0, 0), vm.filter(ImageFilter.GaussianBlur(3)))
     clay(c, rr([292, 384, 310, 462], 9), SHELL, soft=5)                     # antenna
     clay(c, ell([270, 342, 332, 404]), ORANGE, soft=10)
@@ -218,6 +235,9 @@ def main():
     f2 = new_mask(); ImageDraw.Draw(f2).line([(646, 606), (680, 590)], fill=255, width=18)
     clay(c, f1, INDIGO, soft=5, shadow=False)
     clay(c, f2, INDIGO, soft=5, shadow=False)
+
+    for cx_, cy_, rx_, ry_, t_ in ((214, 868, 20, 13, -25), (989, 830, 11, 9, 20), (700, 1000, 22, 13, -10)):
+        thumbprint(c, cx_, cy_, rx_, ry_, t_)
 
     # --- calm bottom (~22%): floor only, one soft highlight line on the table edge
     hl = new_mask(); ImageDraw.Draw(hl).line([(0, 1042), (W, 1042)], fill=90, width=3)

@@ -51,6 +51,28 @@ def bar(p, q, w):
     ang = math.degrees(math.atan2(q[1] - p[1], q[0] - p[0]))
     return rect((p[0] + q[0]) / 2, (p[1] + q[1]) / 2, math.hypot(q[0] - p[0], q[1] - p[1]), w, ang)
 
+def taper(p, q, w0, w1):
+    # Reiniger-style limb: a slim jointed strip, wider at the shoulder end
+    a = math.atan2(q[1] - p[1], q[0] - p[0]); nx, ny = -math.sin(a), math.cos(a)
+    return [(p[0] + nx * w0 / 2, p[1] + ny * w0 / 2), (q[0] + nx * w1 / 2, q[1] + ny * w1 / 2),
+            (q[0] - nx * w1 / 2, q[1] - ny * w1 / 2), (p[0] - nx * w0 / 2, p[1] - ny * w0 / 2)]
+
+def lobed(cx, cy, r, k, ph=0.0, n=120):
+    # Matisse-style scissor-cut form: one flowing outline with a few big lobes, no straight edges
+    pts = []
+    for i in range(n):
+        t = 6.283 * i / n
+        rr = r * (1 + .34 * math.cos(k * t + ph) + .12 * math.cos((k - 2) * t + 1.7 * ph))
+        pts.append((cx + rr * math.cos(t), cy + rr * math.sin(t)))
+    return pts
+
+def hole(canvas, poly):
+    # a cut-through opening: paper shows through, with a thin shadow on the upper-left inner edge
+    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).polygon(poly, fill=255)
+    canvas.paste(ImageChops.multiply(Image.new("RGB", (W, H), CREAM), TEX3), (0, 0), m)
+    inner = ImageChops.subtract(m, ImageChops.offset(m, 3, 3)).filter(ImageFilter.GaussianBlur(1.2))
+    canvas.paste(Image.new("RGB", (W, H), (58, 40, 30)), (0, 0), inner.point(lambda v: int(v * .5)))
+
 def shade(c, f):
     return tuple(max(0, min(255, int(v * f))) for v in c)
 
@@ -81,6 +103,9 @@ SAGE = (150, 170, 140); PLUM = (120, 70, 88)
 
 img = ImageChops.multiply(Image.new("RGB", (W, H), CREAM), TEX3)
 
+# Matisse: two big scissor-cut lobed forms, flat colour, cropped by the frame, behind everything
+layer(img, lobed(70, 470, 150, 5, .4), TEAL2, .35, rough=False)
+layer(img, lobed(1055, 540, 95, 4, 1.1), OCHRE, .4, rough=False)
 # backdrop: concentric paper discs behind the stat
 for r, col, d in [(250, (234, 206, 176), .6), (212, TERRA2, 1.0), (172, TERRA, 1.4)]:
     layer(img, circle(790, 330, r), col, d)
@@ -107,9 +132,16 @@ for ri, (y0, y1) in enumerate(rows):
         tilt = R.choice([0, 0, 0, -5, 6])
         layer(img, rect(x + w / 2, y1 - h / 2, w, h, tilt), R.choice(palette), 1.6)
         x += w + R.randint(3, 8)
-# slot glow
+# slot glow behind the card pocket
 layer(img, rect(700, 862, 72, 114), (250, 226, 160), 1.3)
 layer(img, rect(700, 862, 52, 94), (255, 240, 196), 1.5)
+# the note card stands IN the slot: drawn now, then the pocket strip (drawn after) covers its lower part
+layer(img, rect(701, 850, 58, 104, -2), WHITE, 1.7)
+layer(img, rect(701, 818, 42, 10, -2), TERRA, 1.8, rough=False)
+for i, ww in enumerate((42, 34)):
+    layer(img, rect(698 + (ww - 42) / 2 * .2, 840 + i * 16, ww, 8, -2), [TEAL2, OCHRE][i], 1.8, rough=False)
+layer(img, [(659, 872), (743, 872), (743, 924), (659, 924)], TEAL2, 2.1)           # pocket front
+layer(img, rect(701, 888, 34, 8, 0), TERRA2, 2.3, rough=False)                      # pocket tab
 
 # robot agent: full paper-cut machine (tracks, body, visor head, antenna, two arms; no face)
 NAVY = (60, 78, 104); OCHRE2 = (238, 198, 116); OCHRE0 = (184, 136, 58)
@@ -137,28 +169,25 @@ for sx in (-1, 1): layer(img, circle(RX + sx * 104, 700, 18), NAVY, 1.5)  # ear 
 # antenna
 layer(img, rect(RX, 612, 10, 50), INK, 1.3, rough=False)
 layer(img, circle(RX, 586, 18), TERRA, 1.6)
-# left arm hanging
-layer(img, bar((RX - 112, 820), (RX - 140, 960), 36), NAVY, 1.7)
-layer(img, circle(RX - 112, 820, 26), INK, 1.9)
-layer(img, circle(RX - 140, 966, 22), INK, 1.9)
-# right arm reaching to the shelf: shoulder -> elbow -> wrist
-shoulder, elbow, wrist = (RX + 112, 820), (410, 752), (498, 826)
-layer(img, bar(shoulder, elbow, 40), NAVY, 2.0)
-layer(img, bar(elbow, wrist, 36), NAVY, 2.4)
-layer(img, circle(*shoulder, 28), INK, 2.2)
-layer(img, circle(*elbow, 26), INK, 2.6)
-layer(img, circle(*elbow, 11), TERRA2, 2.8)
-layer(img, circle(*wrist, 24), INK, 2.8)
-
-# note card being placed (half inside the glowing empty slot)
-layer(img, rect(580, 850, 140, 100, -9), WHITE, 3.0)
-for i, ww in enumerate([96, 112, 74]):
-    layer(img, rect(574 + (ww - 112) / 2 * .2, 826 + i * 22, ww * .9, 9, -9), [TERRA, TEAL2, OCHRE][i], 3.2, rough=False)
-layer(img, bar((498, 826), (538, 804), 20), INK, 3.3)  # gripper fingers
-layer(img, bar((498, 826), (534, 880), 20), INK, 3.3)
-# motion trail: three paper strips trailing the card
-for i, (x, y, w_) in enumerate([(420, 880, 56), (404, 908, 40), (428, 934, 28)]):
+# left arm hanging (slim tapered strip)
+layer(img, taper((RX - 112, 820), (RX - 140, 960), 32, 22), NAVY, 1.7)
+layer(img, circle(RX - 112, 820, 24), INK, 1.9)
+layer(img, circle(RX - 140, 966, 20), INK, 1.9)
+# right arm reaching to the card pocket: shoulder -> elbow -> wrist (two slim tapered strips + pivot holes)
+shoulder, elbow, wrist = (RX + 112, 820), (500, 748), (652, 832)
+layer(img, taper(shoulder, elbow, 34, 24), NAVY, 2.0)
+layer(img, taper(elbow, wrist, 28, 20), NAVY, 2.4)
+layer(img, circle(*shoulder, 26), INK, 2.2)
+layer(img, circle(*elbow, 24), INK, 2.6)
+layer(img, circle(*wrist, 21), INK, 2.8)
+for pv in (shoulder, elbow, wrist): hole(img, circle(pv[0], pv[1], 6, 24))             # Reiniger: pivot pin holes
+layer(img, bar((652, 832), (676, 818), 14), INK, 3.3)  # gripper fingers pinching the card's left edge
+layer(img, bar((652, 832), (676, 848), 14), INK, 3.3)
+# motion strips trailing behind the wrist
+for i, (x, y, w_) in enumerate([(520, 882, 56), (504, 908, 40), (528, 934, 28)]):
     layer(img, rect(x, y, w_, 8, -9), TERRA2, .7, rough=False)
+# Reiniger: filigree of cut-through holes along the robot's belly
+for k in range(5): hole(img, circle(RX - 60 + k * 30, 918, 7, 24))
 
 # calm bottom 22%: layered paper hills
 for y, col, d, amp in [(1070, SAGE, .8, 22), (1130, TEAL2, 1.1, 16), (1200, TEAL, 1.4, 12)]:

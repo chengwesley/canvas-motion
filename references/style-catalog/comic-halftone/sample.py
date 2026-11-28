@@ -8,6 +8,19 @@ W, H = 1080, 1350
 P = Page(W, H)
 G = 14  # gutter
 
+# Kirby Krackle: clusters of solid K-plate dots, big-to-small, drawn as ink only (no screen)
+def krackle(P, clip, cx, cy, r0, r1, n=14, seed=2, span=(0, 360), size=(5, 15)):
+    rng = random.Random(seed)
+    for i in range(n):
+        a = math.radians(span[0] + (span[1] - span[0]) * (i + rng.uniform(0.1, 0.9)) / n)
+        rr = rng.uniform(r0, r1)
+        px, py = cx + math.cos(a) * rr, cy + math.sin(a) * rr
+        for k in range(rng.randint(4, 8)):  # one cluster: dots scatter away from the energy source
+            d = rng.uniform(0, 34); b = a + rng.uniform(-0.6, 0.6)
+            x, y = px + math.cos(b) * d, py + math.sin(b) * d
+            s = rng.uniform(*size) * (1 - d / 60)
+            P.ink_fill(P.mask(ellipse_pts(x, y, s, s * rng.uniform(0.8, 1.0), 20)), clip=clip)
+
 # ---------- layout ----------
 def a_bottom(x):  # slanted bottom edge of panel A
     return 600 - 46 * (x - 30) / 1020
@@ -46,6 +59,7 @@ for i in range(4):
         p0, p1 = lerp(a_, b_, t / 10), lerp(a_, b_, (t + 1.2) / 10)
         P.fill(P._strip([p0, p1], [4.5, 4.5], False), YELLOW)
 sparkle(P, q[1][0] + 6, q[1][1] - 6, 16, w=3.5)
+krackle(P, mA, card_c[0] - 10, card_c[1] - 4, 70, 100, n=7, seed=3, span=(150, 330), size=(4, 11))
 panel_border(P, A, 5)
 
 # ---------- panel B: close-up, the card slides INTO the slot ----------
@@ -89,6 +103,7 @@ mC = panel(P, C)
 P.tone(mC, "Y", 0.22)
 ccx, ccy = 832, 818
 focus_lines(P, mC, ccx, ccy, 150, n=120, w=8, seed=12)
+krackle(P, mC, ccx, ccy, 205, 250, n=15, seed=6)   # Kirby: energy = black dot clusters
 panel_border(P, C, 5)
 burst_number(P, ccx, ccy - 6, 212, "61", "%", size=150, seed=5, ry=196)
 

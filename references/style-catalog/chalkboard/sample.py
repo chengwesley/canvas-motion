@@ -1,4 +1,6 @@
 # Chalkboard style sample: AI agent filing a note card into a knowledge base, big 61%.
+# Master lessons applied: Steiner (side-of-chalk colour fields, warm advances / cool recedes, colour boundaries not outlines),
+#   Beuys (the board remembers: an erased earlier answer ghosts under the new one, wipe arcs, one struck-out figure).
 import os, math, random
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
@@ -18,6 +20,8 @@ CARDY = (242, 222, 131)    # same yellow, separate layer so the card can be occl
 PINK = (240, 168, 160)      # emphasis underline only
 BLUE = (160, 205, 230)      # secondary info (AI system parts, network)
 TRAY = (92, 66, 44)         # wooden chalk ledge
+YELLOW_W = (242, 222, 129)  # same hues as YELLOW / BLUE, separate layers so the colour fields render UNDER the white line work
+BLUE_W = (160, 205, 229)
 
 def board():
     """Slate-green base with mottled eraser wipes and fine grain."""
@@ -85,6 +89,13 @@ class Chalk:
         clip = Image.new("L", (W, H), 0); ImageDraw.Draw(clip).rectangle([x0, y0, x1, y1], fill=255)
         m = ImageChops.multiply(tmp.mask(col), clip)
         self.layers[col] = ImageChops.lighter(self.mask(col), m)
+    def field(self, col, x0, y0, x1, y1, gap=15, w=30, a=78, ang=-0.9):
+        """Steiner-style colour field: broad side-of-chalk strokes, all one diagonal, clipped to a box, left broken by the tooth."""
+        self.hatch(col, x0 - 40, y0 - 40, x1 + 40, y1 + 40, gap=gap, ang=ang, w=w, a=a)
+        feather = Image.new("L", (W, H), 0)                       # soft boundary: colour fades out, it is not fenced by a box
+        ImageDraw.Draw(feather).rectangle([x0 + 10, y0 + 10, x1 - 10, y1 - 10], fill=255)
+        feather = feather.filter(ImageFilter.GaussianBlur(26))
+        self.layers[col] = ImageChops.multiply(self.layers[col], feather)
     def dashed(self, col, pts, dash=16, gap=11, **k):
         for p, q in zip(pts, pts[1:]):
             L = math.dist(p, q); t = 0
@@ -150,6 +161,7 @@ def arc_pts(p0, p1, bulge, n=24):
 check_glyphs(HEI, "知識庫AI 助理")
 img = board()
 c = Chalk()
+c.mask(BLUE_W); c.mask(YELLOW_W)    # insertion order = render order: colour fields first, line work on top
 fH = ImageFont.truetype(HEI, 122)
 fBig = ImageFont.truetype(HAND, 236, index=2)
 fS = ImageFont.truetype(HEI, 38)
@@ -237,6 +249,11 @@ for n in nodes:
     c.circle(BLUE, n[0], n[1], 8, seg=10, w=3)
 c.line(BLUE, nodes[0], nodes[1], w=2.5, a=160); c.line(BLUE, nodes[1], nodes[2], w=2.5, a=160)
 
+# ---- Steiner: colour fields. warm yellow glows around the card (action advances), cool blue fills the cabinet (depth recedes).
+#      the fields are offset from the line work, so colour meets colour instead of being fenced in by outlines.
+c.field(YELLOW_W, ccx - 118, slot_y - 232, ccx + 112, slot_y - 8, gap=16, w=34, a=84)
+c.field(BLUE_W, bx0 + 20, by0 + 24, bx1 - 14, by1 - 24, gap=17, w=34, a=60)
+
 # ---- one handwritten label with a leader line ----
 c.text(WHITE, (360, 880), "AI 助理", fS, a=210)
 c.line(WHITE, (352, 896), (310, 870), w=3, a=170)
@@ -246,6 +263,25 @@ c.line(WHITE, (352, 896), (310, 870), w=3, a=170)
 ImageDraw.Draw(c.mask(CARDY)).polygon([(ccx - 200, slot_y + 2), (ccx + 200, slot_y - 8), (ccx + 200, slot_y + 200), (ccx - 200, slot_y + 200)], fill=0)
 c.line(WHITE, (SLOT_X - 76, slot_y - 5), (SLOT_X + 72, slot_y - 12), w=5)   # near lip drawn over the card
 img = c.render(img)
+
+def erased_answer(img):
+    """Beuys: the board is never clean. An earlier answer was wiped (not removed): faint smeared '47' with one strike, plus wide wipe arcs."""
+    m = Image.new('L', (W, H), 0); dd = ImageDraw.Draw(m)
+    dd.text((70, 300), '47%', font=ImageFont.truetype(HAND, 150, index=2), fill=95)
+    dd.line([(66, 392), (352, 352)], fill=95, width=5)                       # the strike-through
+    sm = m.filter(ImageFilter.GaussianBlur(2))
+    for k in range(1, 5):                                                    # drag the wet powder along the wiper direction
+        sm = ImageChops.lighter(sm, ImageChops.offset(m, k * 4, -k * 2).filter(ImageFilter.GaussianBlur(3)).point(lambda v: int(v * (1 - k / 6))))
+    for cx, cy, rr in ((300, 330, 340), (560, 560, 420), (330, 1000, 380)):   # wide wiper arcs
+        dd2 = ImageDraw.Draw(sm)
+        pts = [(cx + rr * math.cos(math.radians(a)), cy + rr * 0.35 * math.sin(math.radians(a))) for a in range(190, 350, 6)]
+        dd2.line(pts, fill=16, width=46)
+    sm = sm.filter(ImageFilter.GaussianBlur(5))
+    grain = Image.effect_noise((W, H), 70).point(lambda v: 255 if v > 90 else 120)
+    sm = ImageChops.multiply(sm, grain)
+    img.paste(Image.new('RGB', (W, H), WHITE), (0, 0), sm)
+    return img
+img = erased_answer(img)
 img = dust(img)
 d = ImageDraw.Draw(img)
 d.rectangle([0, H - 34, W, H], fill=TRAY); d.line([0, H - 34, W, H - 34], fill=(120, 90, 62), width=3)

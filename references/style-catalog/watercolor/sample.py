@@ -170,13 +170,18 @@ CARD_FULL = rot(rect(664, 650, 760, 800), 664, 650, 3)
 CARD = clip_below(CARD_FULL, FRONT_TOP)
 RESERVE.append(CARD)
 
+GLOW = ell(930, 360, 330, 230)   # the sky is left unpainted here: the warm light must stay on clean paper
 # ---------------- 1. first wash: wet-in-wet sky, pale top, deeper toward the horizon ----------------
-wash(img, rect(-40, -40, W + 40, 760), ULTRA[3], a=0.6, jit=12, wet=16, edge=0.12, gran=0.45, grav=0.85, bloom=1, vary=0.5)
+wash(img, rect(-40, -40, W + 40, 760), ULTRA[3], a=0.6, jit=12, wet=16, edge=0.12, gran=0.45, grav=0.85, bloom=1, vary=0.5, holes=[GLOW])
 wash(img, rect(-40, 380, W + 40, 975), ULTRA[2], a=0.45, jit=16, wet=22, edge=0.15, gran=0.5, grav=0.9, bloom=2, vary=0.55,
-     holes=[rect(620, 560, 1030, 990)])
+     holes=[rect(620, 560, 1030, 990), GLOW])
+# Turner: the light source is a warm glow bleeding into the blue, no hard sun; rose only as a whisper
+wash(img, GLOW, OCHRE[3], a=0.6, jit=14, wet=34, edge=0.0, gran=0.3, grav=0, vary=0.5, reserve=False)
+wash(img, ell(960, 330, 200, 140), ROSE[3], a=0.35, jit=12, wet=30, edge=0.0, gran=0.3, grav=0, vary=0.5, reserve=False)
 wash(img, rect(600, 470, W + 40, 975), OCHRE[3], a=0.45, jit=18, wet=26, edge=0.0, gran=0.3, grav=0.4, vary=0.5)   # warm bleed behind the cabinet
 # ground: ochre + sienna, wet-on-dry, bead settling at the bottom edge
-wash(img, [(-30, 965), (W + 30, 955), (W + 30, 1050), (-30, 1058)], OCHRE[2], a=0.6, jit=5, wet=2.5, edge=0.6, gran=0.6, grav=0.5)
+wash(img, [(-30, 965), (W + 30, 955), (W + 30, 1050), (-30, 1058)], OCHRE[2], a=0.6, jit=5, wet=2.5, edge=0.6, gran=0.6, grav=0.5,
+     holes=[rect(440, 975, 640, 980), rect(520, 998, 690, 1002), rect(60, 1018, 230, 1022)])   # Homer: reflected light = bare paper slivers
 wash(img, [(-30, 992), (W + 30, 986), (W + 30, 1046), (-30, 1052)], SIENNA[3], a=0.4, jit=6, wet=2, edge=0.5, gran=0.7, dry=0.5)
 # calm zone: a single pale glaze fading out, nothing drawn on it
 wash(img, rect(-30, 1054, W + 30, 1140), OCHRE[3], a=0.28, jit=8, wet=16, edge=0.0, gran=0.3, grav=0, vary=0.4)

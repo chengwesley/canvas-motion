@@ -39,26 +39,32 @@ def stamp(label_or_fn, ox, oy):
 stamp('全像樹', 140, 118 - 6 + 0) if False else None
 stamp('全像樹', 124, -6)
 stamp('感測燈柱', 76, -2)
-# knowledge base: wiki tower, right side
-stamp('③ wiki 塔', 112, 50)
 # robot agent (active), standing on the road
 def rb():
     c = P(); robot(c, 28, 28, 'active'); return c
 stamp(rb, 14, 70)
 
-# note card in flight with a cyan dotted trail to the tower door
-TX, TY = 139, 99          # tower door, art px
-NX, NY = 62, 74           # note position (top-left)
-for k in range(26):
-    t = k / 25; x = 70 + (TX - 70) * t; y = 82 + (TY - 82) * t - math.sin(t * math.pi) * 20
-    if k % 2 == 0: big.rect(int(x), int(y), int(x) + 1, int(y) + 1, ORG[2] if k % 4 else WHITE)
-tshadow(big, NX + 7, NY + 26, 9, 3)
-note(big, NX, NY, 'plain', 13, 17)
-big.rect(NX + 3, NY + 3, NX + 4, NY + 3, ORG[2])
-big.sparkle(NX - 3, NY - 2, GLS[2]); big.sparkle(NX + 17, NY + 20, ORG[2])
-# glowing slot at the door
-for dy in range(-3, 4): big.put(TX - 4, TY - 6 + dy, GLS[3])
-big.rect(TX - 3, TY - 3, TX + 3, TY - 2, ORG[2]); big.sparkle(TX + 6, TY - 8, ORG[2])
+# note card: bigger (16x22) so the metaphor reads at icon size (Kare); a dog-ear says "document"
+NW, NH = 16, 22
+NX, NY = 115, 78
+# clean dotted trail: 2x2 blocks on an even 4px pitch, ending at the card (no stray single pixels)
+for k in range(11):
+    t = k / 10; x = 62 + (NX - 6 - 62) * t; y = 90 + (NY + 8 - 90) * t - math.sin(t * math.pi) * 14
+    big.rect(int(x), int(y), int(x) + 1, int(y) + 1, ORG[2] if k % 2 == 0 else WHITE)
+tshadow(big, NX + 6, NY + NH + 2, 9, 3)
+ear = {(NX - 1 + i, NY - 1 + j): big.p[NX - 1 + i, NY - 1 + j] for i in range(4) for j in range(4)}
+note(big, NX, NY, 'plain', NW, NH)
+for (px, py), col in ear.items():
+    i, j = px - (NX - 1), py - (NY - 1)
+    if i + j < 3: big.put(px, py, col)                  # corner cut away
+    elif i + j == 3: big.put(px, py, OUT)               # fold line
+    elif i < 3 and j < 3: big.put(px, py, PAPER[1])     # folded flap
+big.rect(NX + 3, NY + NH - 5, NX + 6, NY + NH - 4, ORG[2])   # orange tab: the one accent on the card
+
+# knowledge base: wiki tower drawn AFTER the card, so its wall hides the card's right half (card is going in)
+stamp('③ wiki 塔', 112, 50)
+for dy in range(NH): big.put(123, NY + dy, GLS[3] if dy % 4 < 3 else GLS[2])   # glowing slot on the tower wall
+big.rect(122, NY + 8, 123, NY + 9, ORG[2])
 
 # result card behind the big number
 CX0, CY0, CX1, CY1 = 12, 134, 104, 170

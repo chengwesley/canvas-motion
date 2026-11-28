@@ -348,11 +348,11 @@ def badge(L, cx, cy, r=40, ok=True):
 
 
 # ---- knowledge base: bookshelf with a card drawer ---------------------------
-def books_row(L, x0, x1, ry0, ry1, rnd, lean=True):
+def books_row(L, x0, x1, ry0, ry1, rnd, lean=True, simple=False):
     x = x0 + 10; i = 0; last = None; leaned = False; coral = False   # max one coral spine per row
     rh = ry1 - ry0
     while True:
-        bw = rnd.choice((24, 28, 32, 36, 42)); bh = rh - rnd.choice((10, 18, 26, 36))
+        bw = rnd.choice((44, 52, 60) if simple else (24, 28, 32, 36, 42)); bh = rh - rnd.choice((18, 36, 54) if simple else (10, 18, 26, 36))
         if x + bw > x1 - 10: break
         c = rnd.choice([p for p in SPINES if p is not last and not (p is CORAL and coral)]); last = c
         coral = coral or c is CORAL
@@ -363,13 +363,13 @@ def books_row(L, x0, x1, ry0, ry1, rnd, lean=True):
         else:
             L.sheet([(x, ry1 - bh), (x + bw, ry1 - bh), (x + bw, ry1), (x, ry1)], c, at=.64)
             band = NAVY[1] if c is not NAVY else MUST[1]
-            if bw >= 32:
+            if bw >= 32 and not simple:
                 L.fpoly([(x + 6, ry1 - bh + 14), (x + bw * .64 - 2, ry1 - bh + 14), (x + bw * .64 - 2, ry1 - bh + 24), (x + 6, ry1 - bh + 24)], band)
             x += bw + 4
         i += 1
 
 
-def kb_shelf(L, x0, y0, x1, y1, insert=None, seed=7, slot_frac=.52, card_w=118, fracs=(.3, .4, .3), drawer=1, front=.44):
+def kb_shelf(L, x0, y0, x1, y1, insert=None, seed=7, slot_frac=.52, card_w=118, fracs=(.3, .4, .3), drawer=1, front=.44, simple=False):
     """knowledge base: navy bookshelf; the middle row is a card-catalogue drawer pulled out,
     full of index cards with ONE empty lit slot. `insert(L, slot)` is called after the drawer
     interior and before the drawer front, so whatever it draws (the new card) is visibly
@@ -390,7 +390,7 @@ def kb_shelf(L, x0, y0, x1, y1, insert=None, seed=7, slot_frac=.52, card_w=118, 
         L.frr(ix0, ry0, ix1, ry1, 10, HOLE)
         L.frr(ix0, ry0, ix1, ry0 + 12, 6, (10, 15, 30))
     for i, (a, b_) in enumerate(rows):
-        if i != drawer: books_row(L, ix0, ix1, a + 14, b_, rnd)
+        if i != drawer: books_row(L, ix0, ix1, a + 14, b_, rnd, lean=not simple, simple=simple)
     # ---- drawer row
     ry0, ry1 = rows[drawer]
     front_top = ry0 + (ry1 - ry0) * front
