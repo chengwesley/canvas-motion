@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: repeated-rejection-goes-back-to-samples
+expected_outcome: |
+  After the same visual complaint twice, the plan stops full re-production and goes back to a cheap style sample / component sheet first (minutes, not a full film), states a time estimate, and names concrete decluttering rules.
