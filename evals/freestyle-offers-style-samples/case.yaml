@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: freestyle-offers-style-samples
+expected_outcome: |
+  Because the user gave no reference, the next deliverable is 2-3 visually different style sample images (cheap stills, not a full animation), ideally drawn from or pointing to the style catalog, with a short reply asking the user to pick; no full scene production yet.

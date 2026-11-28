@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: article-video-direction-first
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  Before any production, asks about success criteria / reference style, proposes a cheap style sample before writing scene code, uses FB 4:5 (1080x1350), and the script follows the explainer readability check: defines terms early, gives the three-layer structure as a map first, pairs each number with its conclusion, keeps the limitations and open question, ends with a short recap.
