@@ -135,20 +135,24 @@ rect('black', AX - 3, 420, AX + 3, 478); disc('red', AX, 412, 14)       # antenn
 # idle arm (left): straight bar down, joint discs, triangle hand
 bar('black', AX - 100, 646, AX - 150, 790, 18); disc('black', AX - 100, 646, 16); disc('red', AX - 150, 790, 13)
 # working arm (right): shoulder -> elbow -> card, one straight diagonal toward the shelf slot
-SH, EL, HD = (AX + 100, 650), (AX + 220, 612), (676, 588)
+SH, EL, HD = (AX + 100, 650), (AX + 220, 612), (660, 590)
 bar('black', *SH, *EL, 20); bar('black', *EL, *HD, 16)
 disc('black', *SH, 17); knock_disc(*EL, 17); disc('red', *EL, 14)
 poly('black', [(HD[0] - 4, HD[1] - 26), (HD[0] + 22, HD[1] - 18), (HD[0] + 4, HD[1] - 4)])   # upper jaw
 poly('black', [(HD[0] - 4, HD[1] + 26), (HD[0] + 22, HD[1] + 18), (HD[0] + 4, HD[1] + 4)])   # lower jaw
 
 # -- the note card, half-way into the empty slot of shelf row 2 ----------------------
-CX, CY, CA = 724, 594, 0
+CX, CY, CA = 716, 594, 0
 card = rot_rect(CX, CY, 104, 132, CA)
 knock(card); poly('black', card)
 knock(rot_rect(CX, CY, 88, 116, CA))
 for i, lw in enumerate((60, 60, 38)):                                  # three text bars
     poly('black', rot_rect(CX - (60 - lw) / 2 + i * 0.0, CY - 14 + i * 26, lw, 9, CA))
 poly('red', rot_rect(CX - 26, CY - 42, 22, 22, CA))                    # red tab = the new note
+# slot cover: a red panel in front of the slot, the card disappears under it (occlusion)
+knock([(738, 536), (790, 536), (790, 666), (738, 666)])
+rect('red', 740, 538, 788, 664)
+for yy in (560, 600, 640): rect('black', 746, yy, 782, yy + 4)
 # gripper drawn over the card so the hand visibly holds it
 bar('black', HD[0] - 30, HD[1], HD[0] + 4, HD[1], 16)
 poly('black', [(HD[0] - 4, HD[1] - 30), (HD[0] + 26, HD[1] - 22), (HD[0] + 6, HD[1] - 6)])

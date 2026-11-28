@@ -156,7 +156,18 @@ def ink_text(img, xy, text, font, color, a=0.9, anchor='la'):
 img = Image.new('RGB', (W, H), PAPER)
 img = ImageChops.multiply(img, Image.merge('RGB', [FINE.point(lambda v: 255 - max(0, 135 - v) // 7)] * 3))
 
-CARD = rot(rect(604, 600, 724, 700), 610, 602, 5)
+FRONT_TOP = 776   # y of the pulled drawer's front lip; card is clipped here so the lip hides its lower end
+def clip_below(pts, y):
+    out = []
+    for i in range(len(pts)):
+        a, b = pts[i], pts[(i + 1) % len(pts)]
+        ina, inb = a[1] <= y, b[1] <= y
+        if ina: out.append(a)
+        if ina != inb:
+            t = (y - a[1]) / (b[1] - a[1]); out.append((a[0] + (b[0] - a[0]) * t, y))
+    return out
+CARD_FULL = rot(rect(664, 650, 760, 800), 664, 650, 3)
+CARD = clip_below(CARD_FULL, FRONT_TOP)
 RESERVE.append(CARD)
 
 # ---------------- 1. first wash: wet-in-wet sky, pale top, deeper toward the horizon ----------------
@@ -234,22 +245,22 @@ wash(img, limb((150, 700), (112, 812), 15), ULTRA[1], a=0.7, jit=1, wet=1.1, edg
 wash(img, ell(150, 700, 22, 22), NEUTRAL, a=0.6, jit=0.8, wet=1, edge=0.5)
 wash(img, [(96, 812), (128, 812), (136, 846), (90, 846)], NEUTRAL, a=0.65, jit=0.8, wet=1, edge=0.5)
 # reaching arm: shoulder -> elbow -> wrist, ending above the open drawer
-SH, EL, WR = (362, 700), (480, 600), (604, 580)
+SH, EL, WR = (362, 700), (480, 600), (648, 628)
 wash(img, limb(SH, EL, 17), ULTRA[1], a=0.75, jit=1, wet=1.1, edge=0.6, gran=0.5)
 wash(img, limb(EL, WR, 14), ULTRA[1], a=0.75, jit=1, wet=1.1, edge=0.6, gran=0.5)
 for j, rr in ((SH, 24), (EL, 20)):
     wash(img, ell(j[0], j[1], rr, rr), NEUTRAL, a=0.62, jit=0.8, wet=1, edge=0.5, holes=[ell(j[0] - 6, j[1] - 6, 6, 6, 10)])
 # gripper: two fingers pinching the card's top edge
-wash(img, [(596, 566), (640, 570), (640, 586), (596, 590)], NEUTRAL, a=0.82, jit=0.6, wet=0.9, edge=0.5, vary=0.1)   # wrist block
-wash(img, [(630, 584), (644, 584), (650, 612), (636, 614)], NEUTRAL, a=0.82, jit=0.6, wet=0.9, edge=0.5, vary=0.1)   # front finger
-wash(img, [(604, 586), (616, 586), (614, 608), (602, 606)], NEUTRAL, a=0.82, jit=0.6, wet=0.9, edge=0.5, vary=0.1)   # back finger
+wash(img, [(636, 616), (692, 618), (692, 640), (636, 642)], NEUTRAL, a=0.82, jit=0.6, wet=0.9, edge=0.5, vary=0.1)   # wrist block
+wash(img, [(684, 638), (698, 638), (702, 672), (688, 674)], NEUTRAL, a=0.82, jit=0.6, wet=0.9, edge=0.5, vary=0.1)   # front finger
+wash(img, [(666, 640), (678, 640), (676, 668), (664, 666)], NEUTRAL, a=0.82, jit=0.6, wet=0.9, edge=0.5, vary=0.1)   # back finger
 
 # ---------------- 4. the note card, half-way into the open drawer ----------------
 RESERVE.remove(CARD)
 wash(img, CARD, ULTRA[3], a=0.35, jit=0.6, wet=0.8, edge=0.95, gran=0.15, grav=0, vary=0.2)     # paper card: only its rim is painted
-wash(img, rot(rect(604, 600, 724, 613), 610, 602, 5), ROSE[2], a=0.65, jit=0.4, wet=0.7, edge=0.5, grav=0, vary=0.1)   # index-card header band
+wash(img, rot(rect(664, 650, 760, 663), 664, 650, 3), ROSE[2], a=0.65, jit=0.4, wet=0.7, edge=0.5, grav=0, vary=0.1)   # index-card header band
 for k in range(3):
-    wash(img, rot(rect(618, 630 + k * 16, 704 - k * 16, 634 + k * 16), 610, 602, 5), ULTRA[1], a=0.55, jit=0.3, wet=0.6, edge=0.2, grav=0, vary=0.1)
+    wash(img, rot(rect(676, 684 + k * 18, 746 - k * 14, 689 + k * 18), 664, 650, 3), ULTRA[1], a=0.55, jit=0.3, wet=0.6, edge=0.2, grav=0, vary=0.1)
 wash(img, rect(fx0, fy0, fx1, fy1), SIENNA[1], a=0.75, jit=1.5, wet=1.0, edge=0.7, gran=0.5, grav=0.5,
      holes=[rect(fx0 + 4, fy0 + 3, fx1 - 30, fy0 + 9)])
 mx = (fx0 + fx1) / 2
@@ -257,8 +268,9 @@ wash(img, rect(mx - 16, fy0 + 15, mx + 16, fy0 + 30), OCHRE[1], a=0.75, jit=1, w
 wash(img, ell(mx, fy0 + 48, 7, 7, 14), SIENNA[0], a=0.75, jit=0.8, wet=0.8, edge=0.5, vary=0.1)
 wash(img, [(fx0 + 6, fy1), (fx1 + 10, fy1), (fx1 + 26, fy1 + 16), (fx0 + 20, fy1 + 16)], NEUTRAL, a=0.4, jit=1, wet=2.5, edge=0.3)  # drawer's shadow
 
+wash(img, [(fx0 - 2, fy0 - 2), (fx1 + 2, fy0 - 2), (fx1 + 2, fy0 + 7), (fx0 - 2, fy0 + 7)], NEUTRAL, a=0.35, jit=0.5, wet=1.2, edge=0.2, grav=0, vary=0.1)   # lip casts a contact shadow onto the card
 # motion path: dry-brush dabs arcing from the robot's chest toward the drawer
-for k, (tx, ty) in enumerate([(470, 520), (510, 498), (552, 488), (594, 492), (634, 508)]):
+for k, (tx, ty) in enumerate([(470, 520), (510, 498), (552, 492), (596, 500), (636, 520)]):
     wash(img, ell(tx, ty, 7 - k * 0.5, 4), ULTRA[1], a=0.22 + k * 0.05, jit=1.2, wet=1, edge=0.6, gran=0.6, dry=0.4)
 # warm light pooling in the receiving drawer (wet-in-wet glow)
 wash(img, ell((ox0 + ox1) / 2, oy0 + 40, 100, 70), OCHRE[2], a=0.35, jit=6, wet=14, edge=0, gran=0.2, grav=0, vary=0.2)

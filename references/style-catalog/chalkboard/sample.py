@@ -13,7 +13,8 @@ HAND = "/System/Library/Fonts/Supplemental/ChalkboardSE.ttc"   # Latin + digits 
 BOARD = (34, 56, 46)        # slate green
 BOARD_WIPE = (70, 92, 82)   # eraser ghosts
 WHITE = (238, 238, 226)     # main chalk: 80% of all marks
-YELLOW = (242, 222, 130)    # the new thing / the number
+YELLOW = (242, 222, 130)
+CARDY = (242, 222, 131)    # same yellow, separate layer so the card can be occluded    # the new thing / the number
 PINK = (240, 168, 160)      # emphasis underline only
 BLUE = (160, 205, 230)      # secondary info (AI system parts, network)
 TRAY = (92, 66, 44)         # wooden chalk ledge
@@ -160,11 +161,11 @@ c.line(WHITE, (64, 218), (446, 210), w=6)
 c.line(WHITE, (96, 234), (390, 230), w=3.5, a=160)
 
 # ---- big 61% (top-right), circled once with a hasty pink loop ----
-c.text(YELLOW, (590, 30), "61%", fBig)
-loop = [(800 + 250 * math.cos(a) + R.uniform(-4, 4), 170 + 118 * math.sin(a) + R.uniform(-4, 4))
+c.text(YELLOW, (540, 30), "61%", fBig)
+loop = [(760 + 250 * math.cos(a) + R.uniform(-4, 4), 170 + 118 * math.sin(a) + R.uniform(-4, 4))
         for a in [math.radians(200 + k * 13) for k in range(30)]]
 c.poly(PINK, loop, closed=False, w=4.5, a=200)
-c.text(WHITE, (690, 296), "notes filed", fL, a=190)
+c.text(WHITE, (650, 296), "notes filed", fL, a=190)
 
 # ---- robot: boxy head with visor slit (no face), antenna, body, tread; outline + side-of-chalk hatching ----
 rx, ry = 110, 520
@@ -187,28 +188,35 @@ for k in range(4):
 c.line(WHITE, (rx + 40, ry + 320), (rx + 40, ry + 330), w=5); c.line(WHITE, (rx + 150, ry + 320), (rx + 150, ry + 330), w=5)
 
 # arm: shoulder -> elbow -> wrist, joints circled; gripper pinches the card
-sh, el, wr = (rx + 190, ry + 150), (rx + 300, ry + 90), (rx + 400, ry + 12)
+sh, el, wr = (rx + 190, ry + 150), (rx + 320, ry + 80), (rx + 470, ry - 56)
 c.line(WHITE, sh, el, w=8); c.line(WHITE, el, wr, w=8)
 c.circle(WHITE, *sh, 11, seg=12, w=4); c.circle(WHITE, *el, 10, seg=12, w=4)
 c.line(WHITE, wr, (wr[0] + 26, wr[1] - 26), w=5); c.line(WHITE, wr, (wr[0] + 34, wr[1] + 2), w=5)
 
-# ---- note card (yellow = the new thing), tilted, with ruled lines ----
-cx0, cy0 = wr[0] + 14, wr[1] - 118
-card = [(cx0, cy0 + 24), (cx0 + 150, cy0), (cx0 + 168, cy0 + 100), (cx0 + 18, cy0 + 124)]
-c.poly(YELLOW, card, w=5)
-c.hatch(YELLOW, cx0 + 6, cy0 + 8, cx0 + 162, cy0 + 118, gap=14, w=1.6, a=70)
+# ---- note card: held upright above the cabinet's top slot; its lower part is hidden inside (occlusion) ----
+SLOT_X = 790
+slot_y = 600 - 36 + 6            # near lip of the slot on the cabinet cap
+ccx = SLOT_X
+card = [(ccx - 70, slot_y - 175), (ccx + 62, slot_y - 190), (ccx + 66, slot_y + 40), (ccx - 66, slot_y + 52)]
+c.poly(CARDY, card, w=5)
+c.hatch(CARDY, ccx - 62, slot_y - 170, ccx + 58, slot_y + 30, gap=14, w=1.6, a=70)
 for i in range(3):
-    y = cy0 + 50 + i * 22
-    c.line(YELLOW, (cx0 + 30, y + 2), (cx0 + 140 - i * 22, y - 18 + 2), w=3, a=190)
-# motion ticks behind the card
+    y = slot_y - 140 + i * 24
+    c.line(CARDY, (ccx - 44, y + 3), (ccx + 38 - i * 18, y - 4), w=3, a=190)
+# gripper pinches the card's left edge
+c.line(WHITE, wr, (ccx - 66, slot_y - 150), w=5); c.line(WHITE, wr, (ccx - 66, slot_y - 100), w=5)
+# motion ticks beside the card (it is travelling down)
 for k in range(3):
-    c.line(WHITE, (cx0 - 26 - k * 4, cy0 + 4 + k * 26), (cx0 - 12 - k * 4, cy0 - 10 + k * 26), w=3, a=150)
+    c.line(WHITE, (ccx + 90 + k * 10, slot_y - 190 + k * 8), (ccx + 90 + k * 10, slot_y - 150 + k * 8), w=3, a=150)
 
 # ---- knowledge base: shelf cabinet with roof + network nodes; one empty slot waiting ----
 bx0, by0, bx1, by1 = 650, 600, 1010, 1010
 c.rect(WHITE, bx0, by0, bx1, by1, w=6)
-c.line(WHITE, (bx0 - 22, by0), ((bx0 + bx1) / 2, by0 - 74), w=6)
-c.line(WHITE, ((bx0 + bx1) / 2, by0 - 74), (bx1 + 22, by0), w=6)
+cap0, cap1 = by0 - 36, by0
+c.rect(WHITE, bx0 - 16, cap0, bx1 + 16, cap1, w=6)                              # cap front
+c.poly(WHITE, [(bx0 - 16, cap0), (bx0 + 6, cap0 - 22), (bx1 + 38, cap0 - 22), (bx1 + 16, cap0)], w=5)  # cap top face
+c.poly(WHITE, [(SLOT_X - 76, cap0 - 7), (SLOT_X - 54, cap0 - 15), (SLOT_X + 84, cap0 - 15), (SLOT_X + 72, cap0 - 7)], w=4)  # slot mouth
+c.hatch(WHITE, SLOT_X - 70, cap0 - 15, SLOT_X + 76, cap0 - 7, gap=6, w=2, a=130)
 shelves = [by0 + 102, by0 + 204, by0 + 306]
 for y in shelves:
     c.line(WHITE, (bx0, y), (bx1, y), w=5)
@@ -218,32 +226,25 @@ for si, top in enumerate([by0, *shelves]):
     x = bx0 + 16
     while x < bx1 - 36:
         bw = R.randint(22, 34); bh = R.randint(56, 82)
-        if si == 0 and slot is None and x > bx0 + 20:  # empty slot, near the robot
-            slot = (x, bottom - 84, x + 44, bottom - 4)
-            c.dashed(YELLOW, [(x, bottom - 4), (x, bottom - 84), (x + 44, bottom - 84), (x + 44, bottom - 4)], dash=9, gap=7, w=3)
-            x += 52; continue
         col = BLUE if R.random() < 0.18 else WHITE
         c.rect(col, x, bottom - bh, x + bw, bottom - 4, w=3.2, a=190)
         if R.random() < 0.35:
             c.hatch(col, x + 2, bottom - bh + 2, x + bw - 2, bottom - 6, gap=7, w=1.6, a=110)
         x += bw + R.randint(4, 9)
 c.hatch(WHITE, bx1 - 60, by0 + 4, bx1 - 4, by1 - 4, gap=11, a=70)            # shadow side of cabinet
-nodes = [(bx0 + 74, by0 - 26), ((bx0 + bx1) / 2, by0 - 40), (bx1 - 74, by0 - 26)]
+nodes = [(bx0 + 40, by0 - 58), (bx0 + 180, by0 - 74), (bx1 - 30, by0 - 58)]
 for n in nodes:
     c.circle(BLUE, n[0], n[1], 8, seg=10, w=3)
 c.line(BLUE, nodes[0], nodes[1], w=2.5, a=160); c.line(BLUE, nodes[1], nodes[2], w=2.5, a=160)
-
-# ---- placement path: dashed arc from card into the slot, arrowhead at the slot ----
-s0 = (card[1][0] + 8, card[1][1] + 30)
-s1 = ((slot[0] + slot[2]) / 2, slot[1] - 10)
-c.dashed(WHITE, arc_pts(s0, s1, -60), dash=14, gap=10, w=3.5, a=200)
-c.line(WHITE, s1, (s1[0] - 18, s1[1] - 16), w=4); c.line(WHITE, s1, (s1[0] + 14, s1[1] - 20), w=4)
 
 # ---- one handwritten label with a leader line ----
 c.text(WHITE, (360, 880), "AI 助理", fS, a=210)
 c.line(WHITE, (352, 896), (310, 870), w=3, a=170)
 
 # ---- bottom ~22% calm: dust and eraser swipes only, then the chalk ledge ----
+# occlusion: everything of the card below the slot lip is inside the cabinet, so clear it
+ImageDraw.Draw(c.mask(CARDY)).polygon([(ccx - 200, slot_y + 2), (ccx + 200, slot_y - 8), (ccx + 200, slot_y + 200), (ccx - 200, slot_y + 200)], fill=0)
+c.line(WHITE, (SLOT_X - 76, slot_y - 5), (SLOT_X + 72, slot_y - 12), w=5)   # near lip drawn over the card
 img = c.render(img)
 img = dust(img)
 d = ImageDraw.Draw(img)

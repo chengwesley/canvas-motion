@@ -161,13 +161,13 @@ glow(scene, 826, 123, 10, 10, LIGHT, 255, 6)
 solid(scene, mask_from(lambda d, s: d.ellipse([820 * s, 117 * s, 832 * s, 129 * s], fill=255)), (40, 200, 220))
 text(scene, (848, 112), 'SYNCING', sf(22, b'Semibold'), INK)
 
-# 2. Knowledge-base panel (far layer: big, light blur), with 6 rows; row 5 is the empty slot
+# 2. Knowledge-base panel (far layer: big, light blur), with 6 rows; row 3 is the empty slot
 PX0, PY0, PX1, PY1 = 584, 292, 1008, 960
 glass(scene, rr((PX0, PY0, PX1, PY1), 36), blur=26, veil=0.16, shadow=0.20, lift=24)
 text(scene, (PX0 + 36, PY0 + 34), 'Library', sf(30, b'Semibold'), INK)
 text(scene, (PX1 - 36, PY0 + 40), '61 / 100', sf(22, b'Medium'), INK2, anchor='ra')
 ROW_H, ROW_G = 78, 16
-dots = [BLOB_V, BLOB_P, BLOB_C, BLOB_O, None, BLOB_V]
+dots = [BLOB_V, BLOB_P, None, BLOB_C, BLOB_O, BLOB_V]
 for i, dc in enumerate(dots):
     ry0 = PY0 + 104 + i * (ROW_H + ROW_G)
     box = (PX0 + 28, ry0, PX1 - 28, ry0 + ROW_H)
@@ -188,10 +188,6 @@ for i, dc in enumerate(dots):
     for j, wf in enumerate((0.62 - 0.07 * (i % 3), 0.38)):
         lw = (PX1 - PX0 - 160) * wf
         solid(scene, rr((PX0 + 98, ry0 + 24 + j * 22, PX0 + 98 + lw, ry0 + 34 + j * 22), 5), INK2, 0.75 if j == 0 else 0.4)
-# slot hint arrow inside the empty slot (points in the direction the card travels)
-sx = SLOT[2] - 70; sy = (SLOT[1] + SLOT[3]) // 2
-solid(scene, mask_from(lambda d, s: d.polygon([((sx - 10) * s, (sy - 12) * s), ((sx + 8) * s, sy * s), ((sx - 10) * s, (sy + 12) * s)], fill=255)), WHITE, 0.7)
-
 # 3. Robot (mid layer). Hovering glass machine: antenna, head with visor, torso, arms, thruster.
 RX = 286
 glow(scene, RX, 742, 70, 18, LIGHT, 170, 18)                     # thruster light on the field
@@ -225,20 +221,28 @@ solid(scene, mask_from(lambda d, s: d.ellipse([(RX - 9) * s, 257 * s, (RX + 9) *
 glass(scene, rr((RX - 56, 712, RX + 56, 736), 12), blur=8, veil=0.34, shadow=0, sheen=0.2)
 solid(scene, rr((RX - 40, 730, RX + 40, 736), 3), LIGHT, 0.9)
 
-# 4. Note card (front layer: most opaque, strongest shadow), half-way into the empty slot
-CW_, CH_ = 300, 92
-CX0 = SLOT[0] - 96; CY0 = SLOT[1] + (SLOT[3] - SLOT[1] - CH_) // 2 - 4
-ARM = [(RX + 92, 532), (RX + 168, 618), (CX0 - 6, CY0 + CH_ // 2)]
+# 4. Note card: slides INTO the slot. The card is drawn first (sharp, violet-tinted), then the slot's
+#    front glass pane is laid over it: the part inside the slot is seen blurred and dimmed through
+#    frosted glass (occlusion = it is inside), the part outside stays sharp.
+CW_, CH_ = 300, 70
+CX0 = SLOT[0] - 140; CY0 = SLOT[1] + (SLOT[3] - SLOT[1] - CH_) // 2
+ARM = [(RX + 92, 532), (RX + 150, 586), (CX0 - 6, CY0 + CH_ // 2)]
 glass(scene, tube(ARM, 34), blur=12, veil=0.30, shadow=0.12, lift=10)
-card = rr((CX0, CY0, CX0 + CW_, CY0 + CH_), 22)
-glass(scene, card, blur=30, veil=0.62, sheen=0.3, shadow=0.30, lift=26)
-hgrad(scene, rr((CX0 + 26, CY0 + 22, CX0 + 120, CY0 + 34), 6), ACC_A, ACC_B)
-solid(scene, rr((CX0 + 26, CY0 + 46, CX0 + 250, CY0 + 54), 4), INK2, 0.75)
-solid(scene, rr((CX0 + 26, CY0 + 64, CX0 + 190, CY0 + 72), 4), INK2, 0.45)
-text(scene, (CX0 + CW_ - 26, CY0 + 18), '#61', sf(20, b'Semibold'), ACC_A, anchor='ra')
+card = rr((CX0, CY0, CX0 + CW_, CY0 + CH_), 20)
+glass(scene, card, blur=30, veil=0.55, sheen=0.3, shadow=0.30, lift=24, tint=ACC_B)
+hgrad(scene, rr((CX0 + 22, CY0 + 40, CX0 + 150, CY0 + 50), 5), ACC_A, ACC_B)
+solid(scene, rr((CX0 + 22, CY0 + 54, CX0 + 250, CY0 + 60), 3), INK2, 0.55)
+text(scene, (CX0 + 22, CY0 + 8), '#61', sf(24, b'Bold'), INK)
 # gripper: two small glass pads clamping the card's left edge
-for gy in (CY0 - 12, CY0 + CH_ - 10):
+for gy in (CY0 - 14, CY0 + CH_ - 8):
     glass(scene, rr((CX0 - 22, gy, CX0 + 26, gy + 22), 11), blur=8, veil=0.4, shadow=0.1, lift=4, sheen=0.2)
+# slot front pane over the card + a light leak at the mouth
+glass(scene, rr(SLOT, 22), blur=9, veil=0.30, sheen=0.22, shadow=0, lift=0)
+glow(scene, SLOT[0] + 2, (SLOT[1] + SLOT[3]) // 2, 6, 34, LIGHT, 230, 8)
+# slot hint arrow inside the empty slot (points in the direction the card travels)
+sx = SLOT[2] - 70; sy = (SLOT[1] + SLOT[3]) // 2
+solid(scene, mask_from(lambda d, s: d.polygon([((sx - 10) * s, (sy - 12) * s), ((sx + 8) * s, sy * s), ((sx - 10) * s, (sy + 12) * s)], fill=255)), WHITE, 0.7)
+
 
 # 5. Big-number widget (front-left)
 WG = (72, 792, 520, 1030)

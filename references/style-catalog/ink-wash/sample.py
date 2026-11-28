@@ -192,12 +192,12 @@ def seal(img, x, y, size, ch):
     """Cinnabar seal, intaglio (white char on red), worn edges. One per picture."""
     s = Image.new("L", (size, size), 0); d = ImageDraw.Draw(s)
     d.rectangle([3, 3, size - 4, size - 4], fill=230)
-    f = ImageFont.truetype(HEI, int(size * 0.66))
+    f = ImageFont.truetype(HEI, int(size * 0.7))
     d.text((size / 2, size / 2 + 1), ch, font=f, fill=0, anchor="mm")
-    for _ in range(int(size * 2.2)):
+    for _ in range(int(size * 0.7)):
         rx, ry = R.uniform(0, size), R.uniform(0, size)
-        rr = R.uniform(0.6, 2.4)
-        d.ellipse([rx - rr, ry - rr, rx + rr, ry + rr], fill=R.choice([0, 0, 120, 230]))
+        rr = R.uniform(0.5, 1.5)
+        d.ellipse([rx - rr, ry - rr, rx + rr, ry + rr], fill=R.choice([0, 120, 230]))
     m = Image.new("L", (W, H), 0)
     m.paste(s.rotate(R.uniform(-2.5, 2.5), resample=Image.BICUBIC), (x, y))
     return ink(img, m.filter(ImageFilter.GaussianBlur(0.5)), CINNABAR)
@@ -290,34 +290,38 @@ img = stroke(img, [(206, 914), (204, 934)], 12, NONG, dry=0.15)
 img = stroke(img, [(290, 914), (292, 934)], 12, NONG, dry=0.15)
 img = wash(img, 250, 990, 170, 18, DAN - 20, blobs=10, blur=16, rim=0.1)
 # arm: long two-segment reach, joints as heavy dots; card held right at the drawer mouth
-sh, el, wr = (348, 744), (450, 664), (548, 646)
-img = stroke(img, [sh, (400, 694), el], 15, JIAO, dry=0.3)
-img = stroke(img, [el, (500, 646), wr], 13, JIAO, dry=0.45)
+sh, el, wr = (348, 744), (450, 690), (568, 662)
+img = stroke(img, [sh, (400, 722), el], 15, JIAO, dry=0.3)
+img = stroke(img, [el, (510, 664), wr], 13, JIAO, dry=0.45)
 img = dot(img, *sh, 14); img = dot(img, *el, 12); img = dot(img, *wr, 9)
 
-# ---- 4. note card: the brightest paper in the picture, tipping down into the open drawer ----
-card = [(552, 588), (664, 612), (652, 684), (540, 660)]
+# ---- 4. note card: the brightest paper in the picture, lowered INTO the pulled-out drawer ----
+# occlusion: the drawer front is drawn over the card, so the lower part is hidden inside the drawer
+prev = img.copy()
+card = [(601, 636), (681, 628), (683, 800), (603, 808)]
 cm = Image.new("L", (W, H), 0); ImageDraw.Draw(cm).polygon(card, fill=255)
 img = Image.composite(Image.new("RGB", (W, H), CARD), img, cm.filter(ImageFilter.GaussianBlur(0.7)))
 img = stroke(img, [card[0], card[1]], 4, NONG, dry=0.25)
 img = stroke(img, [card[1], card[2]], 4, NONG, dry=0.3)
-img = stroke(img, [card[3], card[2]], 6, JIAO, dry=0.25)
 img = stroke(img, [card[0], card[3]], 4, NONG, dry=0.25)
 for k in range(3):
-    y = 612 + k * 18
-    img = stroke(img, [(560, y), (636 - k * 16, y + 16)], 3, ZHONG, dry=0.4)
+    y = 664 + k * 22
+    img = stroke(img, [(616, y), (668 - k * 14, y - 3)], 3, ZHONG, dry=0.4)
+fm = Image.new("L", (W, H), 0); ImageDraw.Draw(fm).polygon(front, fill=255)
+img = Image.composite(prev, img, fm)                       # front of the drawer covers the card
+img = stroke(img, [front[0], front[1]], 7, JIAO, dry=0.3)  # re-ink the front's top lip over the card edges
 # gripper: two claw strokes pinching the card's left edge
-img = stroke(img, [wr, (552, 626), (566, 618)], 8, JIAO, dry=0.15)
-img = stroke(img, [wr, (548, 664), (562, 670)], 8, JIAO, dry=0.15)
-# placement path: one dry, lifting stroke dipping from the card into the drawer
-img = stroke(img, [(662, 640), (676, 668), (672, 700)], 5, ZHONG, dry=0.85, press=(0.4, 1.0, 0.2))
-img = stroke(img, [(662, 690), (672, 704), (684, 690)], 4, NONG, dry=0.3)
+img = stroke(img, [wr, (588, 640), (604, 646)], 8, JIAO, dry=0.15)
+img = stroke(img, [wr, (590, 684), (604, 680)], 8, JIAO, dry=0.15)
+# placement cue: one dry downward stroke with a small arrowhead above the card
+img = stroke(img, [(644, 566), (644, 604)], 5, ZHONG, dry=0.85, press=(0.4, 1.0, 0.2))
+img = stroke(img, [(632, 594), (644, 610), (656, 594)], 4, NONG, dry=0.3)
 
 # ---- 5. heading: vertical, top-right, read top-down; seal below it ----
 fh = ImageFont.truetype(HEI, 128)
 for i, ch in enumerate("知識庫"):
     img = text_ink(img, (964, 60 + i * 140), ch, fh, dens=JIAO, anchor="mt", streak=0.1, angle=math.pi / 2)
-img = seal(img, 938, 486, 56, "知")
+img = seal(img, 930, 476, 76, "知")
 
 # ---- 6. big 61%: heavy ink, wet bleed, flying-white streaks running horizontally ----
 fn = ImageFont.truetype(NUM, 300, index=0)

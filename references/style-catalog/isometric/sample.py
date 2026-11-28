@@ -176,21 +176,18 @@ for k, sy in enumerate(slots):
     lab = tabs[k % 4]
     box(dx0 + .14, sy, dz1 - .3, dx1 - dx0 - .28, .07, .42, CARD, edge=False)
     box(dx0 + .2 + (k % 3) * .22, sy, dz1 + .12, .26, .07, .1, lab, edge=False)
-face_y(CY1 + DPULL, dx0, dx1, dz0, dz1, NAVY_IN[1])                      # drawer front
-face_y(CY1 + DPULL + .001, dx0 + .3, dx1 - .3, dz0 + .3, dz0 + .42, CORAL[1])   # handle
 
 # the note card being filed: upright, hovering over the glowing gap
-cy = slots[GAP]; ky0 = cy; cz0 = dz1 + .62
-kx0, kx1, kz1 = dx0 + .1, dx1 - .1, cz0 + 1.05
+cy = slots[GAP]; ky0 = cy; cz0 = dz1 - .75      # lower third sinks into the tray, hidden by the drawer front
+kx0, kx1, kz1 = dx0 + .1, dx1 - .1, cz0 + 1.3
 box(kx0, ky0, cz0, kx1 - kx0, .08, kz1 - cz0, CARD)
 face_y(ky0 + .081, kx0, kx0 + .45, kz1 - .22, kz1, CORAL[1])    # coral index tab
-for xx in (kx0 + .04, kx1 - .04):                                          # drop guides into the gap
-    for k in range(3):
-        zz = cz0 - .12 - k * .16
-        d.line([iso(xx, ky0 + .04, zz), iso(xx, ky0 + .04, zz - .08)], fill=TEAL[1], width=int(3 * S))
 for i, lw in enumerate((.78, .56, .68)):
     zl = kz1 - .2 - i * .19
     face_y(ky0 + .082, kx0 + .48 if i == 0 else kx0 + .12, kx0 + .12 + (kx1 - kx0 - .24) * lw, zl - .035, zl + .035, rgb('B9C2D6'))
+
+face_y(CY1 + DPULL, dx0, dx1, dz0, dz1, NAVY_IN[1])                      # drawer front
+face_y(CY1 + DPULL + .001, dx0 + .3, dx1 - .3, dz0 + .3, dz0 + .42, CORAL[1])   # handle
 
 # floor path: inbox tray -> robot -> drawer (the route of a note), pale teal tiles
 for tx, ty in ((1.7, 5.6), (2.3, 5.0), (2.9, 4.4)):

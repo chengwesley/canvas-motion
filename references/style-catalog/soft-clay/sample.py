@@ -169,11 +169,12 @@ def main():
     card = Image.new("L", (150, 196), 0)
     ImageDraw.Draw(card).rounded_rectangle([0, 0, 149, 195], 24, fill=255)
     card = card.rotate(6, expand=True, resample=Image.BICUBIC)
-    cm = new_mask(); cm.paste(card, (650, 468))
+    cm = new_mask(); DY = 78   # card sinks into the open drawer; the drawer front hides its lower edge
+    cm.paste(card, (650, 468 + DY))
     clay(c, cm, CREAM, soft=12)
     for (a, b) in [((682, 512), (772, 503)), ((684, 548), (774, 539)), ((686, 584), (748, 578))]:
-        groove(c, [a, b], width=8)
-    clay(c, ell([752, 488, 778, 514]), ORANGE, soft=5, shadow=False)   # tag dot on the card
+        groove(c, [(a[0], a[1] + DY), (b[0], b[1] + DY)], width=8)
+    clay(c, ell([752, 488 + DY, 778, 514 + DY]), ORANGE, soft=5, shadow=False)   # tag dot on the card
 
     # drawer front, pulled forward and down
     clay(c, rr([616, 704, 808, 800], 24), MINT, soft=12)
