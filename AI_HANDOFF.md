@@ -10,7 +10,7 @@
   - 使用者審 PR #1 後合併；style-catalog 分支要另開 PR（目前只 push、未開 PR）。
   - 依 style-catalog/README.md「要再畫得更好」，先挑 2–3 種風格精修：放參考作品並排比、先畫元件表、修三輪。
   - 補完另外 10 種風格的 style.md；水墨、水彩、世紀中期的樣張小字有缺字要修。
-  - FB 貼文（`~/Antigravity/projects/agent-memory-motion/fb-post.md`）還是舊版劇本的內容，要改成配合 v4 影片。
+  - （已完成）FB 貼文已改成配合 v4 影片，並用 ask-wesley 檢查過。
 - 注意：
   - 各 style.md 的代表畫家與作品未經查證，共 27 處標「待查證」，對外使用前要核對。
   - v4 專案 scenes/ 裡的 `zz_end.js` 必須是最後一個載入的檔（遮蔽了引擎的 cam／frame／hud 撞名），新增或改名場景要同步改它。
