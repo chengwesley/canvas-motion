@@ -128,8 +128,7 @@ D("pink").rectangle([852, 452, 856, 492], fill=255)
 
 # ---------------- knowledge base: card catalogue cabinet
 kx0, ky0, kx1, ky1 = 590, 620, 1015, 1040
-D("blue", "tone").rectangle([kx0, ky0, kx1, ky1], fill=70)                 # 27 % blue body tint
-D("blue").rectangle([kx0, ky0, kx1, ky1], outline=255, width=10)
+D("blue", "tone").rectangle([kx0, ky0, kx1, ky1], fill=45)                 # 25 % blue body tint, no outline: the shape is the flat colour
 D("blue").rectangle([kx0 - 14, ky0 - 22, kx1 + 14, ky0], fill=255)       # top slab
 cols, rows = [616, 812], [650, 780, 910]
 for r, y in enumerate(rows):
@@ -137,9 +136,9 @@ for r, y in enumerate(rows):
         if r == 0 and q == 0:
             D("blue").rectangle([x, y, x + 176, y + 110], fill=255)          # dark open slot
             continue
-        D("blue").rectangle([x, y, x + 176, y + 110], outline=255, width=6)
+        knock_all("rectangle", [x - 9, y - 9, x + 185, y + 119], inks=("blue",))          # paper gutter instead of an outline
+        D("blue", "tone").rectangle([x, y, x + 176, y + 110], fill=185)      # drawer front: darker tone
         D("yellow").rectangle([x + 58, y + 30, x + 118, y + 58], fill=255)   # label holder
-        D("blue").rectangle([x + 58, y + 30, x + 118, y + 58], outline=255, width=4)
         D("blue").ellipse([x + 78, y + 70, x + 98, y + 90], fill=255)        # pull
 # filed cards standing in the open drawer
 for i, x in enumerate(range(630, 780, 26)):
@@ -149,7 +148,7 @@ for i, x in enumerate(range(630, 780, 26)):
 
 # ---------------- note card being lowered into the drawer (paper white, pink keyline)
 card = rot(712, 636, 124, 160, 5)
-knock_all("polygon", card)
+knock_all("polygon", card)                                         # card = bare paper
 D("pink").line(card + [card[0]], fill=255, width=7)
 for k_, t in enumerate((0.25, 0.42, 0.59)):
     a = (card[0][0] + (card[3][0] - card[0][0]) * t + 22, card[0][1] + (card[3][1] - card[0][1]) * t)
@@ -157,9 +156,8 @@ for k_, t in enumerate((0.25, 0.42, 0.59)):
     D("blue").line([a, b], fill=255, width=7)
 D("yellow").ellipse([738, 576, 762, 600], fill=255)               # tag dot
 # drawer front pulled forward over the slot
-knock_all("rectangle", [606, 712, 802, 808], inks=("blue",))
-D("blue").rectangle([606, 712, 802, 808], outline=255, width=8)
-D("blue", "tone").rectangle([606, 712, 802, 808], fill=120)
+knock_all("rectangle", [606, 712, 802, 808], inks=("blue", "pink"))
+D("blue", "tone").rectangle([606, 712, 802, 808], fill=170)
 D("yellow").rectangle([672, 738, 736, 764], fill=255)
 # descent marks above the card
 # pink down-arrow beside the card: "goes in here"
@@ -173,8 +171,7 @@ for x in (178, 248, 318, 388):                                             # whe
     D("yellow").ellipse([x - 22, 979, x + 22, 1023], fill=255)
     D("blue").ellipse([x - 7, 994, x + 7, 1008], fill=255)
 D("blue").rectangle([214, 920, 386, 962], fill=255)                        # hip
-D("yellow", "tone").rectangle([170, 700, 430, 920], fill=170)              # torso: yellow 67 %
-D("blue").rectangle([170, 700, 430, 920], outline=255, width=9)
+D("yellow").rectangle([170, 700, 430, 920], fill=255)                      # torso: one flat yellow block, no outline
 D("pink").rectangle([212, 742, 388, 840], fill=255)                        # chest panel
 for i in range(3):
     knock("pink", "rectangle", [232, 760 + i * 26, 232 + 120 - i * 34, 772 + i * 26])

@@ -43,7 +43,7 @@ _seed = [100]
 def nseed(): _seed[0] += 1; return _seed[0]
 
 
-def stroke(pts, w=LW, lay='ink', amp=1.6, taper=True, seed=None, val=255):
+def stroke(pts, w=LW, lay='ink', amp=1.1, taper=True, seed=None, val=255):
     """Draw a polyline as one hand stroke: resample, perpendicular wobble, pressure taper."""
     wob = Wob(seed or nseed()); pw = Wob(nseed())
     d = ImageDraw.Draw(layer(lay))
@@ -58,16 +58,16 @@ def stroke(pts, w=LW, lay='ink', amp=1.6, taper=True, seed=None, val=255):
             t = k / (sl or 1); x = x0 + (x1 - x0) * t; y = y0 + (y1 - y0) * t
             o = amp * wob(s / 90)
             x += nx * o; y += ny * o
-            ww = w * (0.92 + 0.16 * pw(s / 60))
+            ww = w * (0.97 + 0.06 * pw(s / 60))        # Herge: near-constant line weight
             if taper:
                 e = min(1, s / 26, (L - s) / 26)
-                ww *= 0.45 + 0.55 * max(0, e)
+                ww *= 0.78 + 0.22 * max(0, e)             # only a slight taper at the ends
             r = max(.5, ww / 2) * S
             d.ellipse((x * S - r, y * S - r, x * S + r, y * S + r), fill=val)
             k += step; s += step
 
 
-def seg(a, b, w=LW, lay='ink', over=(4, 9), amp=1.4):
+def seg(a, b, w=LW, lay='ink', over=(1, 4), amp=1.0):
     """Straight edge with overshoot at both ends (marker lifted late)."""
     r = random.Random(nseed())
     dx, dy = b[0] - a[0], b[1] - a[1]; l = math.hypot(dx, dy) or 1; ux, uy = dx / l, dy / l
@@ -166,6 +166,12 @@ def marker(mask, lay='acc_fill', width=W * .03, ang=-28, shift=(7, 5)):
     LAYERS[lay] = ImageChops.lighter(layer(lay), m)
 
 
+def erase(mask):
+    """Occlusion: wipe every layer under `mask` (paper shows through), like a closed Herge contour."""
+    inv = ImageChops.invert(mask)
+    for k in list(LAYERS): LAYERS[k] = ImageChops.multiply(LAYERS[k], inv)
+
+
 def text(s, xy, size, font=FONT_H, lay='ink', anchor='la'):
     f = ImageFont.truetype(font, int(size * S))
     ImageDraw.Draw(layer(lay)).text((xy[0] * S, xy[1] * S), s, font=f, fill=255, anchor=anchor)
@@ -178,17 +184,18 @@ def wordbox(s, size, font=FONT_H):
 # =============================== scene ==========================================
 random.seed(7)
 
-# ---- heading: 知識庫 + marker swoosh underline (top-left) ----
+# ---- heading: 知識庫; Steinberg: ONE continuous accent line is the title underline AND the loop round 61% ----
 text('知識庫', (78, 78), 92)
-stroke(spline([(74, 196), (190, 188), (320, 192), (372, 186)]), W * .016, 'acc', amp=1.2)
 text('KNOWLEDGE BASE', (80, 222), 30, FONT_L, 'soft')
-
-# ---- big number 61% (top-right) with circled emphasis ----
 text('61', (842 - 40 + 9, 72 + 9), 196, lay='shadow', anchor='ra'); text('%', (848 - 40 + 7, 148 + 7), 104, lay='shadow')
 text('61', (842 - 40, 72), 196, anchor='ra')
 text('%', (848 - 40, 148), 104, anchor='la')
-loop(752, 172, 228, 108, W * .0045, 'acc', a0=-2.9, extra=.45)
 text('筆記被重複引用', (752, 296), 30, FONT_L, 'soft', anchor='ma')
+lead = spline([(74, 196), (190, 188), (320, 192), (420, 200), (500, 218), (545, 226)], 30)
+cx_, cy_, rx_, ry_ = 752, 172, 228, 108
+ring = [(cx_ + rx_ * math.cos(a_), cy_ + ry_ * (1 + .02 * math.sin(a_ * 3)) * math.sin(a_))
+        for a_ in [2.1 + (2 * math.pi + .5) * i / 140 for i in range(141)]]   # starts bottom-left, goes round
+stroke(lead + ring, W * .0085, 'acc', amp=.7)
 
 # ---- knowledge base: hand-drawn bookshelf (right) ----
 SX0, SY0, SX1, SY1 = 600, 450, 980, 960
@@ -204,12 +211,10 @@ for y in shelves: seg((SX0, y), (SX1, y), LW)
 r = random.Random(3)
 rows = [(SY0, shelves[0]), (shelves[0], shelves[1]), (shelves[1], SY1)]
 slot = None
-for ri, (top, bot) in enumerate(rows):
+for ri, (top, bot) in enumerate(rows[:2]):      # bottom row is the card drawer, drawn below
     x = SX0 + 18
     while x < SX1 - 40:
         bw = r.choice((30, 36, 42, 48)); bh = r.randint(88, 138)
-        if ri == 1 and slot is None:
-            slot = (x, bot - 132, x + 96, bot); x += 110; continue
         if x + bw > SX1 - 14: break
         if r.random() < .12 and x + bw + 30 < SX1 - 14:
             # leaning book
@@ -218,35 +223,39 @@ for ri, (top, bot) in enumerate(rows):
         box(x, bot - bh, x + bw, bot - 4, LW * .8)
         for t in range(r.randint(1, 2)):
             yy = bot - bh + 18 + t * 12; seg((x + 8, yy), (x + bw - 8, yy), LW * .5, over=(0, 2), amp=.3)
-        if r.random() < .3: hatch(region(rect=(x + 2, bot - bh + 2, x + bw - 2, bot - 6)), spacing=W * .009)
+        if r.random() < .12: hatch(region(rect=(x + 2, bot - bh + 2, x + bw - 2, bot - 6)), spacing=W * .009)
         x += bw + r.randint(2, 6)
-sx0, sy0, sx1, sy1 = slot
+sx0, sy0, sx1, sy1 = SX0 + 60, SY0 + 345, SX0 + 190, SY0 + 430    # drawer opening (for the sparkle mark)
 # cabinet label
 seg((SX0 + 40, SY0), (SX0 + 70, SY0 - 40), LW * .6, over=(0, 2)); seg((SX0 + 130, SY0), (SX0 + 100, SY0 - 40), LW * .6, over=(0, 2))
 box(SX0 + 40, SY0 - 92, SX0 + 150, SY0 - 40, LW * .8)
 text('KB', (SX0 + 95, SY0 - 88), 34, FONT_H, 'ink', anchor='ma')
 
-# ---- note card held by the agent, flying into the slot ----
-CX0, CY0, CX1, CY1 = 410, 585, 535, 745
-card = [(CX0, CY0 + 10), (CX1 - 6, CY0), (CX1 + 6, CY1 - 12), (CX0 + 10, CY1)]  # slightly rotated
-marker(region(poly=card), 'acc_fill', shift=(8, 6))
+# ---- bottom row: card drawer. The note card is already INSIDE it: the front panel (drawn last) hides its lower half ----
+FY0, FY1 = 900, 956                                 # drawer front panel
+rr_ = random.Random(21)
+xx = SX0 + 18
+while xx < SX1 - 30:                                # index cards: only their tops show above the panel
+    if 640 < xx < 790: xx = 790; continue
+    bw = rr_.choice((34, 40, 46)); bh = rr_.choice((40, 52, 62))
+    if xx + bw > SX1 - 16: break
+    box(xx, FY0 - bh, xx + bw, FY0 - 2, LW * .7)
+    seg((xx + 7, FY0 - bh + 14), (xx + bw - 8, FY0 - bh + 14), LW * .45, over=(0, 2), amp=.3)
+    xx += bw + 4
+CX0, CY0, CX1, CY1 = 660, 796, 762, 946
+card = [(CX0, CY0 + 6), (CX1 - 2, CY0), (CX1 + 4, CY1 - 6), (CX0 + 2, CY1)]
+marker(region(poly=[(CX0, CY0 + 6), (CX1 - 2, CY0), (CX1 + 1, CY0 + 34), (CX0, CY0 + 40)]), 'acc_fill', width=W * .012, shift=(5, 4))
 for i in range(4): seg(card[i], card[(i + 1) % 4], LW)
-for k, lw in enumerate((.78, .62, .72, .45)):
-    y = CY0 + 46 + k * 30; x0 = CX0 + 22 + k * 1.5
-    stroke([(x0, y), (x0 + (CX1 - CX0 - 40) * lw, y - 4)], LW * .55, amp=.7)
-# folded corner
-seg((CX1 - 30, CY0 + 3), (CX1 - 22, CY0 + 30), LW * .7); seg((CX1 - 22, CY0 + 30), (CX1 + 1, CY0 + 24), LW * .7)
-# ghost card inside the slot (destination), dashed accent
-gx0, gy0, gx1, gy1 = sx0 + 12, sy1 - 112, sx1 - 12, sy1 - 8
-def dashed(a, b, w, lay, n):
-    for k in range(n):
-        p = (a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n)
-        q = (a[0] + (b[0] - a[0]) * (k + .55) / n, a[1] + (b[1] - a[1]) * (k + .55) / n)
-        stroke([p, q], w, lay, amp=.2, taper=False)
-gc = [(gx0, gy0), (gx1, gy0), (gx1, gy1), (gx0, gy1)]
-for i in range(4): dashed(gc[i], gc[(i + 1) % 4], LW * .7, 'acc', 4)
-# motion arrow: short arc from the held card into the slot
-arrow([(CX1 + 18, CY0 + 30), (570, CY0 + 18), (gx0 - 8, gy0 + 40)], LW * .95, 'acc', head=22)
+for k, lw in enumerate((.8, .6)):
+    y = CY0 + 56 + k * 22; stroke([(CX0 + 14, y), (CX0 + 14 + (CX1 - CX0 - 28) * lw, y - 2)], LW * .55, amp=.5)
+# the panel: erase everything behind it (card bottom, index-card bottoms), then draw it closed
+erase(region(rect=(SX0 + 8, FY0, SX1 - 6, FY1)))
+box(SX0 + 8, FY0, SX1 - 6, FY1, LW * .9)
+box((SX0 + SX1) // 2 - 36, FY0 + 20, (SX0 + SX1) // 2 + 36, FY0 + 40, LW * .7)       # pull handle
+hatch(region(rect=(SX1 - 70, FY0 + 3, SX1 - 8, FY1 - 3)), spacing=W * .009)
+# motion chevrons: "down, into the drawer" (accent)
+for j in range(2):
+    yv = 808 + j * 22; stroke([(792, yv), (806, yv + 12), (820, yv)], LW * .8, 'acc', amp=.2, taper=False)
 
 # ---- AI agent: abstract boxy machine, visor band (no face), left ----
 AX = 205
@@ -287,24 +296,31 @@ def limb(p, q, half):
     """Mechanical arm segment: two parallel edges, ends left open for the joints."""
     dx, dy = q[0] - p[0], q[1] - p[1]; l = math.hypot(dx, dy); nx, ny = -dy / l * half, dx / l * half
     seg((p[0] + nx, p[1] + ny), (q[0] + nx, q[1] + ny), LW * .9, over=(0, 3)); seg((p[0] - nx, p[1] - ny), (q[0] - nx, q[1] - ny), LW * .9, over=(0, 3))
-SH, EL, WR = (AX + 112, 600), (AX + 170, 712), (CX0 - 10, 665)
+SH, EL, WR = (AX + 112, 600), (AX + 270, 690), (CX0 - 22, 822)
+# the forearm passes in front of the shelf frame: erase behind it, then draw the two edges
+_dx, _dy = WR[0] - EL[0], WR[1] - EL[1]; _l = math.hypot(_dx, _dy); _nx, _ny = -_dy / _l * 13, _dx / _l * 13
+erase(region(poly=[(EL[0] + _nx, EL[1] + _ny), (WR[0] + _nx, WR[1] + _ny), (WR[0] - _nx, WR[1] - _ny), (EL[0] - _nx, EL[1] - _ny)]))
 limb(SH, EL, 15); limb(EL, WR, 13)
 for (jx, jy), rr in ((SH, 20), (EL, 19), (WR, 15)): loop(jx, jy, rr, rr, LW * .85)
 marker(region(ell=(EL[0], EL[1], 8, 8)), 'acc_fill', width=W * .01, shift=(2, 2))
 # two-finger gripper pinching the card edge
-seg((WR[0] + 8, WR[1] - 12), (CX0 + 26, WR[1] - 22), LW * .85, over=(0, 2)); seg((WR[0] + 8, WR[1] + 12), (CX0 + 26, WR[1] + 22), LW * .85, over=(0, 2))
+seg((WR[0] + 8, WR[1] - 10), (CX0 + 4, WR[1] - 16), LW * .85, over=(0, 2)); seg((WR[0] + 8, WR[1] + 10), (CX0 + 4, WR[1] + 16), LW * .85, over=(0, 2))
 # other arm down
 stroke(spline([(AX - 104, 600), (AX - 140, 680), (AX - 128, 760)], 20), LW, amp=.6)
 stroke(spline([(AX - 104, 630), (AX - 120, 690), (AX - 104, 760)], 20), LW, amp=.6)
 loop(AX - 118, 774, 18, 16, LW * .8)
 # label
-text('AI Agent', (AX, 968), 30, FONT_H, 'soft', anchor='ma')
+text('AI Agent', (AX, 984), 30, FONT_H, 'soft', anchor='ma')
 
 # ---- tiny sketchnote marks ----
-# sparkle near slot
-for a in range(0, 360, 90):
-    ca, sa = math.cos(math.radians(a)), math.sin(math.radians(a))
-    stroke([(sx1 + 30 + ca * 8, sy0 - 18 + sa * 8), (sx1 + 30 + ca * 20, sy0 - 18 + sa * 20)], LW * .6, 'acc', amp=.1, taper=False)
+# Sempe: a thin broken ground line with a few tiny tufts, and a loose pale wash that spills past the line
+stroke([(48, 972), (120, 970)], LW * .4, 'soft', amp=1.2)
+stroke([(290, 971), (340, 973)], LW * .4, 'soft', amp=1.2)
+stroke([(400, 974), (700, 971), (1040, 975)], LW * .4, 'soft', amp=1.2)
+for tx in (330, 548, 1004):
+    for dx_, dy_ in ((-6, -12), (0, -16), (7, -11)):
+        stroke([(tx, 974), (tx + dx_, 974 + dy_)], LW * .35, 'soft', amp=.1, taper=False)
+marker(region(ell=(190, 940, 215, 20)), 'blue_fill', width=W * .02, ang=-6, shift=(9, 7))
 
 # bottom ~22% (y > 1053) left completely empty for subtitles
 

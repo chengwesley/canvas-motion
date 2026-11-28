@@ -132,7 +132,7 @@ cut_letters(page, "知識庫", 70, 200, 104, [(CREAM, INK), (RED, CREAM), (INK, 
 
 # ---- knowledge base: cut-paper bookshelf
 shelf_x, shelf_y, sw, sh_ = 560, 340, 440, 520
-cab = cut_piece(sw, sh_, KRAFT, amp=4)
+cab = cut_piece(sw, sh_, KRAFT, torn=False)   # Hoch/Bearden: primary pieces are knife-cut, straight edges
 cd = ImageDraw.Draw(cab)
 rows = 4
 for r in range(rows):
@@ -150,13 +150,6 @@ cd.rectangle((sw - 120, 30 + 2 * 122 + 20, sw - 40, 30 + 2 * 122 + 100), fill=(2
 place(page, cab, shelf_x + sw / 2, shelf_y + sh_ / 2, 1.5)
 washi(page, shelf_x + 60, shelf_y - 4, 180, 18, TEAL)
 washi(page, shelf_x + sw - 40, shelf_y + 10, 160, -24, RED)
-# network links scribbled in ink over the shelf
-for _ in range(5):
-    a = (shelf_x + rng.randint(40, sw - 40), shelf_y + rng.randint(40, sh_ - 40))
-    b = (shelf_x + rng.randint(40, sw - 40), shelf_y + rng.randint(40, sh_ - 40))
-    pd.line((a, b), fill=INK + (255,), width=2)
-    for p_ in (a, b): pd.ellipse((p_[0] - 7, p_[1] - 7, p_[0] + 7, p_[1] + 7), fill=CREAM + (255,), outline=INK + (255,), width=3)
-
 # ---- AI agent: robot built from cut paper (boxy head, visor slit, grille, bolts, jointed arm with claw, treads)
 ax, ay = 240, 610
 def bolt(cx, cy, r=9):
@@ -172,7 +165,7 @@ def limb(p, q, th, color):
 place(page, cut_piece(270, 62, INK, torn=False), ax, ay + 205, 0, blur=4)
 for k in range(-4, 5): bolt(ax + k * 28, ay + 205, 7)
 # torso
-place(page, cut_piece(230, 260, BLUE, pattern="stripes", border=8), ax, ay + 40, -2)
+place(page, cut_piece(230, 260, BLUE, pattern="stripes", border=8, torn=False), ax, ay + 40, -2)
 place(page, cut_piece(150, 100, CREAM, border=0, torn=False), ax, ay + 70, 1)
 cp = ImageDraw.Draw(page)
 for i in range(4):  # chest vent slats
@@ -182,36 +175,45 @@ cd2.ellipse((0, 0, 89, 89), fill=MUSTARD + (255,)); cd2.ellipse((22, 22, 67, 67)
 place(page, core, ax, ay - 50, 0, blur=4)
 # neck + head
 place(page, cut_piece(60, 30, INK, torn=False), ax, ay - 100, 0, blur=2)
-place(page, cut_piece(190, 120, TEAL, border=7), ax, ay - 170, 2)
+place(page, cut_piece(190, 120, TEAL, border=7, torn=False), ax, ay - 170, 2)
 place(page, cut_piece(150, 30, INK, torn=False), ax, ay - 178, 2, blur=2)          # visor slit (no eyes/mouth)
 place(page, cut_piece(100, 12, MUSTARD, torn=False), ax - 10, ay - 178, 2, blur=0, shadow=(0, 0), sop=0)
 for gx in range(-60, 61, 24): place(page, cut_piece(8, 22, INK, torn=False), ax + gx, ay - 140, 2, blur=1, shadow=(1, 1))
 place(page, cut_piece(14, 70, INK, torn=False), ax + 50, ay - 262, 8, blur=3)       # antenna
 bolt(ax + 62, ay - 300, 12)
 bolt(ax - 82, ay - 210, 7); bolt(ax + 86, ay - 210, 7)
-# shoulder, jointed arm, pincer claw holding the note
-sh_p, el_p, hd_p = (ax + 112, ay - 20), (ax + 300, ay + 60), (ax + 440, ay - 40)
+# shoulder, jointed arm, ENLARGED pincer claw (Hoch/Bearden scale jump: the working hand is the biggest part)
+sh_p, el_p, hd_p = (ax + 112, ay - 20), (ax + 300, ay + 70), (ax + 520, ay - 112)
 limb(sh_p, el_p, 36, RED); limb(el_p, hd_p, 32, RED)
-for jp, r in ((sh_p, 26), (el_p, 24), (hd_p, 20)): bolt(jp[0], jp[1], r)
-limb((hd_p[0] + 6, hd_p[1] - 14), (hd_p[0] + 56, hd_p[1] - 30), 14, INK)
-limb((hd_p[0] + 6, hd_p[1] + 14), (hd_p[0] + 56, hd_p[1] + 20), 14, INK)
+for jp, r in ((sh_p, 26), (el_p, 24)): bolt(jp[0], jp[1], r)
 
-# ---- note card being placed into the shelf slot
-card = cut_piece(190, 140, (252, 250, 242), torn=False, pattern="lines")
-ImageDraw.Draw(card).text((60, 12), "NOTE #61", font=font(MENLO, 20), fill=RED)
-ImageDraw.Draw(card).text((60, 44), "會議重點", font=font(HEITI, 26), fill=INK)
-place(page, card, 790, 585, -10, shadow=(14, 18), blur=10)
-washi(page, 765, 520, 110, -30, MUSTARD, width=34)
-# motion arrow (hand-cut)
-arr = cut_piece(120, 26, INK, torn=False)
-place(page, arr, 905, 700, 90, blur=3)
-
+# ---- note card dropped into the pocket of the shelf: lower half hidden behind a front pocket piece (occlusion)
+card = cut_piece(176, 134, (252, 250, 242), torn=False, pattern="lines")
+ImageDraw.Draw(card).text((56, 10), "NOTE #61", font=font(MENLO, 18), fill=RED)
+ImageDraw.Draw(card).text((56, 38), "會議重點", font=font(HEITI, 24), fill=INK)
+place(page, card, 930, 588, -4, shadow=(12, 14), blur=9)
+washi(page, 940, 526, 100, -14, MUSTARD, width=32)
+pocket = cut_piece(190, 80, KRAFT, torn=False)
+pk = ImageDraw.Draw(pocket)
+for xx in range(14, 176, 18): pk.line((xx, 14, xx + 9, 14), fill=(120, 88, 58), width=3)   # stitch dashes
+pk.line((0, 79, 190, 79), fill=(120, 88, 58), width=6)
+place(page, pocket, 920, 640, 1.5, blur=5)
+# claw jaws drawn last so they bite the card edge
+for jp, r in ((hd_p, 28),): bolt(jp[0], jp[1], r)
+limb((hd_p[0] + 10, hd_p[1] - 22), (hd_p[0] + 100, hd_p[1] - 30), 24, INK)
+limb((hd_p[0] + 10, hd_p[1] + 22), (hd_p[0] + 100, hd_p[1] + 34), 24, INK)
 # ---- big 61%
 cut_letters(page, "61", 70, 905, 190, [(RED, CREAM), (INK, MUSTARD)], HEITI)
 place(page, cut_piece(150, 150, PINK, pattern="halftone"), 470, 905, 8)
 pct = Image.new("RGBA", (150, 150), (0, 0, 0, 0)); ImageDraw.Draw(pct).text((14, -6), "%", font=font(HEITI, 140), fill=INK)
 place(page, pct, 470, 905, 8, shadow=(0, 0), sop=0)
 washi(page, 150, 790, 200, -6, PINK)
+tk = cut_piece(250, 84, (232, 214, 170), torn=False)
+tkd = ImageDraw.Draw(tk)
+for yy in range(6, 84, 14): tkd.ellipse((-6, yy, 6, yy + 8), fill=CREAM)          # perforated stub edge
+tkd.text((26, 8), "No.0061", font=font(MENLO, 30), fill=RED)
+tkd.text((26, 46), "KNOWLEDGE / 庫", font=font(HEITI, 22), fill=INK)
+place(page, tk, 855, 893, 4, blur=3)
 lbl = cut_piece(300, 54, CREAM, torn=False); ImageDraw.Draw(lbl).text((14, 12), "已歸檔的筆記比例", font=font(HEITI, 28), fill=INK)
 place(page, lbl, 760, 960, -2, blur=4)
 

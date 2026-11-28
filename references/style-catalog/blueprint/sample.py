@@ -115,7 +115,7 @@ def hatch_mask(layer, mask, gap=9, w=HAIR, v=255):
     span = y1 - y0
     c = x0 - span
     while c < x1:
-        d.line([(c, y1), (c + span, y0)], fill=v, width=wpx(w)); c += gap * S
+        d.line([(c, y0), (c + span, y1)], fill=v, width=wpx(w)); c += gap * S
     layer.paste(ImageChops.lighter(layer, ImageChops.multiply(h, mask)))
 
 
@@ -181,6 +181,7 @@ def make_paper():
 
 # ---------- components ----------
 FLOOR = 1000
+SLOT = {}
 
 
 def sheet_border():
@@ -280,18 +281,21 @@ def title_block(x0, y0, x1, y1):
 
 
 def detail_view(c, r, src_c, src_r):
-    """Circle the card in phantom line (A), then redraw it at 2:1 inside a detail circle."""
+    """Circle the slot in phantom line (A), then redraw it at 3:2 inside a detail circle."""
     phantom_circle(INK, src_c, src_r, DETAIL)
-    text(INK, (src_c[0] - src_r * .5, src_c[1] - src_r - 16), 'A', 22, 'mm')
+    text(INK, (src_c[0] - src_r * .2, src_c[1] - src_r - 16), 'A', 22, 'mm')
     circle(INK, c, r, PART)
-    w, h = 112 * 1.5, 78 * 1.5; x, y = c[0] - w / 2, c[1] - h / 2 - 4
-    d = ImageDraw.Draw(AMB); fold = 29
-    d.polygon([sc(p) for p in [(x, y), (x + w - fold, y), (x + w, y + fold), (x + w, y + h), (x, y + h)]], fill=58)
-    path(AMB, [(x, y), (x + w - fold, y), (x + w, y + fold), (x + w, y + h), (x, y + h)], OUTLINE, True)
-    path(AMB, [(x + w - fold, y), (x + w - fold, y + fold), (x + w, y + fold)], DETAIL)
-    for k, lw in enumerate((72, 108, 88, 54)):
-        ln(AMB, (x + 20, y + 28 + k * 20), (x + 20 + lw, y + 28 + k * 20), PART)
-    dim(INK, (x, y + h), (x + w, y + h), (0, 28), '105', 15)
+    w, h = 150, 150; x, y = c[0] - w / 2, c[1] - h / 2
+    lip = y + h * .52
+    ImageDraw.Draw(AMB).rectangle([x * S, y * S, (x + w) * S, lip * S], fill=58)
+    path(AMB, [(x, lip), (x, y), (x + w, y), (x + w, lip)], OUTLINE)
+    for k, lw in enumerate((70, 104, 84)):
+        ln(AMB, (x + 18, y + 24 + k * 20), (x + 18 + lw, y + 24 + k * 20), PART)
+    rect(INK, x - 14, lip, x + w + 14, y + h + 14, PART)
+    ln(INK, (x - 14, lip + 8), (x + w + 14, lip + 8), HAIR)
+    for a_, b_ in (((x, lip), (x, y + h)), ((x + w, lip), (x + w, y + h)), ((x, y + h), (x + w, y + h))):
+        patterned(AMB, a_, b_, HIDDEN, DETAIL)
+    dim(INK, (x, y), (x + w, y), (0, -14), '105', 15)
     text(INK, (c[0], c[1] + r + 24), 'DETAIL A   SCALE 3 : 2', 17, 'mm')
 
 
@@ -330,6 +334,7 @@ def robot():
     rect(INK, 128, 884, 348, 922, PART, over=5)
     erase((130, 886, 346, 920)); rect(INK, 128, 884, 348, 922, PART, over=5)
     for x in (146, 330): circle(INK, (x, 903), 5, HAIR)
+    for a_, b_ in (((152, 886), (190, 920)), ((190, 886), (152, 920)), ((324, 886), (286, 920)), ((286, 886), (324, 920))): ln(INK, a_, b_, HAIR)
     rrect(INK, 150, 694, 326, 884, 26, OUTLINE)
     rect(INK, 176, 722, 300, 786, DETAIL, over=4)
     for k in range(4): ln(INK, (188, 736 + k * 12), (288 - (k % 2) * 34, 736 + k * 12), HAIR)
@@ -350,7 +355,13 @@ def robot():
     ln(INK, (mx, 572), (mx, 636), DETAIL)                               # section boundary
     patterned(INK, (mx + 4, 604), (mx + 62, 604), HIDDEN, DETAIL)       # scan window band (hidden)
     rect(INK, mx + 10, 592, mx + 56, 616, DETAIL)
-    arc(INK, (mx, 572), 40, 180, 360, PART)                             # dome
+    arc(INK, (mx, 572), 40, 180, 360, PART)                             # dome, triangulated (Fuller)
+    ring = [(mx - 40, 572), (mx - 28, 548), (mx - 10, 534), (mx + 10, 534), (mx + 28, 548), (mx + 40, 572)]
+    base = [(mx - 40 + k * 16, 572) for k in range(6)]
+    for i in range(5):
+        ln(INK, base[i], ring[i + 1] if i < 4 else ring[5], HAIR)
+    for a_, b_ in zip(ring, ring[1:]): ln(INK, a_, b_, HAIR)
+    ln(INK, (mx - 20, 556), (mx + 20, 556), HAIR); ln(INK, (mx - 28, 548), (mx, 572), HAIR); ln(INK, (mx + 28, 548), (mx, 572), HAIR)
     ln(INK, (mx, 532), (mx, 508), PART); circle(INK, (mx, 500), 8, PART)
     for r_ in (20, 31): arc(INK, (mx, 500), r_, 210, 330, HAIR)
     # arm: shoulder -> elbow -> wrist
@@ -377,6 +388,13 @@ def card(x, y, w=112, h=78):
     path(AMB, [(x + w - fold, y), (x + w - fold, y + fold), (x + w, y + fold)], DETAIL)
     for k, lw in enumerate((56, 78, 64, 40)):
         ln(AMB, (x + 16, y + 20 + k * 14), (x + 16 + lw, y + 20 + k * 14), DETAIL)
+
+
+def ghost_card(x, y, w=112, h=78):
+    """Where the card was a moment ago: amber hidden-line outline only (same sheet, earlier state)."""
+    fold = 20
+    pts = [(x, y), (x + w - fold, y), (x + w, y + fold), (x + w, y + h), (x, y + h)]
+    for a, b in zip(pts, pts[1:] + pts[:1]): patterned(AMB, a, b, HIDDEN, DETAIL)
 
 
 def cabinet(x0, y0, x1, y1, cols=3, rows=4, t=11):
@@ -415,13 +433,20 @@ def cabinet(x0, y0, x1, y1, cols=3, rows=4, t=11):
                     if n % 3 == 0: ln(INK, (x + wd / 2, by1 - hh + 8), (x + wd / 2, by1 - hh + 22), HAIR)
                     x += wd + rng.choice((2, 3, 6))
                 n += 1
-    # target slot: amber phantom outline of where the card goes
+    # target slot: the card is already inside; the front lip hides its lower part (hidden line = dashed)
     bx0, by0, bx1, by1 = cells[target[0]][target[1]]
     cx = (bx0 + bx1) / 2; cy = (by0 + by1) / 2
-    ImageDraw.Draw(AMB).rectangle([bx0 * S, by0 * S, bx1 * S, by1 * S], fill=34)
-    for a, b in (((bx0 + 12, by0 + 14), (bx1 - 12, by0 + 14)), ((bx1 - 12, by0 + 14), (bx1 - 12, by1 - 14)),
-                 ((bx1 - 12, by1 - 14), (bx0 + 12, by1 - 14)), ((bx0 + 12, by1 - 14), (bx0 + 12, by0 + 14))):
+    ImageDraw.Draw(AMB).rectangle([bx0 * S, by0 * S, bx1 * S, by1 * S], fill=22)
+    kx0, kx1, ky0 = bx0 + 9, bx1 - 9, by0 + 10
+    lip = by0 + (by1 - by0) * .52
+    ImageDraw.Draw(AMB).rectangle([kx0 * S, ky0 * S, kx1 * S, lip * S], fill=58)
+    path(AMB, [(kx0, lip), (kx0, ky0), (kx1, ky0), (kx1, lip)], PART)
+    for k in range(2): ln(AMB, (kx0 + 9, ky0 + 11 + k * 11), (kx1 - 12 - k * 12, ky0 + 11 + k * 11), DETAIL)
+    rect(INK, bx0 + 2, lip, bx1 - 2, by1 - 2, DETAIL)             # front lip (plain face, drawn in white ink)
+    ln(INK, (bx0 + 2, lip + 5), (bx1 - 2, lip + 5), HAIR)
+    for a, b in (((kx0, lip), (kx0, by1 - 8)), ((kx1, lip), (kx1, by1 - 8)), ((kx0, by1 - 8), (kx1, by1 - 8))):
         patterned(AMB, a, b, HIDDEN, DETAIL)
+    SLOT.update(cell=(bx0, by0, bx1, by1), card=(kx0, ky0, kx1, lip))
     # dimensions
     dim(INK, (x0, y0 + dy), (x1, y0 + dy), (0, -34), '1200')
     dim(INK, (x1 + dx, y0 + dy), (x1 + dx, y1 + dy), (34, 0))
@@ -464,9 +489,9 @@ def main():
     INK = ImageChops.lighter(base, ImageChops.offset(INK, RDX * S, 0))
     wr = (wr[0] + RDX, wr[1])
     cx0, cy0 = wr[0] + 31, wr[1] - 39
-    card(cx0, cy0)
+    ghost_card(cx0, cy0)
     # travel path: centre line arcs from the held card down into the empty slot
-    p0 = (cx0 + 112 + 8, cy0 + 30); p2 = (slot_x + 18, cy + 4); p1 = ((p0[0] + p2[0]) / 2 + 6, p0[1] - 34)
+    p0 = (cx0 + 112 + 8, cy0 + 30); p2 = (slot_x - 3, SLOT['card'][1] + 16); p1 = ((p0[0] + p2[0]) / 2 + 6, p0[1] - 34)
     pts = [((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0],
             (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1]) for t in [k / 24 for k in range(25)]]
     acc, on = 0.0, True
@@ -475,7 +500,7 @@ def main():
         acc += math.hypot(b[0] - a[0], b[1] - a[1])
         if acc > (14 if on else 6): acc, on = 0.0, not on
     arrow(AMB, p2, (p2[0] - pts[-3][0], p2[1] - pts[-3][1]), 20, 6)
-    detail_view((850, 330), 120, (cx0 + 56, cy0 + 39), 74)
+    sc_ = SLOT['cell']; detail_view((850, 330), 120, ((sc_[0] + sc_[2]) / 2, (sc_[1] + sc_[3]) / 2), 62)
     balloon(2, (96 + RDX + 6, 520), (172 + RDX, 600))
     balloon(1, (96 + RDX + 6, 680), (152 + RDX, 780))
     balloon(3, (612, 880), (676, 920))

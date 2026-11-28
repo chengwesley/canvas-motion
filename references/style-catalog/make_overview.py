@@ -5,14 +5,16 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = os.path.dirname(os.path.abspath(__file__))
 import sys
 ALL = ['flat-vector', 'isometric', 'line-art', 'paper-cut', 'blueprint', 'neon-grid', 'soft-clay', 'riso-print', 'swiss-data', 'glass-ui',
-         'chalkboard', 'ink-wash', 'watercolor', 'comic-halftone', 'low-poly', 'bauhaus', 'collage', 'woodblock', 'mid-century', 'pixel-city']
+         'chalkboard', 'ink-wash', 'watercolor', 'comic-halftone', 'low-poly', 'bauhaus', 'collage', 'woodblock', 'mid-century', 'pixel-city',
+         'impressionism', 'post-impressionism', 'cubism', 'chrono-motion', 'animation-classic']
 DONE = [s for s in ALL if os.path.exists(os.path.join(HERE, s, 'style.md'))]
 ORDER = DONE if '--done' in sys.argv else ALL
 OUT = 'overview_done.png' if '--done' in sys.argv else 'overview.png'
 NAMES = {'flat-vector': '扁平向量', 'isometric': '等角立體', 'line-art': '線稿手繪', 'paper-cut': '剪紙層次', 'blueprint': '藍圖線框',
          'neon-grid': '霓虹網格', 'soft-clay': '柔軟黏土感', 'riso-print': '復古孔版印刷', 'swiss-data': '瑞士極簡資料風', 'glass-ui': '玻璃擬態介面',
          'chalkboard': '黑板粉筆', 'ink-wash': '水墨', 'watercolor': '水彩', 'comic-halftone': '漫畫網點', 'low-poly': '低多邊形',
-         'bauhaus': '包浩斯幾何', 'collage': '拼貼編輯風', 'woodblock': '木刻版畫', 'mid-century': '世紀中期插畫', 'pixel-city': '像素科技城市'}
+         'bauhaus': '包浩斯幾何', 'collage': '拼貼編輯風', 'woodblock': '木刻版畫', 'mid-century': '世紀中期插畫', 'pixel-city': '像素科技城市',
+         'impressionism': '印象派', 'post-impressionism': '後印象派（梵谷）', 'cubism': '立體派', 'chrono-motion': '連續動作（杜象）', 'animation-classic': '經典動畫'}
 TW, TH, COLS, GAP, LAB = 360, 450, 5, 24, 56
 F = ImageFont.truetype('/System/Library/Fonts/STHeiti Medium.ttc', 30)
 rows = (len(ORDER) + COLS - 1) // COLS

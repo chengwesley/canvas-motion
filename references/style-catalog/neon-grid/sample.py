@@ -332,6 +332,21 @@ def main():
     slot_x, slot_y = knowledge_base(fg)
     card(fg, wr[0] + 26, slot_y - 43, clip_x=slot_x)
     img = fg.bloom(img)
+    # Flavin: coloured light lands on the floor (additive pools, not shadows)
+    for cx, cy, rx, ry, col, k in ((250, 1006, 200, 20, PINK, .55), (852, 1010, 190, 22, CYAN, .60)):
+        pool = Image.new('L', (W, H), 0)
+        ImageDraw.Draw(pool).ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=255)
+        pool = pool.filter(ImageFilter.GaussianBlur(26)).point(lambda v, k=k: int(v * k))
+        img = ImageChops.add(img, Image.composite(Image.new('RGB', (W, H), col), Image.new('RGB', (W, H)), pool))
+    # Mead: glossy floor, a short faint mirror of the objects that dies out before the quiet bottom band
+    GY, RH = 1000, 44
+    src = ImageChops.add(fg.tube, fg.core).crop((0, GY - RH, W, GY)).transpose(Image.FLIP_TOP_BOTTOM).filter(ImageFilter.GaussianBlur(1.6))
+    fade = Image.linear_gradient('L').resize((W, RH)).transpose(Image.FLIP_TOP_BOTTOM).point(lambda v: int(v * .6))   # strong at the contact line
+    refl = Image.composite(src, Image.new('RGB', (W, RH)), fade)
+    strip = img.crop((0, GY, W, GY + RH)); img.paste(ImageChops.add(strip, refl), (0, GY))
+    # Flavin: honest hardware, dark end caps on the slot-mouth tube
+    for yy in (slot_y - 54, slot_y + 54):
+        ImageDraw.Draw(img).rectangle([slot_x - 6, yy - 3, slot_x + 6, yy + 3], fill=(40, 26, 50), outline=(150, 120, 170))
     # type
     img = neon_text(img, (540, 112), '知識庫', ImageFont.truetype(F_ZH, 104), PINK)
     img = neon_text(img, (78, 338), '61%', ImageFont.truetype(F_NUM[0], 250, index=F_NUM[1]), CYAN, anchor='lm', outline=4, aberr=4)

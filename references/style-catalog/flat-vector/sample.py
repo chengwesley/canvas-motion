@@ -6,14 +6,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from components import *
 
 W, H = 1080, 1350
+PINK = ramp('F0A9A4', 'F7C3BC', 'FBD8D2', 'FDEAE6')   # Blair pink disc
 GROUND = 1052                      # bottom ~22% (298 px) is calm floor for subtitles
 
 
 def main():
     cv = Canvas(W, H, BG[1])
     # backdrop: one big sun disc (two flat steps) behind the action, floor band
-    cv.d.ellipse([s * S for s in (150, 330, 870, 1050)], fill=SUN[2])     # disc frames the action
-    cv.d.ellipse([s * S for s in (250, 430, 770, 950)], fill=SUN[1])
+    # Bass: one big hard-cut diagonal shard (pale teal) cuts the upper-right of the wall as one triangle
+    cv.d.polygon([(x * S, y * S) for x, y in ((520, 0), (W, 0), (W, 600))], fill=TEAL[3])
+    # Blair: unexpected pairing - pink disc, light-mustard core, against the teal/navy
+    cv.d.ellipse([s * S for s in (150, 330, 870, 1050)], fill=PINK[1])    # disc frames the action
+    cv.d.ellipse([s * S for s in (250, 430, 770, 950)], fill=MUST[3])
     cv.d.rectangle([0, GROUND * S, W * S, H * S], fill=FLOOR[1])
     cv.d.rectangle([0, GROUND * S, W * S, (GROUND + 10) * S], fill=FLOOR[0])
 
@@ -33,7 +37,7 @@ def main():
 
     SX = 515
     kb_shelf(shelf, SX, 360, SX + 430, 1030, insert=insert, slot_frac=.3, card_w=118,
-             fracs=(.29, .29, .42), drawer=2, front=.6)
+             fracs=(.29, .29, .42), drawer=2, front=.6, simple=True)
     plant(shelf, SX + 361, 336, k=.9)
 
     # agent (left of the shelf), right hand on the card's edge

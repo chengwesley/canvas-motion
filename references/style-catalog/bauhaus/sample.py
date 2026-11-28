@@ -80,7 +80,10 @@ GROUND = 962
 disc('yellow', 286, 700, 232)                              # sun-like field behind the agent
 pie('red', 1080, 0, 205, 90, 180)                          # corner quarter disc
 bar('black', -10, 1014, 640, 484, 5)                       # diagonal axis: ground -> shelf, the arm lies on it
+rect('yellow', 1010, 1, 1050, 392)                           # Moholy-Nagy: yellow bar overprints the red corner (transparent overlap), stops on the shelf top
 rect('black', 60, GROUND, 1020, GROUND + 12)               # ground rule
+for t_, r_ in ((0.035, 5), (0.085, 8), (0.15, 12)):        # Kandinsky: points of growing size accelerate along the diagonal
+    disc('black', -10 + 650 * t_, 1014 - 530 * t_, r_)
 
 # -- knowledge base: a shelf made of bars, books = rectangles ----------------------
 SX0, SX1 = 640, 1000
@@ -89,12 +92,13 @@ rect('black', SX0, 392, SX0 + 22, GROUND)                  # left post
 rect('black', SX0, 392, SX1, 392 + 22)                     # top bar
 for y in shelves[:-1]: rect('black', SX0, y, SX1, y + 12)
 book_cols = ['red', 'blue', 'black', 'yellow']
+ROWEND = [SX1 - 190, SX1 - 30, SX1 - 230, SX1 - 30]       # Mondrian: leave the open fields open, white dominates
 for si, y in enumerate(shelves):
     x = SX0 + 34
     top = (392 + 22) if si == 0 else shelves[si - 1] + 12
     room = y - top
     k = 0
-    while x < SX1 - 30:
+    while x < ROWEND[si]:
         w = rnd.choice([22, 30, 30, 44, 58]); h = room * rnd.choice([.62, .74, .86, .86])
         if x + w > SX1 - 6: break
         if si == 1 and k == 0:                             # the empty slot waiting for the card

@@ -11,6 +11,8 @@ INK = (30, 25, 22)
 RED = (188, 54, 40)
 INDIGO = (40, 64, 98)
 OCHRE = (212, 160, 76)
+SKYLT = (104, 134, 166)   # second pass of the indigo block, lighter (Hokusai: two blues)
+NUMF = "/System/Library/Fonts/Supplemental/Arial Black.ttf"   # digits only; Heiti digits are too thin to carve
 HEI = "/System/Library/Fonts/STHeiti Medium.ttc"
 SONG = HEI
 
@@ -121,13 +123,17 @@ paper = ImageChops.subtract(paper, Image.merge('RGB', (pn, pn, pn)))
 
 # geometry
 BOT = int(H * 0.78)
-cab = (600, 300, 1010, BOT - 20)   # knowledge-base cabinet
-slot = (700, 628, 820, 718)        # empty slot being filled
-card = (455, 590, 590, 680)        # note card in the claw
+cab = (600, 300, 1140, BOT - 20)   # knowledge-base cabinet, bleeds off the right edge (Hiroshige crop)
+cartA = (30, 36, 520, 204)         # title cartouche
+cartB = (548, 24, 1052, 204)       # number cartouche
+slot = (-20, -20, -10, -10)        # (unused: no empty slot, the card is already inside)
+card = (520, 628, 670, 718)        # note card, slid into the cabinet side: x > CX is hidden behind the cabinet
+CX = cab[0] - 4
+cardv = (card[0], card[1], CX, card[3])   # visible part only (occlusion = card is inside)
 
 # ---------- ochre plate: sun disc, books, card tint ----------
 ochre, od = plate()
-od.ellipse((40, 300, 560, 820), fill=255)
+od.ellipse((-80, 300, 450, 830), fill=255)   # sun disc cropped by the left edge
 od.rectangle((0, BOT, W, H), fill=255)
 rr = random.Random(3)
 shelves = [cab[1] + 70 + i * 120 for i in range(5)]
@@ -143,7 +149,7 @@ for i, sy in enumerate(shelves):
 for b in books:
     if b[4] < 0.55:
         od.rectangle(b[:4], fill=255)
-od.rectangle(card, fill=0)
+od.rectangle(cardv, fill=0)
 print_plate(paper, ochre, OCHRE, 11, (3, -2), 55)
 
 # ---------- indigo plate: cabinet body, sky band, network nodes ----------
@@ -153,23 +159,32 @@ idd.rectangle((cab[0], cab[1], cab[2], cab[3]), fill=255)
 for b in books:
     idd.rectangle(b[:4], fill=0)  # books knocked out of indigo
 idd.rectangle(slot, fill=0)
-idd.rectangle(card, fill=0)
-idd.rectangle((0, BOT + 26, W, H), fill=255)
+idd.rectangle(cardv, fill=0)
+idd.rectangle((0, BOT + 150, W, H), fill=255)
 rr = random.Random(5)
 gouge_hatch(idd, (0, 20, W, 240), 0.0, 22, rr, 3)            # carved sky ripples
-gouge_hatch(idd, (0, BOT + 60, W, H - 30), 0.0, 40, rr, 2.5)  # calm water/ground
+gouge_hatch(idd, (0, BOT + 175, W, H - 30), 0.0, 40, rr, 2.5)  # calm water/ground
+idd.rectangle(cartA, fill=0); idd.rectangle(cartB, fill=0)       # paper cartouches knocked out of the sky
 print_plate(paper, ind, INDIGO, 21, (-2, 2), 80)
+
+# ---------- light indigo plate: second blue, horizon band of the calm zone ----------
+lt, ltd = plate()
+ltd.rectangle((0, BOT + 26, W, BOT + 150), fill=255)
+gouge_hatch(ltd, (0, BOT + 40, W, BOT + 140), 0.0, 30, random.Random(8), 2.5)
+print_plate(paper, lt, SKYLT, 25, (2, -2), 70)
 
 # ---------- red plate: 61%, some books, card tab ----------
 red, rd = plate()
-f61 = ImageFont.truetype(HEI, 250)
-rd.text((560, 20), "61%", font=f61, fill=255)
+f61 = ImageFont.truetype(NUMF, 150)
+_bb = rd.textbbox((0, 0), "61%", font=f61, stroke_width=2)
+_tx = (cartB[0] + cartB[2]) // 2 - (_bb[0] + _bb[2]) // 2; _ty = (cartB[1] + cartB[3]) // 2 - (_bb[1] + _bb[3]) // 2
+rd.text((_tx, _ty), "61%", font=f61, fill=255, stroke_width=2)
 for b in books:
     if b[4] >= 0.8:
         rd.rectangle(b[:4], fill=255)
 rd.rectangle((card[0], card[1], card[0] + 34, card[1] + 16), fill=255)
 rr = random.Random(9)
-gouge_hatch(rd, (560, 150, 1060, 260), -0.12, 26, rr, 2.2)    # carved texture in numerals
+gouge_hatch(rd, (_tx, cartB[1] + 40, _tx + 420, cartB[3] - 20), -0.12, 22, rr, 2.2)    # carved texture in numerals
 print_plate(paper, red, RED, 31, (2, 3), 65)
 
 # ---------- key block (black): outlines, robot, heading ----------
@@ -177,25 +192,16 @@ key, kd = plate()
 rr = random.Random(13)
 # heading
 fh = ImageFont.truetype(HEI, 140)
-kd.text((48, 70), "知識庫", font=fh, fill=255)
+kd.text((62, 40), "知識庫", font=fh, fill=255)
+carved_line(kd, rect_pts(*cartA), 9, rr); carved_line(kd, rect_pts(*cartB), 9, rr)
 # cabinet outline + shelves
 carved_line(kd, rect_pts(*cab), 12, rr)
 for sy in shelves:
     carved_line(kd, [(cab[0], sy + 112), (cab[2], sy + 112)], 9, rr)
 for b in books:
     carved_line(kd, rect_pts(*b[:4]), 4, rr)
-carved_line(kd, rect_pts(*slot), 5, rr)
 # cabinet roof (archive building)
 carved_line(kd, [(cab[0] - 24, cab[1]), ((cab[0] + cab[2]) / 2, cab[1] - 70), (cab[2] + 24, cab[1]), (cab[0] - 24, cab[1])], 11, rr)
-# network nodes on the roof pediment
-nodes = [((cab[0] + cab[2]) / 2 + dx, cab[1] - 26 + dy) for dx, dy in [(-90, 8), (-30, -18), (30, -18), (90, 8), (0, 10)]]
-for a in nodes:
-    for b in nodes:
-        if a < b:
-            kd.line([a, b], fill=255, width=3)
-for x, y in nodes:
-    kd.ellipse((x - 8, y - 8, x + 8, y + 8), fill=255)
-
 # robot: tracked base, torso, square head with visor slit (no face), antenna, jointed arm, claw
 kd.rectangle((120, 960, 390, BOT), fill=255)              # tracks
 for tx in range(150, 380, 40):
@@ -210,7 +216,7 @@ for rx, ry in [(180, 810), (330, 810), (180, 940), (330, 940)]:
     kd.ellipse((rx - 6, ry - 6, rx + 6, ry + 6), fill=0)  # rivets
 shoulder = (350, 840)
 elbow = (450, 790)
-wrist = (480, 660)
+wrist = (500, 640)
 for p, q, w in [(shoulder, elbow, 44), (elbow, wrist, 36)]:
     kd.polygon(seg_poly(*p, *q, w), fill=255)
 for (x, y), r in [(shoulder, 30), (elbow, 24), (wrist, 18)]:
@@ -219,14 +225,14 @@ for (x, y), r in [(shoulder, 30), (elbow, 24), (wrist, 18)]:
 # claw pinching the card's left edge
 carved_line(kd, [wrist, (card[0] + 6, card[1] + 6)], 12, rr)
 carved_line(kd, [wrist, (card[0] + 6, card[3] - 6)], 12, rr)
-# note card
-carved_line(kd, rect_pts(*card), 7, rr)
+# note card: open-sided outline (right edge hidden behind the cabinet), text rows end at the cabinet edge
+carved_line(kd, [(CX, card[1]), (card[0], card[1]), (card[0], card[3]), (CX, card[3])], 7, rr)
 for i in range(3):
     yy = card[1] + 34 + i * 18
-    kd.line([(card[0] + 20, yy), (card[2] - 20 - i * 18, yy)], fill=255, width=5)
-# motion: gouge strokes from card to slot
-for i in range(4):
-    gouge(kd, card[2] + 14, card[1] + 20 + i * 18, 80 - i * 8, 0.0, 4, fill=255)
+    kd.line([(card[0] + 20, yy), (CX - 14 - i * 12, yy)], fill=255, width=5)
+# motion: two short gouge strokes above the card, pointing into the cabinet
+for i in range(2):
+    gouge(kd, card[0] + 20 + i * 14, card[1] - 22 - i * 16, 60 - i * 14, 0.0, 4, fill=255)
 # ground line (bottom calm zone starts here)
 carved_line(kd, [(0, BOT), (W, BOT)], 10, rr)
 carved_line(kd, [(0, BOT + 26), (W, BOT + 26)], 5, rr)

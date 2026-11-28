@@ -7,6 +7,8 @@ Technique encoded as helpers:
   - Colour: paper + ink + 2 greys + ONE accent; accent marks only the thing that changes (card + slot)
   - Chart is the hero: unit chart (1 cell = 1 note = 1%), filled row by row from the bottom, left to right
   - Agent: pictogram robot built only from rectangles, circles and thick strokes; sensor slit, no face
+Master lessons applied: Muller-Brockmann (one grid, flush-left, scale contrast), Aicher (pictogram = 0/45/90 deg only, one stroke weight,
+  chamfers not curves), Tufte (data-ink: no decorative marks, numerals only where they carry data, range-frame axis).
 Self-contained: Python 3 + PIL. Writes sample.png (1080x1350) next to this file.
 """
 import os
@@ -101,8 +103,7 @@ text(r61 - 14, NUM_TOP, '%', font(GROT_B, BIG * 0.42), INK)   # superior %: 42% 
 # 3. Heading block on column 8, cap-top aligned with the number
 text(col(8), NUM_TOP, '知識庫', font(HEI_M, 76), INK, track=2)
 text(col(8), NUM_TOP + 112, '已歸檔', font(HEI_L, 22), MID, track=3)
-text(col(8), NUM_TOP + 150, '61 / 100', font(GROT_M, 28), INK, track=0.5)
-text(col(8), NUM_TOP + 196, 'NOTES FILED', font(GROT_M, 14), MID, track=2.2)
+text(col(8), NUM_TOP + 150, 'NOTES FILED', font(GROT_M, 14), MID, track=2.2)
 
 # 4. Section rule: statement (number) above, evidence (chart) below
 hline(M, W - M, bl(37), INK, 2)
@@ -125,7 +126,6 @@ for k in range(NX * NY):
     x0, y0, x1, y1 = cell(k % NX, k // NX)
     if k < FILLED:
         rect(x0, y0, x1, y1, INK)
-        rect(x0 + CW * 0.36, y0 + CH * 0.42, x1 - CW * 0.36, y0 + CH * 0.42 + 3, PULL)  # drawer pull
     elif k > FILLED:
         rect(x0, y0, x1, y1, TINT)
 TX0, TY0, TX1, TY1 = cell(FILLED % NX, FILLED // NX)
@@ -137,49 +137,52 @@ for r in range(NY):
     _, y0, _, y1 = cell(0, r)
     n = (r + 1) * NX
     hot = (n == FILLED)
-    hline(GX1 + 6, GX1 + (16 if hot else 11), (y0 + y1) / 2, INK if hot else MID, 1.2)
-    text(GX1 + 20, (y0 + y1) / 2 - 5.5, str(n), labb if hot else lab, INK if hot else MID)
-for cx in range(NX):
-    x0, _, x1, _ = cell(cx, 0)
-    t = '%02d' % (cx + 1); tw = d.textlength(t, font=lab) / S
-    text((x0 + x1) / 2 - tw / 2, GY1 + 14, t, lab, MID)
+    hline(GX1 + 6, GX1 + (16 if hot else 9), (y0 + y1) / 2, INK if hot else MID, 1.2)
+    if n in (10, 60, 100):                       # numerals only where they carry the data (range + the value)
+        text(GX1 + 20, (y0 + y1) / 2 - 5.5, str(n), labb if hot else lab, INK if hot else MID)
 
 # floor: one hairline the agent and the chart share
 hline(M, GX1, GY1 + 0.5, INK, 1.5)
 
 # =============================================================================================
-# 6. AGENT = pictogram robot (Isotype spirit): body parts are primitives, limbs are 18px strokes.
-#    It stands on the floor in columns 0-3 and pushes the card sideways into cell 61.
+# 6. AGENT = pictogram robot after Aicher: only 0/45/90 degree edges, one limb weight (16px), chamfers instead of curves.
 RX = (col(0) + col_r(3)) / 2 - 10           # robot axis
-# tread base
-rect(RX - 92, GY1 - 54, RX + 92, GY1, INK, r=27)
+LW = 16                                       # the one limb weight
+def cham(x0, y0, x1, y1, c, k=14):            # rectangle with 45-degree cut corners
+    d.polygon([(p[0] * S, p[1] * S) for p in [(x0 + k, y0), (x1 - k, y0), (x1, y0 + k), (x1, y1 - k),
+                                              (x1 - k, y1), (x0 + k, y1), (x0, y1 - k), (x0, y0 + k)]], fill=c)
+def limb(pts, w, c):                          # constant-width segments with square ends (no round joints)
+    for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+        dx, dy = bx - ax, by - ay; L = (dx * dx + dy * dy) ** 0.5; ux, uy = dx / L, dy / L
+        ax, ay, bx, by = ax - ux * w / 2, ay - uy * w / 2, bx + ux * w / 2, by + uy * w / 2
+        nx, ny = -uy * w / 2, ux * w / 2
+        d.polygon([((ax + nx) * S, (ay + ny) * S), ((bx + nx) * S, (by + ny) * S),
+                   ((bx - nx) * S, (by - ny) * S), ((ax - nx) * S, (ay - ny) * S)], fill=c)
+# tread base: chamfered slab, square windows
+cham(RX - 92, GY1 - 54, RX + 92, GY1, INK, 18)
 for dx in (-58, 0, 58):
-    disc(RX + dx, GY1 - 27, 15, PAPER); disc(RX + dx, GY1 - 27, 6, INK)
+    rect(RX + dx - 12, GY1 - 39, RX + dx + 12, GY1 - 15, PAPER)
 # mast
 rect(RX - 18, GY1 - 116, RX + 18, GY1 - 54, INK)
 rect(RX - 30, GY1 - 124, RX + 30, GY1 - 112, INK)
-# torso with a status panel (three bars = working)
+# torso with one plain status panel
 T0, T1 = GY1 - 270, GY1 - 124
-rect(RX - 76, T0, RX + 76, T1, INK, r=10)
-rect(RX - 52, T0 + 30, RX + 52, T0 + 96, PULL, r=4)
-for i, (h, c) in enumerate(((0.9, PAPER), (0.6, PAPER), (0.35, MID))):
-    bx = RX - 38 + i * 28
-    rect(bx, T0 + 88 - 52 * h, bx + 16, T0 + 88, c)
-rect(RX - 52, T0 + 112, RX - 8, T0 + 118, MID)
+cham(RX - 76, T0, RX + 76, T1, INK, 18)
+rect(RX - 48, T0 + 36, RX + 48, T0 + 96, PULL)
 # neck + head with one horizontal sensor slit (a sensor, not eyes) + antenna
 rect(RX - 15, T0 - 22, RX + 15, T0, INK)
 HY0, HY1 = T0 - 116, T0 - 22
-rect(RX - 62, HY0, RX + 62, HY1, INK, r=12)
+cham(RX - 62, HY0, RX + 62, HY1, INK, 18)
 rect(RX - 74, HY0 + 30, RX - 62, HY0 + 64, INK)          # side bolts
 rect(RX + 62, HY0 + 30, RX + 74, HY0 + 64, INK)
-rect(RX - 44, HY0 + 38, RX + 44, HY0 + 56, PAPER, r=9)    # sensor slit
-rect(RX + 4, HY0 + 41, RX + 40, HY0 + 53, MID, r=6)       # scan beam sits in the slit, offset = looking right
-vline(RX, HY0 - 40, HY0, INK, 5)
-disc(RX, HY0 - 44, 9, INK)
-# back arm hangs, gripper open
-stroke((RX - 82, T0 + 20), (RX - 98, T0 + 96), 18, INK)
-stroke((RX - 98, T0 + 96), (RX - 92, T0 + 150), 16, INK)
-rect(RX - 106, T0 + 152, RX - 100, T0 + 172, INK); rect(RX - 84, T0 + 152, RX - 78, T0 + 172, INK)
+rect(RX - 44, HY0 + 38, RX + 44, HY0 + 56, PAPER)         # sensor slit
+rect(RX + 4, HY0 + 41, RX + 40, HY0 + 53, MID)            # scan beam offset = looking right
+vline(RX, HY0 - 40, HY0, INK, 6)
+rect(RX - 9, HY0 - 52, RX + 9, HY0 - 40, INK)
+# back arm: shoulder stub, then straight down (0/90 only), open two-jaw gripper
+BAX = RX - 76 - 10 - LW / 2
+limb([(RX - 70, T0 + 28), (BAX, T0 + 28), (BAX, T0 + 150)], LW, INK)
+rect(BAX - 12, T0 + 150, BAX - 6, T0 + 172, INK); rect(BAX + 6, T0 + 150, BAX + 12, T0 + 172, INK)
 
 # the note card (accent): a tall index card dropped into cell 61 like a card-file drawer.
 # Occlusion tells the story: the card is drawn first, then the cell's ink front plate is drawn
@@ -188,12 +191,12 @@ CARD_W, CARD_H = CW + 12, CH * 1.95
 CARD_X0 = (TX0 + TX1) / 2 - CARD_W / 2
 CARD_Y0 = TY0 - CARD_H * 0.60                 # 60% of the card stands above the cell
 CY = CARD_Y0 + CARD_H * 0.30
-# reaching arm: shoulder -> elbow -> wrist, ends in a two-jaw gripper on the card's left edge
-SH = (RX + 82, T0 + 22)
-EL = (RX + 126, CY + 70)
+# reaching arm: shoulder -> one 45-degree run -> vertical, ends in a two-jaw gripper on the card's left edge
+SH = (RX + 70, T0 + 28)
 WR = (CARD_X0 - 22, CY)
-stroke(SH, EL, 18, INK)
-stroke(EL, WR, 16, INK)
+EL = (SH[0] + 22, SH[1])
+EL2 = (WR[0], SH[1] - (WR[0] - EL[0]))
+limb([SH, EL, EL2, WR], LW, INK)
 GH = CARD_H * 0.30
 rect(WR[0] - 4, CY - GH - 9, WR[0] + 6, CY + GH + 9, INK)                       # gripper palm
 rect(WR[0], CY - GH - 9, CARD_X0 + 16, CY - GH - 2, INK)                        # upper jaw
@@ -206,7 +209,6 @@ for i, frac in enumerate((0.78, 0.9, 0.55, 0.7)):
 # the cell's front plate covers the card's lower part; an accent lip marks the mouth
 rect(TX0, TY0, TX1, TY1, INK)
 rect(TX0, TY0, TX1, TY0 + 5, ACC)
-rect(TX0 + CW * 0.36, TY0 + CH * 0.55, TX1 - CW * 0.36, TY0 + CH * 0.55 + 3, PULL)
 # motion: two accent ticks above the card + a head, all pointing down into the cell
 for i in range(2):
     yy = CARD_Y0 - 44 + i * 14

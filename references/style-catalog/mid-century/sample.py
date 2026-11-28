@@ -88,13 +88,17 @@ dr = ImageDraw.Draw(img)
 
 # background blocks (offset, overlapping)
 misreg_rect(dr, (0, 120, 300, 520), SKY, outline=False, horiz=False)
+# Girard: one repeated motif (dot grid) printed on the wall, same size, same pitch
+for gy in range(136, 512, 24):
+    for gx in range(14 + (12 if (gy // 24) % 2 else 0), 296, 24):
+        dr.ellipse((gx - 3, gy - 3, gx + 3, gy + 3), fill=shade(SKY, -22))
 misreg_ellipse(dr, (340, 30, 440, 130), MUSTARD)
 dr.polygon([(250, 525), (540, 300), (540, 525)], fill=shade(PINK, 10))
 dry_brush(dr, (300, 380, 540, 525), PINK, n=60)
 
 # knowledge base: tall cabinet with shelves of book blocks
 cab = (300, 230, 500, 525)
-misreg_rect(dr, cab, TEAL, off=(5, -4))
+misreg_rect(dr, cab, TEAL, off=(5, -4), outline=False)
 cols = [MUSTARD, RUST, PAPER, PINK, OLIVE]
 for i in range(4):
     sy = 255 + i * 66
@@ -115,20 +119,24 @@ rough_line(dr, [(316, 205), (346, 186), (376, 206)], width=1)
 
 # robot agent: stacked geometric blocks, visor slot, no face
 misreg_rect(dr, (90, 300, 210, 420), RUST, off=(-4, 3))       # body
-misreg_rect(dr, (110, 245, 190, 300), MUSTARD, off=(4, 2))    # head
+misreg_rect(dr, (110, 245, 190, 300), MUSTARD, outline=False)    # head
 dr.rectangle((118, 262, 182, 276), fill=INK)                  # visor slot
 dr.rectangle((124, 266, 160, 272), fill=SKY)
 rough_line(dr, [(150, 245), (150, 222)])
 dr.ellipse((143, 214, 157, 228), fill=TEAL)
+for k in range(4): dr.rectangle((104 + k * 26, 392, 120 + k * 26, 408), fill=shade(RUST, -34))   # repeated motif
 dr.ellipse((128, 335, 172, 379), fill=PAPER)                  # chest dial
 dr.pieslice((128, 335, 172, 379), -90, -90 + 360 * 0.61, fill=TEAL)
 misreg_rect(dr, (100, 420, 130, 500), OLIVE, off=(3, 2))      # legs
 misreg_rect(dr, (170, 420, 200, 500), OLIVE, off=(3, 2))
 # arm reaching up to the cabinet top, hand holds the note card
-arm = [(205, 325), (285, 215), (426, 214)]
-dr.line(arm, fill=INK, width=8)
-dr.line(arm, fill=TEAL, width=5)
-dr.ellipse((283-7, 215-7, 283+7, 215+7), fill=MUSTARD)
+def bar(p, q, t):
+    import math
+    a = math.atan2(q[1] - p[1], q[0] - p[0]); nx, ny = -math.sin(a) * t / 2, math.cos(a) * t / 2
+    dr.polygon([(p[0] + nx, p[1] + ny), (q[0] + nx, q[1] + ny), (q[0] - nx, q[1] - ny), (p[0] - nx, p[1] - ny)], fill=TEAL)
+bar((205, 330), (283, 222), 13); bar((283, 222), (428, 216), 13)
+dr.polygon([(276, 214), (290, 214), (290, 230), (276, 230)], fill=TEAL)   # square elbow block
+dr.polygon([(283, 214), (296, 224), (283, 234), (270, 224)], fill=MUSTARD)  # diamond joint
 # note card, lowered into a slot: its lower half is hidden behind the cabinet lip (occlusion)
 card = [(430, 176), (474, 178), (474, 262), (430, 260)]
 dr.polygon(card, fill=PAPER)

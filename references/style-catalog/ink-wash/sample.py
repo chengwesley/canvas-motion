@@ -1,6 +1,8 @@
 # Ink-wash (shuimo) style sample: an ink-drawn robot files a note card into a drawer cabinet; big 61%.
 # Technique: xuan paper -> pale washes first (far) -> mid washes -> bone strokes (gou le) dark last,
 # ink layers MULTIPLY so overlaps darken (ji mo); dry-brush (fei bai) from hair dropout; one cinnabar seal.
+# Master lessons applied: Bada Shanren (float in the void: no ground, fewest strokes), Qi Baishi (one body in several tones,
+#   thick body vs hair-thin limb), Muqi (form by wash not outline, neighbours differ in tone, mist behind).
 import os, math, random
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageChops
 
@@ -233,7 +235,9 @@ for r_ in range(rows):
         x0, y0 = cx0 + c_ * dw, cy0 + r_ * dh
         if (c_, r_) == open_cell:
             continue
-        img = stroke(img, [(x0 + dw / 2 - 16, y0 + dh * 0.42), (x0 + dw / 2 + 16, y0 + dh * 0.42)], 5, NONG, dry=0.2, press=(0.9, 1, 0.8))
+        # Muqi: every drawer face is its own tone of the same ink (six persimmons: neighbours never match)
+        tone = [QING + 14, DAN - 38, QING - 4, DAN - 54, QING + 24, DAN - 30][(c_ * 2 + r_ * 5) % 6]
+        img = wash_poly(img, [(x0 + 8, y0 + 8), (x0 + dw - 8, y0 + 8), (x0 + dw - 8, y0 + dh - 8), (x0 + 8, y0 + dh - 8)], tone, blur=7, rim=0.0)
         img = dot(img, x0 + dw / 2, y0 + dh * 0.42 + 8, 5, JIAO)
 # frame: bone strokes, darkest ink, drawn after washes
 img = stroke(img, [(cx0 - 3, cy0 - 26), (cx0 + 2, cy0 + 200), (cx0 - 3, cy1 + 8)], 18, JIAO, dry=0.45)
@@ -243,9 +247,6 @@ img = stroke(img, [(cx0 - 6, cy1 + 4), (cx1 + 4, cy1 + 2), (cx1 + depth, cy1 - 2
 for k in range(1, rows):
     yy = cy0 + k * dh
     img = stroke(img, [(cx0, yy + R.uniform(-2, 2)), (cx1, yy + R.uniform(-2, 2))], 6, NONG, dry=0.45)
-for k in range(1, cols):
-    xx = cx0 + k * dw
-    img = stroke(img, [(xx, cy0), (xx + R.uniform(-3, 3), cy1)], 5, ZHONG + 30, dry=0.55)
 # eave: one sweeping stroke, pressed at left, lifted at right (the boldest gesture in the picture)
 img = stroke(img, [(606, cy0 - 14), (740, cy0 - 50), (880, cy0 - 58), (1040, cy0 - 40)], 36, JIAO, dry=0.4, press=(0.6, 1.0, 0.3))
 img = stroke(img, [(cx0 - 10, cy0 - 4), (cx1 + depth, cy0 - 30)], 8, NONG, dry=0.4)
@@ -265,35 +266,35 @@ img = stroke(img, [front[1], front[2]], 7, NONG, dry=0.4)
 img = stroke(img, [front[1], (ox1, oy0 + 20)], 5, NONG, dry=0.4)
 img = stroke(img, [((front[0][0] + front[1][0]) / 2 - 16, front[3][1] - 30), ((front[0][0] + front[1][0]) / 2 + 16, front[3][1] - 30)], 5, JIAO, dry=0.2)
 img = dot(img, (front[0][0] + front[1][0]) / 2, front[3][1] - 22, 5, JIAO)
-# ground: wash dissolves into blank paper (liu bai instead of a floor line)
-img = wash(img, 790, 1024, 200, 20, DAN - 30, blobs=12, blur=18, rim=0.1)
+# Bada: no ground at all; the cabinet and the robot float in the blank paper
 
 # ---- 3. AI agent: boxy robot in gou le outline + graded washes, visor slit, no face ----
 # light from upper-left: washes darken toward right/bottom, lit side stays paper
 img = wash_poly(img, [(170, 600), (310, 596), (314, 690), (174, 694)], DAN, blur=4, grad=(1, 0))
-img = box(img, 170, 598, 312, 692, 12, NONG, dry=0.4)
+img = stroke(img, [(166, 596), (316, 592)], 13, JIAO, dry=0.4)
+img = stroke(img, [(314, 596), (316, 692)], 11, NONG, dry=0.5)
+img = stroke(img, [(168, 694), (312, 692)], 7, NONG, dry=0.5)
 img = stroke(img, [(188, 640), (296, 636)], 18, JIAO, dry=0.1, press=(0.9, 1.0, 0.85))  # visor slit
 img = stroke(img, [(242, 596), (240, 548)], 6, NONG, dry=0.3)                            # antenna
 img = dot(img, 240, 538, 11, JIAO)
 img = stroke(img, [(242, 694), (242, 716)], 16, NONG, dry=0.15)                          # neck
-img = wash_poly(img, [(150, 716), (340, 712), (346, 912), (156, 916)], ZHONG, blur=6, grad=(1, 0))
-img = box(img, 150, 714, 344, 914, 15, JIAO, dry=0.45)
+for (ya, yb, dn) in ((716, 780, ZHONG - 40), (788, 850, ZHONG), (858, 914, ZHONG + 36)):   # segments with paper gaps, each its own tone
+    img = wash_poly(img, [(152, ya), (342, ya - 2), (346, yb), (154, yb + 2)], dn, blur=5, grad=(1, 0))
+img = stroke(img, [(150, 712), (344, 710)], 16, JIAO, dry=0.45)                           # lid: the darkest, widest accent
+img = stroke(img, [(344, 714), (348, 912)], 14, JIAO, dry=0.5)                            # shadow side
+img = stroke(img, [(152, 718), (154, 912)], 7, NONG, dry=0.6)                             # lit side: hair-thin
 th = [math.radians(a) for a in range(-50, 260, 20)]                                        # chest dial: open enso
-img = stroke(img, [(226 + 30 * math.cos(a), 800 + 30 * math.sin(a)) for a in th], 7, NONG, dry=0.55)
-img = dot(img, 226, 800, 6, JIAO)
-for k in range(3):
-    img = stroke(img, [(178, 860 + k * 15), (236, 860 + k * 15)], 4, NONG, dry=0.4)
+img = stroke(img, [(226 + 26 * math.cos(a), 750 + 26 * math.sin(a)) for a in th], 6, NONG, dry=0.55)
+img = dot(img, 226, 750, 5, JIAO)
 img = stroke(img, [(130, 952), (170, 934), (322, 934), (364, 952), (322, 972), (170, 972), (130, 954)], 13, JIAO, dry=0.35)
 for k in range(4):
     img = dot(img, 182 + k * 44, 953, 9, NONG)
 img = stroke(img, [(206, 914), (204, 934)], 12, NONG, dry=0.15)
 img = stroke(img, [(290, 914), (292, 934)], 12, NONG, dry=0.15)
-img = wash(img, 250, 990, 170, 18, DAN - 20, blobs=10, blur=16, rim=0.1)
 # arm: long two-segment reach, joints as heavy dots; card held right at the drawer mouth
 sh, el, wr = (348, 744), (450, 690), (568, 662)
-img = stroke(img, [sh, (400, 722), el], 15, JIAO, dry=0.3)
-img = stroke(img, [el, (510, 664), wr], 13, JIAO, dry=0.45)
-img = dot(img, *sh, 14); img = dot(img, *el, 12); img = dot(img, *wr, 9)
+img = stroke(img, [sh, (400, 718), el, (510, 668), wr], 7, JIAO, dry=0.1, press=(0.35, 1.0, 0.75))   # one long thin stroke vs the 15px frame: thick/thin > 2:1
+img = dot(img, *sh, 11); img = dot(img, *wr, 6)
 
 # ---- 4. note card: the brightest paper in the picture, lowered INTO the pulled-out drawer ----
 # occlusion: the drawer front is drawn over the card, so the lower part is hidden inside the drawer

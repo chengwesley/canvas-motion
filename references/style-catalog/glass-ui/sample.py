@@ -8,6 +8,8 @@ Technique encoded as helpers:
             the foreground card is the most opaque
   - One accent gradient (violet) for progress / selection; one status light (cyan) for the machine
   - Agent: robot made of glass parts (head, visor with scan light, torso, arm tubes), hovers; no face
+Master lessons applied: Turrell (light is the material: horizon-free luminous field, no outlines, light leaking from an aperture, 3 hues),
+  Rams (as little design as possible: no chip, no rainbow dots, 2 corner radii only, one status light, shared axis/grid).
 Deterministic, PIL only. Writes sample.png (1080x1350) next to this file.
 """
 import os, random
@@ -57,8 +59,8 @@ def background():
         c = lerp(BG_TOP, BG_MID, t / 0.55) if t < 0.55 else lerp(BG_MID, BG_BOT, min(1, (t - 0.55) / 0.25))
         d.line([(0, y), (W, y)], fill=c)
     q = Image.new('RGBA', (W // 4, H // 4), (0, 0, 0, 0)); qd = ImageDraw.Draw(q)
-    for x, y, r, c, a in [(40, 60, 80, BLOB_V, 235), (250, 110, 70, BLOB_P, 220),
-                          (60, 200, 60, BLOB_C, 200), (240, 235, 55, BLOB_O, 190)]:
+    for x, y, r, c, a in [(40, 60, 80, BLOB_V, 235), (250, 130, 80, BLOB_P, 215),
+                          (60, 200, 60, BLOB_C, 190)]:
         qd.ellipse([x - r, y - r, x + r, y + r], fill=c + (a,))
     q = q.filter(ImageFilter.GaussianBlur(30)).resize((W, H), Image.BICUBIC)
     bg = Image.alpha_composite(bg.convert('RGBA'), q)
@@ -153,21 +155,15 @@ scene = background()
 
 # 1. Heading: large, dark, sits directly on the light field (not in a card)
 text(scene, (72, 84), '知識庫', hei(104), INK)
-text(scene, (78, 214), 'KNOWLEDGE BASE  ·  AGENT SYNC', sf(20, b'Medium'), INK, 190)
-# status chip, top right (UI element as scenery)
-chip = rr((792, 96, 1008, 150), 27)
-glass(scene, chip, blur=14, veil=0.24, shadow=0.12, lift=8)
-glow(scene, 826, 123, 10, 10, LIGHT, 255, 6)
-solid(scene, mask_from(lambda d, s: d.ellipse([820 * s, 117 * s, 832 * s, 129 * s], fill=255)), (40, 200, 220))
-text(scene, (848, 112), 'SYNCING', sf(22, b'Semibold'), INK)
+text(scene, (75, 214), 'KNOWLEDGE BASE  ·  AGENT SYNC', sf(20, b'Medium'), INK, 190)
 
 # 2. Knowledge-base panel (far layer: big, light blur), with 6 rows; row 3 is the empty slot
 PX0, PY0, PX1, PY1 = 584, 292, 1008, 960
-glass(scene, rr((PX0, PY0, PX1, PY1), 36), blur=26, veil=0.16, shadow=0.20, lift=24)
+glass(scene, rr((PX0, PY0, PX1, PY1), 40), blur=26, veil=0.16, shadow=0.20, lift=24)
 text(scene, (PX0 + 36, PY0 + 34), 'Library', sf(30, b'Semibold'), INK)
 text(scene, (PX1 - 36, PY0 + 40), '61 / 100', sf(22, b'Medium'), INK2, anchor='ra')
 ROW_H, ROW_G = 78, 16
-dots = [BLOB_V, BLOB_P, None, BLOB_C, BLOB_O, BLOB_V]
+dots = [INK2, INK2, None, INK2, INK2, INK2]   # one quiet dot colour: the list is not decoration
 for i, dc in enumerate(dots):
     ry0 = PY0 + 104 + i * (ROW_H + ROW_G)
     box = (PX0 + 28, ry0, PX1 - 28, ry0 + ROW_H)
@@ -184,36 +180,31 @@ for i, dc in enumerate(dots):
         solid(scene, m, WHITE)
         continue
     glass(scene, rr(box, 22), blur=10, veil=0.22, sheen=0.18, shadow=0.08, lift=6)
-    solid(scene, mask_from(lambda d, s, y=ry0: d.ellipse([(PX0 + 56) * s, (y + 29) * s, (PX0 + 76) * s, (y + 49) * s], fill=255)), dc)
-    for j, wf in enumerate((0.62 - 0.07 * (i % 3), 0.38)):
+    solid(scene, mask_from(lambda d, s, y=ry0: d.ellipse([(PX0 + 58) * s, (y + 31) * s, (PX0 + 74) * s, (y + 47) * s], fill=255)), dc, 0.45)
+    for j, wf in enumerate((0.62, 0.38)):
         lw = (PX1 - PX0 - 160) * wf
         solid(scene, rr((PX0 + 98, ry0 + 24 + j * 22, PX0 + 98 + lw, ry0 + 34 + j * 22), 5), INK2, 0.75 if j == 0 else 0.4)
 # 3. Robot (mid layer). Hovering glass machine: antenna, head with visor, torso, arms, thruster.
-RX = 286
+RX = 296                                                         # robot axis = centre of the number card below (shared axis)
 glow(scene, RX, 742, 70, 18, LIGHT, 170, 18)                     # thruster light on the field
 glow(scene, RX, 800, 120, 16, INK, 60, 18)                       # far, faint ground shadow
 # back arm (drawn first = behind torso)
 glass(scene, tube([(RX - 96, 530), (RX - 140, 610), (RX - 120, 672)], 34), blur=12, veil=0.26, shadow=0.10, lift=8)
 # torso
 TOR = (RX - 100, 498, RX + 100, 706)
-glass(scene, rr(TOR, 44), blur=18, veil=0.30, sheen=0.34, shadow=0.24, lift=22)
+glass(scene, rr(TOR, 40), blur=18, veil=0.30, sheen=0.34, shadow=0.24, lift=22)
 core = rr((RX - 46, 562, RX + 46, 640), 18)
 solid(scene, core, INK, 0.78)
-for i, h in enumerate((0.8, 0.5, 1.0, 0.35)):                     # status equaliser on the chest screen
-    bx = RX - 30 + i * 17
-    solid(scene, rr((bx, 626 - 52 * h, bx + 9, 626), 4), LIGHT, 0.9)
+solid(scene, rr((RX - 30, 610, RX + 30, 620), 5), LIGHT, 0.9)                    # the one status light on the chest
 # neck + head
 glass(scene, rr((RX - 26, 470, RX + 26, 506), 12), blur=10, veil=0.3, shadow=0, sheen=0.2)
 HEAD = (RX - 118, 318, RX + 118, 476)
-glass(scene, rr(HEAD, 54), blur=18, veil=0.32, sheen=0.38, shadow=0.20, lift=18)
+glass(scene, rr(HEAD, 40), blur=18, veil=0.32, sheen=0.38, shadow=0.20, lift=18)
 VIS = (RX - 90, 364, RX + 90, 432)
 solid(scene, rr(VIS, 34), INK, 0.88)                              # visor (dark glass, a sensor band, not eyes)
 glow(scene, RX + 18, 398, 56, 8, LIGHT, 230, 7)                   # scan light, shifted right = looking at the panel
 solid(scene, rr((RX - 30, 394, RX + 66, 402), 4), (220, 255, 255), 0.95)
-solid(scene, rr((VIS[0] + 18, VIS[1] + 8, VIS[2] - 60, VIS[1] + 14), 3), WHITE, 0.35)   # visor reflection
-# ear discs + antenna
-for ex in (HEAD[0] - 14, HEAD[2] - 14):
-    glass(scene, rr((ex, 370, ex + 28, 426), 14), blur=8, veil=0.34, shadow=0, sheen=0.2)
+# antenna
 solid(scene, rr((RX - 3, 270, RX + 3, 320), 3), WHITE, 0.8)
 glow(scene, RX, 266, 18, 18, LIGHT, 255, 9)
 solid(scene, mask_from(lambda d, s: d.ellipse([(RX - 9) * s, 257 * s, (RX + 9) * s, 275 * s], fill=255)), (225, 255, 255))
@@ -238,6 +229,7 @@ for gy in (CY0 - 14, CY0 + CH_ - 8):
     glass(scene, rr((CX0 - 22, gy, CX0 + 26, gy + 22), 11), blur=8, veil=0.4, shadow=0.1, lift=4, sheen=0.2)
 # slot front pane over the card + a light leak at the mouth
 glass(scene, rr(SLOT, 22), blur=9, veil=0.30, sheen=0.22, shadow=0, lift=0)
+glow(scene, SLOT[0] - 8, (SLOT[1] + SLOT[3]) // 2, 70, 52, LIGHT, 120, 34)      # light spills out of the aperture (soft, no edge)
 glow(scene, SLOT[0] + 2, (SLOT[1] + SLOT[3]) // 2, 6, 34, LIGHT, 230, 8)
 # slot hint arrow inside the empty slot (points in the direction the card travels)
 sx = SLOT[2] - 70; sy = (SLOT[1] + SLOT[3]) // 2
@@ -248,7 +240,6 @@ solid(scene, mask_from(lambda d, s: d.polygon([((sx - 10) * s, (sy - 12) * s), (
 WG = (72, 792, 520, 1030)
 glass(scene, rr(WG, 40), blur=24, veil=0.26, sheen=0.3, shadow=0.24, lift=22)
 text(scene, (WG[0] + 40, WG[1] + 30), '已收錄', hei(26, w6=False), INK2)
-text(scene, (WG[2] - 40, WG[1] + 32), '+1 today', sf(22, b'Medium'), INK2, anchor='ra')
 text(scene, (WG[0] + 34, WG[1] + 172), '61', sf(150, b'Bold'), INK, anchor='ls')
 PX_ = WG[0] + 34 + sf(150, b'Bold').getlength('61') + 6          # % sits 6px after the figures
 text(scene, (PX_, WG[1] + 172), '%', sf(84, b'Semibold'), INK, anchor='ls')

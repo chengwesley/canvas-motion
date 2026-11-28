@@ -30,8 +30,8 @@ SKY = ramp('1f2147', '2e2f63', '4a3f78', '7a4f86', 'b8627e', 'e88a6e')   # zenit
 FAR = ramp('3b3a6b', '524d85', '6e66a0', '8f86b8')                     # far mountains: lighter, low contrast
 HILL = ramp('1f4a4a', '2f6b5f', '4a9380', '6fb69c')                    # mid hills: darker, more contrast
 CALM = ramp('203f43', '234549', '264c4e')                              # bottom band: adjacent steps only
-VAULT = ramp('1d3557', '2e5a88', '4a86b5', '8cc0e0')                   # knowledge base block
-STEEL = ramp('4a4c70', '7a7ea6', 'b4b8d8', 'dfe2f4')                   # agent body
+VAULT = ramp('1b2f5c', '2e5a88', '5a91b0', 'a6cbdc')                   # knowledge base block
+STEEL = ramp('444a78', '7a7ea6', 'c0bdd6', 'ece6ee')                   # agent body
 DARK = ramp('1f2036', '33344f', '4f5070', '7a7c9c')                    # tracks, joints
 AMBER = ramp('b5601c', 'e8923a', 'ffb94d', 'ffe3a0')                   # accent: number, core, card tab
 CYAN = ramp('1f7f86', '38bfc0', '8aeee0', 'd2fff6')                    # visor, crystal
@@ -98,6 +98,17 @@ def masked_mesh(g, colorfn, ridge):
 # ---- sky: a triangle mesh, ramp index follows height with a random step ---------------
 g = jitter_grid(0, 0, W, 1050, 9, 11, 0.4, lambda x, y: 0)
 tri_mesh(g, lambda t: SKY[clamp(int(sum(p[1] for p in t) / 3 / 1050 * 5.4 + RNG.uniform(-0.55, 0.55)), 0, 5)])
+
+# Delaunay disc: concentric rings cut into wedges, complementary hues side by side (simultaneous contrast)
+def disc(cx, cy, radii, pairs, n=12, rot=0.2):
+    for ri in range(len(radii) - 1, -1, -1):
+        r_out = radii[ri]; r_in = radii[ri + 1] if ri + 1 < len(radii) else 0
+        off = rot + (ri % 2) * math.pi / n                  # each ring turns half a wedge
+        for k in range(n):
+            a0, a1 = off + math.tau * k / n, off + math.tau * (k + 1) / n
+            P = lambda r, a: (cx + r * math.cos(a), cy + r * math.sin(a))
+            fill([P(r_out, a0), P(r_out, a1), P(r_in, a1), P(r_in, a0)], pairs[ri][k % 2])
+disc(800, 200, [128, 92, 58, 26], [(SKY[4], SKY[2]), (CYAN[0], SKY[3]), (SKY[4], VAULT[1]), (AMBER[2], AMBER[2])])
 
 # far mountains
 def ridge1(x): return 600 - 150 * abs(math.sin(x / 230 + 0.6)) - 60 * abs(math.sin(x / 97))
