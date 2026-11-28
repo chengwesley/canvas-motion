@@ -22,16 +22,16 @@
 | 拼貼編輯風 | collage | 完整 |
 | 木刻版畫 | woodblock | 完整 |
 | 像素科技城市 | pixel-city | 完整（另有 `components.png` 元件表與元件程式） |
-| 等角立體 | isometric | 只有樣張 |
-| 柔軟黏土感 | soft-clay | 只有樣張 |
-| 瑞士極簡資料風 | swiss-data | 只有樣張 |
-| 玻璃擬態介面 | glass-ui | 只有樣張 |
-| 黑板粉筆 | chalkboard | 只有樣張 |
-| 水墨 | ink-wash | 只有樣張（小字有缺字） |
-| 水彩 | watercolor | 只有樣張（小字有缺字） |
-| 低多邊形 | low-poly | 只有樣張 |
-| 包浩斯幾何 | bauhaus | 只有樣張 |
-| 世紀中期插畫 | mid-century | 只有樣張（小字有缺字） |
+| 等角立體 | isometric | 完整 |
+| 柔軟黏土感 | soft-clay | 完整 |
+| 瑞士極簡資料風 | swiss-data | 完整 |
+| 玻璃擬態介面 | glass-ui | 完整 |
+| 黑板粉筆 | chalkboard | 完整 |
+| 水墨 | ink-wash | 完整 |
+| 水彩 | watercolor | 完整 |
+| 低多邊形 | low-poly | 完整 |
+| 包浩斯幾何 | bauhaus | 完整 |
+| 世紀中期插畫 | mid-century | 完整 |
 
 ## 補一種風格時
 
@@ -52,5 +52,5 @@
 
 ## 注意
 
-- 已有完整指引的 10 份，「代表畫家與作品」已上網查證過（紀錄見 `VERIFY_LOG_A.md`、`VERIFY_LOG_B.md`）；少數生卒年仍是依知識填寫，紀錄中有註明。
+- 20 份指引的「代表畫家與作品」都已上網查證過（紀錄見 `VERIFY_LOG_A.md`、`VERIFY_LOG_B.md`、`VERIFY_LOG_C.md`）；少數生卒年仍是依知識填寫，紀錄中有註明。
 - 參考畫家只用來學技法，不照畫他們的構圖、角色或招牌圖樣。

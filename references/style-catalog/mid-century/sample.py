@@ -88,7 +88,7 @@ dr = ImageDraw.Draw(img)
 
 # background blocks (offset, overlapping)
 misreg_rect(dr, (0, 120, 300, 520), SKY, outline=False, horiz=False)
-misreg_ellipse(dr, (360, 40, 500, 180), MUSTARD)
+misreg_ellipse(dr, (340, 30, 440, 130), MUSTARD)
 dr.polygon([(250, 525), (540, 300), (540, 525)], fill=shade(PINK, 10))
 dry_brush(dr, (300, 380, 540, 525), PINK, n=60)
 
@@ -108,12 +108,10 @@ for i in range(4):
         if R.random() < 0.5:
             dr.line([(x + 2, sy + 56 - bh), (x + bw - 4, sy + 56 - bh)], fill=INK, width=1)
         x += bw
-# open slot on top shelf where card goes
-dr.rectangle((440, 262, 476, 305), fill=shade(TEAL, -40))
 # network dots on cabinet top
-for i, (nx, ny) in enumerate([(320, 205), (370, 185), (420, 210), (470, 190)]):
+for i, (nx, ny) in enumerate([(316, 205), (346, 186), (376, 206)]):
     dr.ellipse((nx-6, ny-6, nx+6, ny+6), fill=RUST if i % 2 else MUSTARD)
-rough_line(dr, [(320, 205), (370, 185), (420, 210), (470, 190)], width=1)
+rough_line(dr, [(316, 205), (346, 186), (376, 206)], width=1)
 
 # robot agent: stacked geometric blocks, visor slot, no face
 misreg_rect(dr, (90, 300, 210, 420), RUST, off=(-4, 3))       # body
@@ -126,19 +124,27 @@ dr.ellipse((128, 335, 172, 379), fill=PAPER)                  # chest dial
 dr.pieslice((128, 335, 172, 379), -90, -90 + 360 * 0.61, fill=TEAL)
 misreg_rect(dr, (100, 420, 130, 500), OLIVE, off=(3, 2))      # legs
 misreg_rect(dr, (170, 420, 200, 500), OLIVE, off=(3, 2))
-# arm reaching to shelf
-arm = [(205, 330), (300, 300), (420, 282)]
+# arm reaching up to the cabinet top, hand holds the note card
+arm = [(205, 325), (285, 215), (426, 214)]
 dr.line(arm, fill=INK, width=8)
 dr.line(arm, fill=TEAL, width=5)
-# note card being placed
-card = [(408, 250), (452, 244), (458, 300), (414, 306)]
+dr.ellipse((283-7, 215-7, 283+7, 215+7), fill=MUSTARD)
+# note card, lowered into a slot: its lower half is hidden behind the cabinet lip (occlusion)
+card = [(430, 176), (474, 178), (474, 262), (430, 260)]
 dr.polygon(card, fill=PAPER)
-rough_line(dr, [(411, 253), (455, 247), (461, 303), (417, 309), (411, 253)])
+rough_line(dr, [(430, 176), (474, 178), (474, 262), (430, 260), (430, 176)])
 for k in range(3):
-    dr.line([(416, 262 + k * 10), (446, 258 + k * 10)], fill=RUST, width=2)
-# motion ticks
+    dr.line([(437, 188 + k * 10), (467, 189 + k * 10)], fill=RUST, width=2)
+dr.rectangle((437, 214, 449, 222), fill=MUSTARD)
+dr.ellipse((421, 207, 433, 221), fill=INK)                    # gripper pad
+# cabinet lip printed over the card
+dr.rectangle((420, 230, 486, 262), fill=TEAL)
+dry_brush(dr, (420, 230, 486, 262), TEAL, n=6)
+rough_line(dr, [(420, 230), (486, 230)], width=2)
+dr.rectangle((420, 262, 486, 266), fill=shade(TEAL, -30))
+# motion ticks above the card
 for k in range(3):
-    dr.line([(380 - k * 4, 236 + k * 8), (395 - k * 4, 238 + k * 8)], fill=INK, width=1)
+    dr.line([(440 + k * 12, 160), (440 + k * 12, 169)], fill=INK, width=1)
 
 # calm bottom band (~22%)
 misreg_rect(dr, (0, 525, w, h), OLIVE, outline=False)
@@ -153,14 +159,14 @@ dr = ImageDraw.Draw(img)
 hei = "/System/Library/Fonts/STHeiti Medium.ttc"
 song = "/System/Library/Fonts/Supplemental/Songti.ttc"
 fH = ImageFont.truetype(hei, 120)
-fN = ImageFont.truetype(hei, 230)
-fS = ImageFont.truetype(song, 34)
+fN = ImageFont.truetype("/System/Library/Fonts/Avenir Next.ttc", 150, index=8)
+fS = ImageFont.truetype(hei, 34)
 def print_text(xy, t, f, col):
     x, y = xy
     dr.text((x + 6, y + 5), t, font=f, fill=shade(col, -60))
     dr.text((x, y), t, font=f, fill=col)
 print_text((60, 50), "知識庫", fH, INK)
 dr.text((64, 190), "一張筆記，一格書架", font=fS, fill=INK)
-print_text((40, 1090), "61%", fN, RUST)
+print_text((60, 262), "61%", fN, RUST)
 img.save(OUT)
 print(OUT)

@@ -181,30 +181,37 @@ stroke((RX - 82, T0 + 20), (RX - 98, T0 + 96), 18, INK)
 stroke((RX - 98, T0 + 96), (RX - 92, T0 + 150), 16, INK)
 rect(RX - 106, T0 + 152, RX - 100, T0 + 172, INK); rect(RX - 84, T0 + 152, RX - 78, T0 + 172, INK)
 
-# the note card (accent), already half inside the slot
-CARD_W, CARD_H = CW + 4, CH + 2
-CY = (TY0 + TY1) / 2
-CARD_X0 = TX0 - CARD_W * 0.45
-CARD_Y0 = CY - CARD_H / 2
+# the note card (accent): a tall index card dropped into cell 61 like a card-file drawer.
+# Occlusion tells the story: the card is drawn first, then the cell's ink front plate is drawn
+# over its lower half, so the card is visibly partly INSIDE the cell.
+CARD_W, CARD_H = CW + 12, CH * 1.95
+CARD_X0 = (TX0 + TX1) / 2 - CARD_W / 2
+CARD_Y0 = TY0 - CARD_H * 0.60                 # 60% of the card stands above the cell
+CY = CARD_Y0 + CARD_H * 0.30
 # reaching arm: shoulder -> elbow -> wrist, ends in a two-jaw gripper on the card's left edge
 SH = (RX + 82, T0 + 22)
-EL = (RX + 126, CY + 34)
+EL = (RX + 126, CY + 70)
 WR = (CARD_X0 - 22, CY)
 stroke(SH, EL, 18, INK)
 stroke(EL, WR, 16, INK)
-rect(WR[0] - 4, CY - CARD_H / 2 - 9, WR[0] + 6, CY + CARD_H / 2 + 9, INK)          # gripper palm
-rect(WR[0], CY - CARD_H / 2 - 9, CARD_X0 + 16, CY - CARD_H / 2 - 2, INK)           # upper jaw
-rect(WR[0], CY + CARD_H / 2 + 2, CARD_X0 + 16, CY + CARD_H / 2 + 9, INK)           # lower jaw
+GH = CARD_H * 0.30
+rect(WR[0] - 4, CY - GH - 9, WR[0] + 6, CY + GH + 9, INK)                       # gripper palm
+rect(WR[0], CY - GH - 9, CARD_X0 + 16, CY - GH - 2, INK)                        # upper jaw
+rect(WR[0], CY + GH + 2, CARD_X0 + 16, CY + GH + 9, INK)                        # lower jaw
 rect(CARD_X0 + 3, CARD_Y0 + 3, CARD_X0 + CARD_W + 3, CARD_Y0 + CARD_H + 3, ACC_D)  # 3px offset edge
 rect(CARD_X0, CARD_Y0, CARD_X0 + CARD_W, CARD_Y0 + CARD_H, ACC)
-for i, frac in enumerate((0.72, 0.84, 0.5)):
-    yy = CARD_Y0 + 9 + i * 8.5
-    rect(CARD_X0 + 9, yy, CARD_X0 + 9 + (CARD_W - 18) * frac, yy + 3.5, PAPER)
-# motion: three accent ticks in the slot direction, above the card (speed lines, not an arrow)
-for i in range(3):
-    xx = TX0 + 10 + i * 14
-    rect(xx, CARD_Y0 - 22, xx + 8, CARD_Y0 - 18, ACC)
-tri([(TX0 + 52, CARD_Y0 - 26), (TX0 + 52, CARD_Y0 - 14), (TX0 + 62, CARD_Y0 - 20)], ACC)
+for i, frac in enumerate((0.78, 0.9, 0.55, 0.7)):
+    yy = CARD_Y0 + 10 + i * 9
+    rect(CARD_X0 + 8, yy, CARD_X0 + 8 + (CARD_W - 16) * frac, yy + 3.5, PAPER)
+# the cell's front plate covers the card's lower part; an accent lip marks the mouth
+rect(TX0, TY0, TX1, TY1, INK)
+rect(TX0, TY0, TX1, TY0 + 5, ACC)
+rect(TX0 + CW * 0.36, TY0 + CH * 0.55, TX1 - CW * 0.36, TY0 + CH * 0.55 + 3, PULL)
+# motion: two accent ticks above the card + a head, all pointing down into the cell
+for i in range(2):
+    yy = CARD_Y0 - 44 + i * 14
+    rect(TX0 + CW / 2 - 2, yy, TX0 + CW / 2 + 2, yy + 8, ACC)
+tri([(TX0 + CW / 2 - 8, CARD_Y0 - 14), (TX0 + CW / 2 + 8, CARD_Y0 - 14), (TX0 + CW / 2, CARD_Y0 - 4)], ACC)
 
 # 7. Labels: small caps grotesk with a 1px orthogonal leader; English only (no extra CJK)
 cap = font(GROT_M, 15)
@@ -216,7 +223,7 @@ def label(ax, ay, lx, ly, s, c=INK):
         vline(ax, min(ay, ly + 22), max(ay, ly + 22), c, 1.2)
     rect(ax - 3, ay - 3, ax + 3, ay + 3, c)
 label(RX - 68, HY0 + 30, col(0), HY0 - 40, 'AGENT')
-label(TX0 + 4, CARD_Y0 - 34, TX0 - 92, CARD_Y0 - 92, 'NOTE 61', ACC)
+label(CARD_X0 + CARD_W + 6, CARD_Y0 + 24, TX0, GY0 - 40, 'NOTE 61', ACC)
 
 # =============================================================================================
 # 8. Subtitle zone (bottom 22%, y > 1053): intentionally empty paper. Nothing to draw.
