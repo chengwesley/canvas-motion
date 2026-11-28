@@ -32,14 +32,14 @@ status: 完整
 7. 紙膠帶斜貼在紙角：長 110–200px、寬 34–44px、透明度約 65%，兩端鋸齒剪口，帶 4px 斜紋；每個畫面 3–4 條，只貼在「接點」處。
 8. 最後加墨黑細線與圓點標註（線寬 2–3px）當資訊連線，並保留底部約 22% 的空白紙面。
 
-## 代表畫家、設計師與作品（5–8 位：人名（原文＋常用中譯）、年代與地區、1–2 件代表作、這個風格要向他學什麼。只列你有把握的事實；任何不確定的作品名或年份，在該行結尾標「（待查證）」，寧可少列也不要編造）
-- Hannah Höch（漢娜．赫希）：1920 年代德國柏林達達；《Cut with the Kitchen Knife Dada Through the Last Weimar Beer-Belly Cultural Epoch of Germany》（約 1919–1920）。學習：大小尺度並置、密集但有動線的構圖。
-- Kurt Schwitters（庫爾特．施維特斯）：1910–30 年代德國；「Merz」系列拼貼。學習：用票券、碎紙的質感與節奏做畫面，而不是用形狀。
-- Richard Hamilton（理查．漢彌爾頓）：1950 年代英國波普；《Just what is it that makes today's homes so different, so appealing?》（1956）。學習：用單一場景把許多片段組成一則清楚的敘事。
-- Romare Bearden（羅馬爾．比爾登）：1960–70 年代美國；《The Block》（1971）。學習：以剪紙塊面堆出空間，色塊分區明確。
-- Alexander Rodchenko（亞歷山大．羅欽可）：1920 年代蘇聯；為馬雅可夫斯基《Pro Eto》做的照片蒙太奇（1923）。學習：斜向構圖與大小對比的節奏。
-- Barbara Kruger（芭芭拉．克魯格）：1980 年代起美國；《Untitled (Your body is a battleground)》（1989）。學習：大字加色塊做標題的編輯式版面。
-- Peter Blake（彼得．布萊克）：1960 年代英國波普；《Sgt. Pepper's Lonely Hearts Club Band》專輯封面（1967，與 Jann Haworth 合作）。學習：多元素擺進同一層次且仍有焦點。
+## 代表畫家、設計師與作品
+- Hannah Höch（漢娜．赫希），1889–1978，德國柏林達達：《Cut with the Kitchen Knife Dada through the Last Weimar Beer-Belly Cultural Epoch in Germany》（約 1919–1920）。學習：大小尺度並置、密集但有動線的構圖。
+- Kurt Schwitters（庫爾特．施維特斯），1887–1948，德國：「Merz」系列拼貼（1919 年起）。學習：用票券、碎紙的質感與節奏做畫面，而不是用形狀。
+- Richard Hamilton（理查．漢彌爾頓），1922–2011，英國波普：《Just what is it that makes today's homes so different, so appealing?》（1956）。學習：用單一場景把許多片段組成一則清楚的敘事。
+- Romare Bearden（羅馬爾．比爾登），1911–1988，美國：《The Block》（1971，紐約大都會藝術博物館典藏）。學習：以剪紙塊面堆出空間，色塊分區明確。
+- Alexander Rodchenko（亞歷山大．羅欽可），1891–1956，蘇聯：為馬雅可夫斯基《Pro Eto》（《關於這個》）做的照片蒙太奇（1923）。學習：斜向構圖與大小對比的節奏。
+- Barbara Kruger（芭芭拉．克魯格），1945 年生，美國：《Untitled (Your body is a battleground)》（1989）。學習：大字加色塊做標題的編輯式版面。
+- Peter Blake（彼得．布萊克），1932 年生，英國波普：《Sgt. Pepper's Lonely Hearts Club Band》專輯封面（1967，與 Jann Haworth 合作）。學習：多元素擺進同一層次且仍有焦點。
 
 ## 配色與色階（表格：角色｜色碼｜用途；每個主要顏色列出陰影／主色／亮面／高光；一個畫面最多幾色；強調色怎麼用。色碼必須和 sample.py 一致）
 | 角色 | 色碼 | 用途 |
